@@ -400,6 +400,37 @@ function LoanMarket({ data, gu }) {
   );
 }
 
+/* --- population (행안부) and apartment stock (K-apt) for the selected region --- */
+function RegionStats({ s, asOf, lv }) {
+  if (!s) return null;
+  const u = s.units || {}, tot = (u.le60 || 0) + (u["60_85"] || 0) + (u["85_135"] || 0) + (u.gt135 || 0);
+  const bands = [["~60㎡", u.le60, "#7DD3C0"], ["60~85㎡", u["60_85"], "#2E9F86"], ["85~135㎡", u["85_135"], "#0B5D4B"], ["135㎡~", u.gt135, "#06352B"]];
+  const n = (v) => (v == null ? "—" : Number(v).toLocaleString());
+  return (
+    <div className="rounded-large bg-content1 p-4 shadow-small">
+      <div className="mb-2 text-small font-semibold">지역 기본 정보</div>
+      <div className="grid grid-cols-3 gap-2 text-tiny num">
+        {[["인구", s.population != null ? `${n(s.population)}명` : "—"], ["세대수", s.households != null ? `${n(s.households)}세대` : "—"], ["아파트 거주 비중", s.apt_share != null ? `${s.apt_share}%` : "—"],
+          ["아파트 단지", `${n(s.apt_complexes)}곳`], ["아파트 세대", `${n(s.apt_households)}세대`], ["임대 포함 단지", `${n(s.rental_complexes)}곳`]].map(([l, v]) => (
+          <div key={l} className="rounded-medium bg-default-100 px-2.5 py-2"><div className="text-default-500">{l}</div><div className="text-small font-semibold">{v}</div></div>
+        ))}
+      </div>
+      {tot > 0 && (
+        <>
+          <div className="mt-3 mb-1 text-tiny text-default-500">면적별 아파트 세대수</div>
+          <div className="flex h-3 overflow-hidden rounded-full">{bands.map(([l, v, c]) => v ? <span key={l} style={{ width: `${(v / tot) * 100}%`, background: c }} title={`${l} ${n(v)}세대`} /> : null)}</div>
+          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-tiny num">
+            {bands.map(([l, v, c]) => <span key={l} className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: c }} />{l} <b>{n(v)}</b><span className="text-default-400">({tot ? Math.round(((v || 0) / tot) * 100) : 0}%)</span></span>)}
+          </div>
+        </>
+      )}
+      <p className="mt-2 text-[10px] text-default-400">
+        {lv === "bdong" ? "인구·세대는 행정동 단위로만 공개돼 법정동에는 없습니다. " : ""}인구: 행정안전부 주민등록 {asOf?.population}. 아파트: K-apt 관리비 공개 단지({asOf?.kapt}) 기준이라 소규모 단지는 빠져 있고, 오피스텔·빌라는 포함되지 않습니다.
+      </p>
+    </div>
+  );
+}
+
 /* --- region analysis: price & change, 평형 mix, trend, jeonse, my loan, redevelopment, busiest complexes --- */
 function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, scen, P, fitOf, fitColor, onClose, onApt }) {
   const d = r[period] || {};
@@ -411,7 +442,7 @@ function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, scen, P, 
   const maxLoan = price84 ? Math.min(price84 * LTV, loanCap(price84), ((b?.income_10k ?? 0) * DSR) / (annuity(rate + STRESS) * 12)) : 0;
   const mon = Math.min(need, maxLoan) * annuity(rate);
   const inRegion = (a) => (lv === "gu" ? a.gu === rkey : lv === "bdong" ? `${a.gu} ${a.dong}` === rkey : a.hcode === rkey);
-  const topApts = apts.filter(inRegion).sort((a, b2) => b2.trades_6m - a.trades_6m).slice(0, 6);
+  const topApts = apts.filter((a) => inRegion(a) && a.median_area_sqm >= 40).sort((a, b2) => b2.trades_6m - a.trades_6m).slice(0, 6);
   const rz = zones.filter((z) => (lv === "gu" ? z.gu === rkey : lv === "bdong" ? `${z.gu} ${z.dong}` === rkey : false));
   const series = (r.series || []).map(([mth, n, ppp]) => ({ m: mth.slice(2, 4) + "." + mth.slice(4), n, ppp, partial: mth === "202610" }));
   // donut
@@ -438,6 +469,8 @@ function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, scen, P, 
         </div>
         <p className="text-tiny text-default-400">평당가는 전용 3.3㎡ 기준 중위값. 변화율은 직전 같은 기간 대비, 거래 5건 이상일 때만.</p>
       </div>
+
+      <RegionStats s={data.region_stats?.[lv]?.[rkey]} asOf={data.region_stats?.as_of} lv={lv} />
 
       <div className="rounded-large bg-content1 p-4 shadow-small">
         <div className="mb-2 text-small font-semibold">평형별 거래</div>

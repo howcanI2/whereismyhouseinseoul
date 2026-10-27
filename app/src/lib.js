@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const FILES = ["budget", "strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market"];
+export const FILES = ["budget", "strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats"];
 
 // Large per-complex files load once, on first use, and are shared by every panel.
 const lazy = {};
