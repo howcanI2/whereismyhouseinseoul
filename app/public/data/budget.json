@@ -1,4 +1,0 @@
-[
-{"scenario":"now","label":"지금 혼자 사면","when":"2026년 말","income_10k":7000,"cash_10k":12000,"loan_ltv_10k":28000,"loan_dsr_10k":32900,"loan_cap_10k":60000,"loan_10k":28000,"max_price_10k":40000,"binding":"LTV 70%","note":"모은 돈 1.3억에서 취득세·중개비 약 1천만 빼고 계산. 스트레스 DSR은 8월 평균 금리 4.66%+3%p, 30년 원리금균등"},
-{"scenario":"later","label":"결혼 후 둘이 사면","when":"2029년 (기숙사 만료)","income_10k":14000,"cash_10k":40000,"loan_ltv_10k":93300,"loan_dsr_10k":65700,"loan_cap_10k":60000,"loan_10k":60000,"max_price_10k":100000,"binding":"주담대 한도 6억","note":"각자 1.3억 + 월 250만씩 3년 저축 = 합 4.4억, 비용 약 4천만 제외. 배우자 자산은 비슷하다는 가정"}
-]

@@ -76,7 +76,7 @@ export function PlanTab({ data, dv, part }) {
           )}
         </Box>
       </div>
-      <Box title="3년 로드맵" sub="기숙사가 끝나고 결혼하는 시점에 맞춘 순서입니다.">
+      <Box title="내집마련 로드맵" sub="지금부터 매수 시점까지 할 일을 순서대로 정리했습니다.">
         {!data.strategy ? <Loading h={240} /> : (
           <ol className="relative flex flex-col gap-0 border-l-2 border-primary-200 pl-6">
             {data.strategy.map((s) => (

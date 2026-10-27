@@ -13,6 +13,14 @@ from collections import defaultdict
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW, STATIC, OUT = (os.path.join(ROOT, "data", "raw"), os.path.join(ROOT, "data", "static"), os.path.join(ROOT, "web", "public", "data"))
 GU = {"11110":"종로구","11140":"중구","11170":"용산구","11200":"성동구","11215":"광진구","11230":"동대문구","11260":"중랑구","11290":"성북구","11305":"강북구","11320":"도봉구","11350":"노원구","11380":"은평구","11410":"서대문구","11440":"마포구","11470":"양천구","11500":"강서구","11530":"구로구","11545":"금천구","11560":"영등포구","11590":"동작구","11620":"관악구","11650":"서초구","11680":"강남구","11710":"송파구","11740":"강동구"}
+# Gyeonggi at the finest level the trade API answers for (구 codes where a city has 구, else the city/county)
+GG = {"41111":"수원시 장안구","41113":"수원시 권선구","41115":"수원시 팔달구","41117":"수원시 영통구","41131":"성남시 수정구","41133":"성남시 중원구","41135":"성남시 분당구","41150":"의정부시",
+      "41171":"안양시 만안구","41173":"안양시 동안구","41192":"부천시 원미구","41194":"부천시 소사구","41196":"부천시 오정구","41210":"광명시","41220":"평택시","41250":"동두천시",
+      "41271":"안산시 상록구","41273":"안산시 단원구","41281":"고양시 덕양구","41285":"고양시 일산동구","41287":"고양시 일산서구","41290":"과천시","41310":"구리시","41360":"남양주시",
+      "41370":"오산시","41390":"시흥시","41410":"군포시","41430":"의왕시","41450":"하남시","41461":"용인시 처인구","41463":"용인시 기흥구","41465":"용인시 수지구","41480":"파주시",
+      "41500":"이천시","41550":"안성시","41570":"김포시","41591":"화성시 만세구","41593":"화성시 효행구","41595":"화성시 병점구","41597":"화성시 동탄구","41610":"광주시",
+      "41630":"양주시","41650":"포천시","41670":"여주시","41800":"연천군","41820":"가평군","41830":"양평군"}
+REGIONS = {**GU, **GG}
 # rough transit minutes from each 구's main residential area to 광화문 (estimate shown as such in the app)
 COMMUTE = {"종로구":15,"중구":15,"용산구":25,"서대문구":25,"마포구":30,"성북구":30,"동대문구":30,"성동구":35,"은평구":35,"광진구":40,"영등포구":40,"동작구":40,"중랑구":45,"강북구":45,"관악구":45,"서초구":45,"강남구":45,"구로구":45,"양천구":45,"송파구":50,"노원구":50,"도봉구":50,"강서구":50,"금천구":50,"강동구":55}
 NOW_MAX, LATER_MIN, LATER_MAX, PY = 40000, 80000, 105000, 3.3058
@@ -32,6 +40,10 @@ def save(p, obj, gz=False, pretty=False):
     else:
         with open(p, "w", encoding="utf-8") as f: f.write(txt)
 med = lambda xs: round(st.median(xs)) if xs else None
+# 21-point price distribution (every 5%) so the app can work out "share of trades under my budget" for any budget
+def quant(xs):
+    if len(xs) < 5: return None
+    xs = sorted(xs); return [xs[round(i / 20 * (len(xs) - 1))] for i in range(21)]
 won = lambda v: (f"{v/10000:.1f}".rstrip("0").rstrip(".") + "억") if v >= 10000 else f"{v:,}만"
 
 # ---------------- windows ----------------
@@ -93,7 +105,7 @@ def fetch(W, key):
     raw["rents"] = {k: v for k, v in raw["rents"].items() if k.split("_")[1] in keep_r}
     fresh = set(W["months24"][-3:])  # late reports keep arriving for ~30 days, so re-pull the last 3 months
     calls = 0
-    for code in GU:
+    for code in REGIONS:
         for ym in W["months24"]:
             k = f"{code}_{ym}"
             if k in raw["trades"] and ym not in fresh: continue
@@ -121,9 +133,11 @@ def geocode_new(ids_rows, key):
     for r in new if key else []:
         gu, dong, apt = r["gu"], r["dong"], r["apt"]; hit = None
         m = re.fullmatch(r"\((\d+(?:-\d+)?)\)", apt.strip())
-        inside = lambda a: a and gu in a and dong in a.split()
+        city = gu.split()[0]  # "수원시 장안구" -> match on "수원시": new 구 names lag in some address records
+        inside = lambda a: a and city in a and dong in a.split()
+        sido = "서울" if r.get("sido", "11") == "11" else "경기"
         if m:
-            for d in kakao("search/address", {"query": f"서울 {gu} {dong} {m.group(1)}", "size": 5}, key).get("documents", []):
+            for d in kakao("search/address", {"query": f"{sido} {gu} {dong} {m.group(1)}", "size": 5}, key).get("documents", []):
                 if inside(d.get("address_name", "")): hit = d; break
         else:
             docs = kakao("search/keyword", {"query": f"{gu} {dong} {re.sub(r'\(.*?\)', '', apt).strip() or apt}", "size": 15}, key).get("documents", [])
@@ -143,11 +157,14 @@ def geocode_new(ids_rows, key):
 def build(raw, W, kakao_key):
     trades = []  # (gu, dong, apt, ym, date, area, floor, price)
     for k, v in raw["trades"].items():
-        code, ym = k.split("_"); gu = GU[code]
+        code, ym = k.split("_")
+        if code not in GU: continue  # the Seoul build; Gyeonggi goes through build_metro
+        gu = GU[code]
         for i in v["items"]:
             if i.get("price_10k") and i.get("area_sqm"): trades.append((gu, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year")))
     rents = []  # (gu, dong, name, area, deposit) jeonse only
     for k, v in raw["rents"].items():
+        if k.split("_")[0] not in GU: continue
         gu = GU[k.split("_")[0]]
         for i in v["items"]:
             if not i.get("monthly_rent_10k") and i.get("deposit_10k") and i.get("area_sqm"): rents.append((gu, i["dong"], i.get("unit_name", ""), i["area_sqm"], i["deposit_10k"]))
@@ -241,7 +258,7 @@ def build(raw, W, kakao_key):
         for p in ("p3", "p6", "p12"):
             cw, pw = set(W[p][0]), set(W[p][1]); c = [r for r in rows if r[0] in cw]; q = [r for r in rows if r[0] in pw]
             d = {"n": len(c), "n_prev": len(q), "vol_chg": round((len(c) - len(q)) / len(q) * 100, 1) if len(c) >= 5 and len(q) >= 5 else None,
-                 "ppp": med([r[2] / r[1] * PY for r in c]), "ppp_prev": med([r[2] / r[1] * PY for r in q]), "chg": unit_chg(c, q, n_min), "p84": med([r[2] for r in c if 75 <= r[1] <= 90]),
+                 "ppp": med([r[2] / r[1] * PY for r in c]), "ppp_prev": med([r[2] / r[1] * PY for r in q]), "chg": unit_chg(c, q, n_min), "p84": med([r[2] for r in c if 75 <= r[1] <= 90]), "q": quant([r[2] for r in c]),
                  "fit_now": round(sum(r[2] <= NOW_MAX for r in c) / len(c) * 100, 1) if c else None, "fit_later": round(sum(LATER_MIN <= r[2] <= LATER_MAX for r in c) / len(c) * 100, 1) if c else None, "bands": {}}
             for b, ok in BANDS:
                 bc = [r for r in c if ok(r[1])]; bq = [r for r in q if ok(r[1])]
@@ -325,9 +342,113 @@ def build(raw, W, kakao_key):
     if js: b.append(("전세", f"전세가율이 가장 높은 구는 {js[0][0]} {js[0][1]}%, 가장 낮은 구는 {js[-1][0]} {js[-1][1]}%입니다. 높을수록 매매가 대비 전세가 비쌉니다."))
     if len(rates) >= 2: b.append(("금리", f"주담대 평균 금리는 {rates[-1]['month']} {rates[-1]['mortgage_pct']:.2f}%로 전월보다 {rates[-1]['mortgage_pct']-rates[-2]['mortgage_pct']:+.2f}%p, 기준금리는 {rates[-1]['base_pct']:.2f}%입니다."))
     b.append(("정비사업", f"올해 사업시행인가 이후 단계로 넘어간 재개발·정비구역은 {len(staged)}곳입니다."))
-    if fit_share is not None: b.append(("나에게", f"광화문 통근권(45분 이내 추정) 구에서 {rs} 거래 중 결혼 후 예산(8~10.5억)에 드는 거래는 {fit_share}%입니다."))
     save(os.path.join(OUT, "market.json"), {"period": f"{span(W['p3'][0])} ({mlabel(W['cur'])}은 집계 중)", "as_of": dt.date.today().isoformat(), "bullets": [{"tag": t, "text": x} for t, x in b], "highs": highs[:10]}, pretty=True)
     print(f"build: {len(apt_rows):,} complexes ({sum(1 for a in apt_rows if a.get('lon') is not None):,} located), {len(info):,} with K-apt basics, {len(highs):,} record highs; window {W['p3'][0][0]}~{last}")
+
+def sgg_of(code):
+    """Boundary key and display name. 화성시 split into 4 구 in 2026, after the boundary file, so its 구 roll up to 화성시."""
+    if code.startswith("4159"): return "41590", "화성시"
+    return code, REGIONS[code]
+
+def build_metro(raw, W, kakao_key):
+    """서울+경기 view: 시군구 / 행정동 insights, complexes, per-complex detail for Gyeonggi."""
+    trades, rents = [], []
+    for k, v in raw["trades"].items():
+        code, ym = k.split("_")
+        if code not in REGIONS: continue
+        sgg, name = sgg_of(code)
+        for i in v["items"]:
+            if i.get("price_10k") and i.get("area_sqm"): trades.append((sgg, name, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year")))
+    for k, v in raw["rents"].items():
+        code = k.split("_")[0]
+        if code not in REGIONS: continue
+        sgg, name = sgg_of(code)
+        for i in v["items"]:
+            if not i.get("monthly_rent_10k") and i.get("deposit_10k") and i.get("area_sqm"): rents.append((sgg, i["dong"], i.get("unit_name", ""), i["area_sqm"], i["deposit_10k"]))
+    six, rec_start = set(W["six"]), f"{W['p3'][0][0][:4]}-{W['p3'][0][0][4:]}-01"
+    six_start = f"{W['six'][0][:4]}-{W['six'][0][4:]}-01"
+    # complexes (Seoul ids stay "구 동 단지" so they share geocodes and detail with the Seoul view)
+    cx = defaultdict(list)
+    for t in trades:
+        if t[4] in six: cx[(t[0], t[1], t[2], t[3])].append(t)
+    apts = []
+    for (sgg, name, dong, apt), v in cx.items():
+        p = [t[8] for t in v]; mp = med(p)
+        apts.append({"id": f"{name} {dong} {apt}", "sido": sgg[:2], "sgg": sgg, "gu": name, "dong": dong, "apt": apt, "build_year": v[0][9], "trades_6m": len(v), "median_price_10k": mp,
+                     "min_price_10k": min(p), "max_price_10k": max(p), "median_area_sqm": round(st.median([t[6] for t in v])), "last_trade": max(t[5] for t in v),
+                     "fit": "지금 예산" if mp <= NOW_MAX else "결혼 후 예산" if LATER_MIN <= mp <= LATER_MAX else "그 사이" if mp < LATER_MIN else "예산 초과"})
+    geo, hd = geocode_new(apts, kakao_key)
+    for a in apts:
+        g = geo.get(a["id"]); h = hd.get(a["id"])
+        if g: a["lon"], a["lat"] = g["lon"], g["lat"]
+        if h: a["hcode"] = h["hcode"]
+    save(os.path.join(OUT, "metro_apts.json"), apts)
+    # regions
+    hgeo = load(os.path.join(OUT, "metro_hdong_geo.json"), []); hnames = {h["code"]: (h["sgg"], h["name"]) for h in hgeo}
+    sgg_names = {code: sgg_of(code)[1] for code in REGIONS}
+    by_id = {a["id"]: a for a in apts}
+    reg = defaultdict(list); cent = defaultdict(lambda: [0.0, 0.0, 0]); rent_reg = defaultdict(list)
+    for t in trades:
+        a = by_id.get(f"{t[1]} {t[2]} {t[3]}"); keys = [("sgg", t[0])]
+        if a and a.get("hcode") in hnames: keys.append(("hdong", a["hcode"]))
+        for kk in keys:
+            reg[kk].append((t[4], t[6], t[8], f"{t[3]}|{round(t[6])}"))
+            if a and a.get("lon") is not None: c = cent[kk]; c[0] += a["lon"]; c[1] += a["lat"]; c[2] += 1
+    for x in rents: rent_reg[("sgg", x[0])].append((x[3], x[4]))
+    BANDS = [("s", lambda a: a < 60), ("m", lambda a: 60 <= a <= 85), ("l", lambda a: a > 85)]
+    def unit_chg(c, q, n):
+        a, b = defaultdict(list), defaultdict(list)
+        for r in c: a[r[3]].append(r[2])
+        for r in q: b[r[3]].append(r[2])
+        ratios = [st.median(a[k]) / st.median(b[k]) for k in a.keys() & b.keys()]
+        return round((st.median(ratios) - 1) * 100, 1) if len(ratios) >= n else None
+    ins = {"sgg": {}, "hdong": {}}
+    for (lv, key), rows in reg.items():
+        n_min = 5 if lv == "sgg" else 10
+        rec = {"name": sgg_names.get(key, key), "sido": key[:2]} if lv == "sgg" else {"name": hnames[key][1], "gu": sgg_names.get(hnames[key][0], ""), "sgg": hnames[key][0], "sido": key[:2]}
+        for p in ("p3", "p6", "p12"):
+            cw, pw = set(W[p][0]), set(W[p][1]); c = [r for r in rows if r[0] in cw]; q = [r for r in rows if r[0] in pw]
+            d = {"n": len(c), "n_prev": len(q), "vol_chg": round((len(c) - len(q)) / len(q) * 100, 1) if len(c) >= 5 and len(q) >= 5 else None,
+                 "ppp": med([r[2] / r[1] * PY for r in c]), "chg": unit_chg(c, q, n_min), "p84": med([r[2] for r in c if 75 <= r[1] <= 90]), "q": quant([r[2] for r in c]),
+                 "fit_now": round(sum(r[2] <= NOW_MAX for r in c) / len(c) * 100, 1) if c else None, "fit_later": round(sum(LATER_MIN <= r[2] <= LATER_MAX for r in c) / len(c) * 100, 1) if c else None, "bands": {}}
+            for b, ok in BANDS:
+                bc = [r for r in c if ok(r[1])]; bq = [r for r in q if ok(r[1])]
+                d["bands"][b] = {"share": round(len(bc) / len(c) * 100, 1) if c else 0, "ppp": med([r[2] / r[1] * PY for r in bc]), "chg": unit_chg(bc, bq, n_min), "n": len(bc)}
+            rec[p] = d
+        rr = rent_reg.get((lv, key), []); s6 = [r for r in rows if r[0] in set(W["p6"][0])]
+        if len(rr) >= 5 and len(s6) >= 5:
+            rec["jeonse_ratio"] = round(st.median([d / a for a, d in rr]) / st.median([r[2] / r[1] for r in s6]) * 100, 1); rec["jeonse_ppp"] = round(st.median([d / a for a, d in rr]) * PY)
+        bm = defaultdict(list)
+        for r in rows: bm[r[0]].append(r[2] / r[1] * PY)
+        rec["series"] = [[m, len(bm[m]), med(bm[m])] for m in W["months24"]]
+        cc = cent.get((lv, key))
+        if cc and cc[2]: rec["center"] = [round(cc[0] / cc[2], 5), round(cc[1] / cc[2], 5)]
+        ins[lv][key] = rec
+    ins["meta"] = {"as_of": dt.date.today().isoformat(), "notes": {p: f"{span(W[p][0])} vs {span(W[p][1])}" for p in ("p3", "p6", "p12")}}
+    save(os.path.join(OUT, "metro_insights.json"), ins)
+    # per-complex detail and trade history for Gyeonggi complexes (Seoul ones already live in apt_detail.json)
+    tr = defaultdict(list)
+    for t in trades:
+        if t[0][:2] == "41": tr[f"{t[1]} {t[2]} {t[3]}"].append((t[5], t[6], t[7], t[8]))
+    rn = defaultdict(list)
+    for x in rents:
+        if x[0][:2] == "41": rn[f"{sgg_names.get(x[0], '')} {x[1]} {x[2]}"].append((x[3], x[4]))
+    detail, hist = {}, {}
+    for a in apts:
+        if a["sido"] != "41": continue
+        rows = sorted(tr[a["id"]]); hist[a["id"]] = [[d, round(ar, 1), fl, p] for d, ar, fl, p in reversed(rows)]
+        ba = defaultdict(list)
+        for r in rows: ba[round(r[1])].append(r)
+        areas, high = [], False
+        for ar, rs in sorted(ba.items()):
+            recent = [r for r in rs if r[0] >= six_start]; lst = rs[-1]; pmax = max((r[3] for r in rs[:-1]), default=None)
+            nh = bool(pmax and lst[3] > pmax and lst[0] >= rec_start and len(rs) >= 3); high = high or nh
+            jr = [d for ra, d in rn[a["id"]] if abs(ra - ar) <= 3]; mp = med([r[3] for r in recent]) or lst[3]
+            areas.append({"a": ar, "n": len(rs), "n6": len(recent), "med": med([r[3] for r in recent]), "last": lst[3], "last_date": lst[0], "last_floor": lst[2], "max": max(r[3] for r in rs),
+                          "max_date": max(rs, key=lambda r: r[3])[0], "min": min(r[3] for r in rs), "jeonse": med(jr), "jeonse_n": len(jr), "jeonse_ratio": round(med(jr) / mp * 100, 1) if jr and mp else None, "high": nh})
+        detail[a["id"]] = {"areas": areas, "high": high}
+    save(os.path.join(OUT, "apt_detail_gg.json"), detail); save(os.path.join(OUT, "trades_gg.json"), hist)
+    print(f"metro: {len(apts):,} complexes ({sum(1 for a in apts if a.get('lon') is not None):,} located), {len(ins['sgg'])} 시군구, {len(ins['hdong'])} 행정동")
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--no-fetch", action="store_true"); ap.add_argument("--today", help="YYYY-MM-DD, for testing"); args = ap.parse_args()
@@ -338,3 +459,4 @@ if __name__ == "__main__":
     elif not key: sys.exit("DATA_GO_KR_API_KEY is not set (use --no-fetch to rebuild from data/raw)")
     else: raw = fetch(W, key)
     build(raw, W, os.environ.get("KAKAO_REST_KEY"))
+    build_metro(raw, W, os.environ.get("KAKAO_REST_KEY"))

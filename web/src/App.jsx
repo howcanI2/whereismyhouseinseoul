@@ -1,13 +1,16 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Tab, Tabs } from "@heroui/react";
+import { Button, ButtonGroup, Tab, Tabs } from "@heroui/react";
 import Atlas from "./Atlas.jsx";
 import KakaoAtlas from "./KakaoAtlas.jsx";
 import { PERIOD_NOTE } from "./Atlas.jsx";
 
-const KAKAO_KEY = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+import ProfileModal from "./Profile.jsx";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
-import { derive, fmt, useData, won } from "./lib.js";
+import { budgetsFrom, derive, fmt, useData, useProfile, won } from "./lib.js";
+
+// Next.js inlines this at build time; the claude.ai build has no Kakao key and uses the drawn map.
+const KAKAO_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_KAKAO_JS_KEY : undefined;
 
 // Three screens, one question each: where can I buy, how much can I afford, what do I do next.
 const TABS = [
@@ -27,7 +30,11 @@ function Stat({ label, value, sub, tone }) {
 }
 
 export default function App() {
-  const { data, errors } = useData();
+  const { data: loaded, errors } = useData();
+  const [profile, saveProfile, resetProfile] = useProfile();
+  const [profileOpen, setProfileOpen] = useState(false);
+  // budgets come from the viewer's own 내 조건, never from a shared file
+  const data = useMemo(() => ({ ...loaded, budget: budgetsFrom(profile, loaded.rates?.at(-1)?.mortgage_pct) }), [loaded, profile]);
   const dv = useMemo(() => derive(data), [data]);
   // period labels ("7월~9월 vs 4월~6월") come from the daily refresh, so they move with the data
   if (data.insights?.meta?.notes) Object.assign(PERIOD_NOTE, data.insights.meta.notes);
@@ -36,29 +43,42 @@ export default function App() {
   const b = (s) => data.budget?.find((x) => x.scenario === s);
   const failed = Object.keys(errors);
   const [kakaoError, setKakaoError] = useState(null);
+  const [scope, setScope] = useState("seoul");
 
   return (
     <main className="page mx-auto flex max-w-[1440px] flex-col gap-4">
       <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-col gap-1">
-          <span className="text-tiny font-medium text-primary">오류동 기숙사 → 광화문 출퇴근 · 결혼 3년 후 매수 목표</span>
+          <button type="button" onClick={() => setProfileOpen(true)} className="flex w-fit items-center gap-2 rounded-full bg-primary-50 px-3 py-1 text-tiny font-medium text-primary hover:bg-primary-100">
+            {profile.example ? "예시 조건으로 보는 중 · 내 조건 입력하기" : `내 조건: 연소득 ${won(profile.income)} · 모은 돈 ${won(profile.cash)}${Number(profile.marry) ? ` · ${profile.marry}년 뒤 둘이` : ""} · 수정`}
+          </button>
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">서울 내집마련 전략판</h1>
         </div>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-large bg-content1 px-4 py-3 shadow-small sm:grid-cols-4">
-          <Stat label="지금 혼자" value={won(b("now")?.max_price_10k)} sub={dv.pay ? `월 ${won(dv.pay.now.monthly)} 상환` : ""} />
-          <Stat label="결혼 후 둘이" value={won(b("later")?.max_price_10k)} tone="text-primary" sub={dv.pay ? `월 ${won(dv.pay.later.monthly)} 상환` : ""} />
+          <Stat label={b("now")?.label} value={won(b("now")?.max_price_10k)} sub={dv.pay ? `월 ${won(dv.pay.now.monthly)} 상환` : ""} />
+          <Stat label={b("later")?.label} value={won(b("later")?.max_price_10k)} tone="text-primary" sub={dv.pay ? `월 ${won(dv.pay.later.monthly)} 상환` : ""} />
           <Stat label={`주담대 금리 ${dv.rateNow?.month?.slice(5) ?? ""}월`} value={dv.rateNow && fmt.rate(dv.rateNow.pct)} sub={dv.rateNow ? `전월 ${fmt.pp(dv.rateNow.change)}` : ""} tone={dv.rateNow?.change > 0 ? "text-danger" : ""} />
           <Stat label={`서울 거래 ${dv.market?.month?.slice(5) ?? ""}월`} value={dv.market && fmt.cnt(dv.market.trades)} sub={dv.market ? `전월 ${fmt.pct(dv.market.change)}` : ""} />
         </div>
       </header>
 
       {failed.length > 0 && <p className="text-small text-danger">일부 데이터를 불러오지 못했습니다: {failed.join(", ")}</p>}
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={saveProfile} onReset={resetProfile} budgets={data.budget} />
 
       <Tabs aria-label="화면" color="primary" variant="solid" radius="full" size="lg" selectedKey={tab} onSelectionChange={(k) => setTab(String(k))}
         classNames={{ base: "w-full", tabList: "bg-content1 shadow-small", tab: "px-5 h-11", panel: "px-0 pt-1" }}>
         {TABS.map(([k, l, q]) => (
           <Tab key={k} title={<span className="flex items-baseline gap-2"><span className="font-semibold">{l}</span><span className="hidden text-tiny opacity-70 sm:inline">{q}</span></span>}>
-            {k === "map" && (KAKAO_KEY && !kakaoError ? <KakaoAtlas data={data} appKey={KAKAO_KEY} onFail={setKakaoError} /> : (
+            {k === "map" && KAKAO_KEY && !kakaoError && (
+              <div className="mb-3 flex flex-wrap items-center gap-3">
+                <ButtonGroup size="md" radius="full">
+                  <Button color={scope === "seoul" ? "primary" : "default"} variant={scope === "seoul" ? "solid" : "flat"} onPress={() => setScope("seoul")}>서울</Button>
+                  <Button color={scope === "metro" ? "primary" : "default"} variant={scope === "metro" ? "solid" : "flat"} onPress={() => setScope("metro")}>서울+경기 (출퇴근권)</Button>
+                </ButtonGroup>
+                <span className="text-tiny text-default-500">{scope === "metro" ? "서울 25개 구와 경기 시군구를 함께 봅니다. 통근시간으로 거르면 광화문 출퇴근이 가능한 곳만 남습니다." : "서울 구 · 법정동 · 행정동 단위로 봅니다."}</span>
+              </div>
+            )}
+            {k === "map" && (KAKAO_KEY && !kakaoError ? <KakaoAtlas data={data} appKey={KAKAO_KEY} onFail={setKakaoError} scope={scope} /> : (
               <div className="flex flex-col gap-2">
                 {kakaoError && <p className="rounded-medium bg-warning-50 px-3 py-2 text-small text-warning-700">카카오맵을 불러오지 못해 기본 지도로 보여드립니다. 카카오 개발자 콘솔 &gt; 플랫폼 &gt; Web에 이 사이트 주소({typeof window !== "undefined" ? window.location.origin : ""})가 등록돼 있는지 확인하세요.</p>}
                 <Atlas data={data} />
@@ -83,7 +103,7 @@ export default function App() {
 
       <footer className="text-tiny leading-relaxed text-default-400">
         실거래가: 국토교통부 아파트 매매 실거래 (real-estate MCP, 2026-10-27 스냅샷). 금리: 한국은행 ECOS·은행연합회·언론 보도. 지도: 통계청·도로명주소 경계, 단지·역 위치는 카카오 로컬 검색.
-        예산은 금리 4.66%, 스트레스 금리 3%p, 30년 상환, 월 250만 저축 가정의 추정이며 투자 조언이 아닙니다.
+        예산은 내 조건(이 브라우저에만 저장)과 최신 주담대 금리, 스트레스 금리 3%p, 30년 상환으로 계산한 추정이며 투자 조언이 아닙니다.
       </footer>
     </main>
   );

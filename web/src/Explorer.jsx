@@ -6,7 +6,7 @@ import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Swi
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 import { annuity, DSR, fmt, loanCap, LTV, palette, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
 
-export const REF = [{ n: "광화문 (직장)", lon: 126.9769, lat: 37.5759 }, { n: "오류동 기숙사", lon: 126.8437, lat: 37.4945 }];
+export const REF = [{ n: "광화문", lon: 126.9769, lat: 37.5759 }];
 export const LINE_COLOR = { "1호선": "#0052A4", "2호선": "#00A84D", "3호선": "#EF7C1C", "4호선": "#00A5DE", "5호선": "#996CAC", "6호선": "#CD7C2F", "7호선": "#747F00", "8호선": "#E6186C", "9호선": "#BDB092", "신분당선": "#D4003B", "경의중앙선": "#77C4A3", "공항철도": "#0090D2", "수인분당선": "#F5A200", "우이신설선": "#B0CE18", "신림선": "#6789CA", "서해선": "#8FC31F", "GTX-A": "#9A6292", "경춘선": "#0C8E72" };
 export const AREAS = [["all", "전체 면적"], ["s", "40~60㎡"], ["m", "60~85㎡"], ["l", "85㎡~"]];
 export const STAGES = ["후보지·선정", "정비구역 지정", "추진위·조합설립", "사업시행인가", "관리처분인가", "이주·철거·착공", "준공"];
@@ -313,7 +313,7 @@ export default function Explorer({ data }) {
               {legendOpen && <>
               <div className="flex flex-col gap-1">
                 {["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: fitColor[f] }} />{fitText[f]}</span>)}
-                <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>직장 · 기숙사</span>
+                <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>광화문</span>
               </div>
               <Switch size="sm" className="mt-2" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
               {showRedev && (
@@ -417,7 +417,8 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const mon = Math.min(need, maxLoan) * annuity(rate);
   const pts = (rows || []).map(([d, a, fl, p]) => ({ t: Date.parse(d), p: p / 10000, a, d, fl }));
   const dong = data.dong_summary?.find((r) => r.id === `${apt.gu} ${apt.dong}`);
-  const details = useLazyFile("apt_detail"), basics = useLazyFile("apt_info");
+  const details = useLazyFile(apt.sido === "41" ? "apt_detail_gg" : "apt_detail"), basics = useLazyFile("apt_info");
+  const ride = data.commute?.[apt.hcode];
   const det = details?.[apt.id], info = basics?.[apt.id];
   return (
     <div className="flex flex-col gap-3 rounded-large bg-content1 p-4 shadow-small">
@@ -433,6 +434,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         {dong && <Chip size="sm" variant="flat">{dong.apt_zone}</Chip>}
         {apt.build_year && apt.build_year <= 1996 && <Chip size="sm" variant="flat" color="warning">재건축 연한 (30년+)</Chip>}
         {near?.[0] && <Chip size="sm" variant="flat">{near[0].station} {near[0].lines.join("·")} · 도보 약 {Math.max(1, Math.round(near[0].d / 75))}분</Chip>}
+        {ride && <Chip size="sm" variant="flat" color="primary">광화문까지 대중교통 약 {ride.min}분{ride.route ? ` · ${ride.route}` : ""}</Chip>}
       </div>
       <div className="grid grid-cols-3 gap-2">
         {[["중위가", won(price)], ["가격 범위", `${won(apt.min_price_10k)}~${won(apt.max_price_10k)}`], ["대표 면적", `${apt.median_area_sqm}㎡`]].map(([l, v]) => (

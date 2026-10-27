@@ -1,8 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { HeroUIProvider } from "@heroui/react";
-import App from "./App.jsx";
-import "./index.css";
+// The claude.ai build renders the same app as web/ (Next.js); without a Kakao key it uses the drawn map.
+import App from "../../web/src/App.jsx";
+import "../../web/app/globals.css";
 
 // Follow the viewer's theme: an explicit data-theme wins, otherwise the OS setting.
 function applyTheme() {

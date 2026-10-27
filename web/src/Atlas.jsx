@@ -4,17 +4,19 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, DSR, fmt, loanCap, LTV, palette, STRESS, useIsDark, won } from "./lib.js";
+import { annuity, DSR, fitState, fmt, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, dist, LINE_COLOR, polysOf, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 
 export const LEVELS = [["auto", "자동"], ["gu", "구"], ["bdong", "법정동"], ["hdong", "행정동"]];
-export const LEVEL_NAME = { gu: "구", bdong: "법정동", hdong: "행정동", apt: "단지" };
+export const LEVEL_NAME = { gu: "구", sgg: "시군구", bdong: "법정동", hdong: "행정동", apt: "단지" };
+const TOP = (lv) => lv === "gu" || lv === "sgg";
 export const PERIODS = [["p3", "3개월"], ["p6", "6개월"], ["p12", "1년"]];
 export const PERIOD_NOTE = { p3: "7~9월 vs 4~6월", p6: "4~9월 vs 직전 6개월", p12: "최근 12개월 vs 그 전 12개월" };
 export const METRICS = [
+  { id: "commute", l: "광화문 통근", get: (r) => r.commute, f: (v) => (v == null ? "—" : `${Math.round(v)}분`), inv: true },
   { id: "chg", l: "가격 변화", get: (r, p) => r[p]?.chg, f: fmt.pct, div: true },
   { id: "ppp", l: "평당가", get: (r, p) => r[p]?.ppp, f: (v) => won(v) },
-  { id: "fit", l: "내 예산 비중", get: (r, p, s) => r[p]?.[s === "now" ? "fit_now" : "fit_later"], f: fmt.share },
+  { id: "fit", l: "내 예산 이하 거래", get: (r, p) => shareBelow(r[p]?.q, fitState.budget), f: fmt.share },
   { id: "vol", l: "거래량 변화", get: (r, p) => r[p]?.vol_chg, f: fmt.pct, div: true },
   { id: "jeonse", l: "전세가율", get: (r) => r.jeonse_ratio, f: fmt.share },
 ];
@@ -64,6 +66,7 @@ export default function Atlas({ data }) {
   const [size, setSize] = useState({ w: 0, h: 0 });
   const wrapRef = useRef(null), svgRef = useRef(null), zoomRef = useRef(null), k0Ref = useRef(1), raf = useRef(0), moved = useRef(false);
   const m = METRICS.find((x) => x.id === metricId);
+  fitState.budget = budget;
 
   useEffect(() => { if (later && now) setBudget(scen === "later" ? later.max_price_10k : now.max_price_10k); }, [scen, later, now]);
   useEffect(() => { if (sel && !trades) fetch("data/trades.json").then((r) => r.json()).then(setTrades).catch(() => setTrades({})); }, [sel, trades]);
@@ -136,8 +139,8 @@ export default function Atlas({ data }) {
     const lo = q(0.05), hi = q(0.95);
     if (m.div) { const a = Math.max(Math.abs(lo), Math.abs(hi), 1); return { lo: -a, hi: a, color: (v) => (v >= 0 ? mixc(P.faint, UP, v / a) : mixc(P.faint, DOWN, -v / a)) }; }
     const base = m.id === "jeonse" ? P.amber : P.primary;
-    return { lo, hi, color: (v) => mixc(P.faint, base, hi > lo ? (v - lo) / (hi - lo) : 0.5) };
-  }, [ins, regionLevel, period, metricId, scen, dark]);
+    return { lo, hi, color: (v) => { const t = hi > lo ? (v - lo) / (hi - lo) : 0.5; return mixc(P.faint, base, m.inv ? 1 - t : t); } };
+  }, [ins, regionLevel, period, metricId, scen, dark, budget]);
   const polyPaths = useMemo(() => {
     if (!geoms || !scale) return (geoms?.[regionLevel] || []).map((g) => ({ k: g.key, d: g.d, fill: P.none, op: 1 }));
     const tbl = ins[regionLevel] || {};
@@ -200,8 +203,8 @@ export default function Atlas({ data }) {
           <div className="mb-2 flex items-center justify-between">
             <span className="text-small font-semibold">내 예산</span>
             <ButtonGroup size="sm" radius="full">
-              <Button color={scen === "now" ? "primary" : "default"} variant={scen === "now" ? "solid" : "flat"} onPress={() => setScen("now")}>지금 혼자</Button>
-              <Button color={scen === "later" ? "primary" : "default"} variant={scen === "later" ? "solid" : "flat"} onPress={() => setScen("later")}>결혼 후</Button>
+              <Button color={scen === "now" ? "primary" : "default"} variant={scen === "now" ? "solid" : "flat"} onPress={() => setScen("now")}>{now?.label || "지금"}</Button>
+              <Button color={scen === "later" ? "primary" : "default"} variant={scen === "later" ? "solid" : "flat"} onPress={() => setScen("later")}>{later?.label || "나중에"}</Button>
             </ButtonGroup>
           </div>
           <Slider aria-label="최대 집값" size="sm" color="primary" step={1000} minValue={20000} maxValue={200000} value={budget} onChange={setBudget}
@@ -223,7 +226,7 @@ export default function Atlas({ data }) {
           <Divider orientation="vertical" className="h-6" />
           <ButtonGroup size="sm" radius="full">{PERIODS.map(([k, l]) => <Button key={k} color={period === k ? "primary" : "default"} variant={period === k ? "solid" : "flat"} onPress={() => setPeriod(k)}>{l}</Button>)}</ButtonGroup>
           <Divider orientation="vertical" className="h-6" />
-          <div className="flex flex-wrap gap-1">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
+          <div className="flex flex-wrap gap-1">{METRICS.filter((x) => x.id !== "commute" || Object.keys(data.commute || {}).length).map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>
         <div ref={wrapRef} className="relative h-[62vh] min-h-[440px] overflow-hidden rounded-large bg-content1 shadow-small lg:h-[calc(100vh-230px)] lg:min-h-[560px]" style={{ touchAction: "none" }}>
@@ -290,7 +293,7 @@ export default function Atlas({ data }) {
                   {scale && <div className="flex items-center gap-2 num"><span>{m.f(scale.lo)}</span><span className="h-2 flex-1 rounded-full" style={{ background: m.div ? `linear-gradient(90deg,${DOWN},${P.faint},${UP})` : `linear-gradient(90deg,${P.faint},${m.id === "jeonse" ? P.amber : P.primary})` }} /><span>{m.f(scale.hi)}</span></div>}
                   {m.div && <span className="text-default-500">빨강 = 상승, 파랑 = 하락</span>}
                   {showPins && ["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: fitColor[f] }} />{fitText[f]}</span>)}
-                  <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>직장 · 기숙사</span>
+                  <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>광화문</span>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}
@@ -315,10 +318,11 @@ export default function Atlas({ data }) {
 
 /* --- left panel when nothing is selected: ranking for the current level/period/metric + loan market --- */
 export const TAG_COLOR = { 거래: "default", 가격: "danger", 동네: "danger", 거래량: "default", "인기 단지": "primary", 신고가: "danger", 전세: "warning", 금리: "secondary", 정비사업: "default", 나에게: "primary" };
-export function MarketSummary({ market, onApt }) {
+export function MarketSummary({ market, onApt, mine }) {
   const [more, setMore] = useState(false);
   if (!market) return null;
-  const list = more ? market.bullets : market.bullets.slice(0, 5);
+  const all = mine ? [mine, ...market.bullets] : market.bullets;
+  const list = more ? all : all.slice(0, 5);
   return (
     <div className="rounded-large bg-content1 p-4 shadow-small">
       <div className="flex items-baseline justify-between"><span className="text-small font-semibold">이달의 시장 요약</span><span className="text-[10px] text-default-400">{market.period}</span></div>
@@ -331,7 +335,7 @@ export function MarketSummary({ market, onApt }) {
         ))}
       </ol>
       <div className="mt-2 flex items-center justify-between">
-        <Button size="sm" variant="light" className="h-6 min-w-0 px-2 text-tiny" onPress={() => setMore((v) => !v)}>{more ? "접기" : `${market.bullets.length - 5}개 더 보기`}</Button>
+        <Button size="sm" variant="light" className="h-6 min-w-0 px-2 text-tiny" onPress={() => setMore((v) => !v)}>{more ? "접기" : `${all.length - 5}개 더 보기`}</Button>
       </div>
       {more && market.highs?.length > 0 && (
         <div className="mt-1 border-t border-default-100 pt-2">
@@ -350,22 +354,29 @@ export function MarketSummary({ market, onApt }) {
 
 export function Overview({ data, ins, period, level, m, scen, onPick, P, onApt }) {
   if (!ins) return <Skeleton className="h-96 rounded-large" />;
-  const rows = Object.entries(ins[level] || {}).filter(([, r]) => (r[period]?.n || 0) >= (level === "gu" ? 5 : 10)).map(([key, r]) => ({ key, r, v: m.get(r, period, scen) })).filter((x) => x.v != null).sort((a, b) => b.v - a.v);
+  const rows = Object.entries(ins[level] || {}).filter(([, r]) => (r[period]?.n || 0) >= (TOP(level) ? 5 : 10)).map(([key, r]) => ({ key, r, v: m.get(r, period, scen) })).filter((x) => x.v != null).sort((a, b) => b.v - a.v);
   const top = rows.slice(0, 8), bottom = m.div ? rows.slice(-5).reverse() : [];
   const mx = Math.max(1, ...rows.map((x) => Math.abs(x.v)));
   const item = (x) => (
     <button key={x.key} type="button" onClick={() => onPick(x.key)} className="grid w-full grid-cols-[6.5rem_minmax(0,1fr)_4.2rem] items-center gap-2 rounded-small px-2 py-1 text-left text-tiny num hover:bg-default-100">
-      <span className="truncate">{level === "gu" ? x.r.name : `${x.r.gu.replace(/구$/, "")} ${x.r.name}`}</span>
+      <span className="truncate">{TOP(level) ? x.r.name : `${(x.r.gu || "").replace(/구$/, "")} ${x.r.name}`}</span>
       <span className="h-2 rounded-full" style={{ width: `${Math.max(3, (Math.abs(x.v) / mx) * 100)}%`, background: m.div ? (x.v >= 0 ? UP : DOWN) : P.primary }} />
       <span className="text-right font-semibold">{m.f(x.v)}</span>
     </button>
   );
   return (
     <div className="flex flex-col gap-4">
-      <MarketSummary market={data.market} onApt={onApt} />
+      <MarketSummary market={data.market} onApt={onApt} mine={(() => {
+        // "나에게": share of recent trades under my budget, in areas within 50 min of 광화문 when transit times exist
+        const topLv = ins.sgg ? "sgg" : "gu", rs = Object.values(ins[topLv] || {}).filter((r) => r.p3?.q);
+        const hasC = rs.some((r) => r.commute != null), near = hasC ? rs.filter((r) => r.commute != null && r.commute <= 50) : rs;
+        const n = near.reduce((s, r) => s + r.p3.n, 0); if (!n) return null;
+        const share = near.reduce((s, r) => s + (shareBelow(r.p3.q, fitState.budget) || 0) * r.p3.n, 0) / n;
+        return { tag: "나에게", text: `${hasC ? `광화문까지 대중교통 50분 이내 ${topLv === "sgg" ? "시군구" : "구"} ${near.length}곳` : "전체 지역"}에서 최근 3개월 거래 중 내 예산(${won(fitState.budget)}) 이하는 ${share.toFixed(1)}%입니다.` };
+      })()} />
       <div className="rounded-large bg-content1 p-4 shadow-small">
         <div className="text-small font-semibold">{LEVEL_NAME[level]} 순위 · {m.l}</div>
-        <p className="mb-2 text-tiny text-default-400">{PERIOD_NOTE[period]} · 거래 {level === "gu" ? 5 : 10}건 이상인 곳만</p>
+        <p className="mb-2 text-tiny text-default-400">{PERIOD_NOTE[period]} · 거래 {TOP(level) ? 5 : 10}건 이상인 곳만</p>
         {top.map(item)}
         {bottom.length > 0 && <><div className="mt-2 text-tiny text-default-500">가장 많이 내린 곳</div>{bottom.map(item)}</>}
       </div>
@@ -396,6 +407,41 @@ export function LoanMarket({ data, gu }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/* --- transit time to 광화문 (ODsay): exact for a 행정동, a trade-weighted spread for larger areas --- */
+export function CommuteCard({ commute, hcode, apts }) {
+  if (!commute) return null;
+  const one = hcode ? commute[hcode] : null;
+  let body;
+  if (one) {
+    body = (
+      <>
+        <div className="text-2xl font-bold num">약 {one.min}분</div>
+        <div className="text-small">{one.route || "도보"}</div>
+        <div className="text-tiny text-default-500 num">환승 {one.transfers}회 · 도보 {one.walk ?? "—"}m · 요금 {one.fare ? `${one.fare.toLocaleString()}원` : "—"}{one.first ? ` · ${one.first}에서 승차` : ""}</div>
+      </>
+    );
+  } else {
+    const xs = [];
+    apts.forEach((a) => { const c = commute[a.hcode]; if (c) for (let i = 0; i < Math.min(a.trades_6m, 50); i++) xs.push(c.min); });
+    if (!xs.length) return null;
+    xs.sort((a, b) => a - b);
+    const q = (p) => xs[Math.floor(p * (xs.length - 1))];
+    body = (
+      <>
+        <div className="text-2xl font-bold num">약 {q(0.5)}분 <span className="text-small font-normal text-default-500">(거래 단지 기준 중위)</span></div>
+        <div className="text-tiny text-default-500 num">가까운 쪽 {q(0.1)}분 ~ 먼 쪽 {q(0.9)}분</div>
+      </>
+    );
+  }
+  return (
+    <div className="rounded-large bg-content1 p-4 shadow-small">
+      <div className="mb-1 text-small font-semibold">광화문까지 대중교통</div>
+      {body}
+      <p className="mt-1 text-[10px] text-default-400">ODsay 대중교통 길찾기, 그 동 아파트들의 중심에서 광화문까지 최단 경로. 출근 시간대 배차·혼잡은 반영되지 않습니다.</p>
     </div>
   );
 }
@@ -434,16 +480,16 @@ export function RegionStats({ s, asOf, lv }) {
 /* --- region analysis: price & change, 평형 mix, trend, jeonse, my loan, redevelopment, busiest complexes --- */
 export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, scen, P, fitOf, fitColor, onClose, onApt }) {
   const d = r[period] || {};
-  const gu = lv === "gu" ? rkey : r.gu;
-  const title = lv === "gu" ? r.name : `${r.gu} ${r.name}`;
+  const gu = lv === "gu" ? rkey : lv === "sgg" ? r.name : r.gu;
+  const title = TOP(lv) ? r.name : `${r.gu} ${r.name}`;
   const price84 = d.p84 ?? (d.ppp ? Math.round(d.ppp * 25.4) : null);
   const b = data.budget?.find((x) => x.scenario === scen), rate = data.rates?.at(-1)?.mortgage_pct ?? 4.66;
   const need = price84 ? Math.max(0, price84 - (b?.cash_10k ?? 0)) : 0;
   const maxLoan = price84 ? Math.min(price84 * LTV, loanCap(price84), ((b?.income_10k ?? 0) * DSR) / (annuity(rate + STRESS) * 12)) : 0;
   const mon = Math.min(need, maxLoan) * annuity(rate);
-  const inRegion = (a) => (lv === "gu" ? a.gu === rkey : lv === "bdong" ? `${a.gu} ${a.dong}` === rkey : a.hcode === rkey);
+  const inRegion = (a) => (lv === "gu" ? a.gu === rkey : lv === "sgg" ? a.sgg === rkey : lv === "bdong" ? `${a.gu} ${a.dong}` === rkey : a.hcode === rkey);
   const topApts = apts.filter((a) => inRegion(a) && a.median_area_sqm >= 40).sort((a, b2) => b2.trades_6m - a.trades_6m).slice(0, 6);
-  const rz = zones.filter((z) => (lv === "gu" ? z.gu === rkey : lv === "bdong" ? `${z.gu} ${z.dong}` === rkey : false));
+  const rz = zones.filter((z) => (lv === "gu" ? z.gu === rkey : lv === "sgg" ? z.gu === r.name : lv === "bdong" ? `${z.gu} ${z.dong}` === rkey : false));
   const series = (r.series || []).map(([mth, n, ppp]) => ({ m: mth.slice(2, 4) + "." + mth.slice(4), n, ppp, partial: mth === "202610" }));
   // donut
   let acc = 0;
@@ -470,6 +516,7 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
         <p className="text-tiny text-default-400">평당가는 전용 3.3㎡ 기준 중위값. 변화율은 직전 같은 기간 대비, 거래 5건 이상일 때만.</p>
       </div>
 
+      <CommuteCard commute={data.commute} hcode={lv === "hdong" ? rkey : null} apts={apts.filter(inRegion)} />
       <RegionStats s={data.region_stats?.[lv]?.[rkey]} asOf={data.region_stats?.as_of} lv={lv} />
 
       <div className="rounded-large bg-content1 p-4 shadow-small">
@@ -518,7 +565,7 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
               <span className="text-default-500">필요 {won(need)} · 최대 {won(maxLoan)}</span>
             </div>
             <div className="num">월 상환 약 <b>{won(mon)}원</b> <span className="text-tiny text-default-400">금리 {rate}% · 30년</span></div>
-            <div className="num text-tiny text-default-500">이 지역 거래 중 내 예산대 비중 {fmt.share(scen === "now" ? d.fit_now : d.fit_later)}</div>
+            <div className="num text-tiny text-default-500">이 지역 거래 중 내 예산({won(budget)}) 이하 {fmt.share(shareBelow(d.q, budget))}</div>
           </div>
         ) : <p className="text-tiny text-default-400">이 기간 거래가 적어 기준가를 낼 수 없습니다.</p>}
       </div>
