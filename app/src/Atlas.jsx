@@ -28,7 +28,7 @@ const Polys = memo(function Polys({ paths, guPaths, linePaths, showLines }) {
   return (
     <>
       {paths.map((p, i) => <path key={`${p.k}#${i}`} d={p.d} fill={p.fill} fillOpacity={p.op} stroke="hsl(var(--heroui-content1))" strokeWidth="0.7" vectorEffect="non-scaling-stroke" />)}
-      {guPaths.map((p) => <path key={p.k} d={p.d} fill="none" stroke="hsl(var(--heroui-default-500))" strokeOpacity="0.85" strokeWidth="1.4" vectorEffect="non-scaling-stroke" />)}
+      {guPaths.map((p, i) => <path key={`${p.k}#${i}`} d={p.d} fill="none" stroke="hsl(var(--heroui-default-500))" strokeOpacity="0.85" strokeWidth="1.4" vectorEffect="non-scaling-stroke" />)}
       {guPaths.length > 0 && <path d={guPaths.map((p) => p.d).join("")} fill="none" stroke="hsl(var(--heroui-foreground))" strokeOpacity="0.5" strokeWidth="2.2" vectorEffect="non-scaling-stroke" />}
       <clipPath id="seoul-clip"><path d={guPaths.map((p) => p.d).join("")} /></clipPath>
       {showLines && linePaths.map((l) => (
@@ -214,7 +214,7 @@ export default function Atlas({ data }) {
         {selApt ? <AptDetail apt={selApt} trades={trades} budget={budget} scen={scen} data={data} onClose={() => setSel(null)} P={P} fitOf={fitOf} fitText={fitText} fitColor={fitColor} />
           : selZone ? <ZoneDetail zone={zones.find((x) => x.id === selZone)} apts={apts} onClose={() => setSelZone(null)} P={P} budget={budget} />
           : selRegion && ins?.[selRegion.level]?.[selRegion.key] ? <RegionPanel lv={selRegion.level} rkey={selRegion.key} r={ins[selRegion.level][selRegion.key]} period={period} data={data} apts={apts} zones={zones} budget={budget} scen={scen} P={P} fitOf={fitOf} fitColor={fitColor} onClose={() => setSelRegion(null)} onApt={pickApt} />
-          : <Overview data={data} ins={ins} period={period} level={regionLevel} m={m} scen={scen} onPick={(key) => pickRegion(regionLevel, key)} P={P} />}
+          : <Overview data={data} ins={ins} period={period} level={regionLevel} m={m} scen={scen} onPick={(key) => pickRegion(regionLevel, key)} P={P} onApt={(id) => { const a = (data.apts || []).find((x) => x.id === id); if (a) pickApt(a); }} />}
       </aside>
 
       <section className="order-1 flex flex-col gap-2 lg:order-2">
@@ -314,7 +314,41 @@ export default function Atlas({ data }) {
 }
 
 /* --- left panel when nothing is selected: ranking for the current level/period/metric + loan market --- */
-function Overview({ data, ins, period, level, m, scen, onPick, P }) {
+const TAG_COLOR = { 거래: "default", 가격: "danger", 동네: "danger", 거래량: "default", "인기 단지": "primary", 신고가: "danger", 전세: "warning", 금리: "secondary", 정비사업: "default", 나에게: "primary" };
+function MarketSummary({ market, onApt }) {
+  const [more, setMore] = useState(false);
+  if (!market) return null;
+  const list = more ? market.bullets : market.bullets.slice(0, 5);
+  return (
+    <div className="rounded-large bg-content1 p-4 shadow-small">
+      <div className="flex items-baseline justify-between"><span className="text-small font-semibold">이달의 시장 요약</span><span className="text-[10px] text-default-400">{market.period}</span></div>
+      <ol className="mt-2 flex flex-col gap-2">
+        {list.map((b, i) => (
+          <li key={i} className="flex gap-2 text-tiny leading-relaxed">
+            <Chip size="sm" variant="flat" color={TAG_COLOR[b.tag] || "default"} className="h-5 shrink-0 px-0.5 text-[10px]">{b.tag}</Chip>
+            <span>{b.text}</span>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-2 flex items-center justify-between">
+        <Button size="sm" variant="light" className="h-6 min-w-0 px-2 text-tiny" onPress={() => setMore((v) => !v)}>{more ? "접기" : `${market.bullets.length - 5}개 더 보기`}</Button>
+      </div>
+      {more && market.highs?.length > 0 && (
+        <div className="mt-1 border-t border-default-100 pt-2">
+          <div className="mb-1 text-tiny font-semibold">최고가 경신 큰 순 (7월 이후)</div>
+          {market.highs.slice(0, 6).map((h) => (
+            <button key={h.id + h.area} type="button" onClick={() => onApt(h.id)} className="flex w-full items-center justify-between gap-2 rounded-small px-1.5 py-1 text-left text-tiny num hover:bg-default-100">
+              <span className="min-w-0 truncate">{h.gu} {h.name} {h.area}㎡</span>
+              <span className="shrink-0"><span className="text-default-400">{won(h.prev_max)} → </span><b style={{ color: UP }}>{won(h.price)}</b></span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Overview({ data, ins, period, level, m, scen, onPick, P, onApt }) {
   if (!ins) return <Skeleton className="h-96 rounded-large" />;
   const rows = Object.entries(ins[level] || {}).filter(([, r]) => (r[period]?.n || 0) >= (level === "gu" ? 5 : 10)).map(([key, r]) => ({ key, r, v: m.get(r, period, scen) })).filter((x) => x.v != null).sort((a, b) => b.v - a.v);
   const top = rows.slice(0, 8), bottom = m.div ? rows.slice(-5).reverse() : [];
@@ -328,6 +362,7 @@ function Overview({ data, ins, period, level, m, scen, onPick, P }) {
   );
   return (
     <div className="flex flex-col gap-4">
+      <MarketSummary market={data.market} onApt={onApt} />
       <div className="rounded-large bg-content1 p-4 shadow-small">
         <div className="text-small font-semibold">{LEVEL_NAME[level]} 순위 · {m.l}</div>
         <p className="mb-2 text-tiny text-default-400">{PERIOD_NOTE[period]} · 거래 {level === "gu" ? 5 : 10}건 이상인 곳만</p>

@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
-import { annuity, DSR, fmt, loanCap, LTV, palette, STRESS, useIsDark, won } from "./lib.js";
+import { annuity, DSR, fmt, loanCap, LTV, palette, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
 
 export const REF = [{ n: "광화문 (직장)", lon: 126.9769, lat: 37.5759 }, { n: "오류동 기숙사", lon: 126.8437, lat: 37.4945 }];
 export const LINE_COLOR = { "1호선": "#0052A4", "2호선": "#00A84D", "3호선": "#EF7C1C", "4호선": "#00A5DE", "5호선": "#996CAC", "6호선": "#CD7C2F", "7호선": "#747F00", "8호선": "#E6186C", "9호선": "#BDB092", "신분당선": "#D4003B", "경의중앙선": "#77C4A3", "공항철도": "#0090D2", "수인분당선": "#F5A200", "우이신설선": "#B0CE18", "신림선": "#6789CA", "서해선": "#8FC31F", "GTX-A": "#9A6292", "경춘선": "#0C8E72" };
@@ -417,6 +417,8 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const mon = Math.min(need, maxLoan) * annuity(rate);
   const pts = (rows || []).map(([d, a, fl, p]) => ({ t: Date.parse(d), p: p / 10000, a, d, fl }));
   const dong = data.dong_summary?.find((r) => r.id === `${apt.gu} ${apt.dong}`);
+  const details = useLazyFile("apt_detail"), basics = useLazyFile("apt_info");
+  const det = details?.[apt.id], info = basics?.[apt.id];
   return (
     <div className="flex flex-col gap-3 rounded-large bg-content1 p-4 shadow-small">
       <div className="flex items-start justify-between gap-2">
@@ -436,6 +438,35 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         {[["중위가", won(price)], ["가격 범위", `${won(apt.min_price_10k)}~${won(apt.max_price_10k)}`], ["대표 면적", `${apt.median_area_sqm}㎡`]].map(([l, v]) => (
           <div key={l} className="rounded-medium bg-default-100 px-2.5 py-2"><div className="text-tiny text-default-500">{l}</div><div className="text-small font-semibold num">{v}</div></div>
         ))}
+      </div>
+      {info && (
+        <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 rounded-medium bg-default-50 px-3 py-2 text-tiny num">
+          {[["세대수", info.households && `${Number(info.households).toLocaleString()}세대`], ["동수", info.buildings && `${info.buildings}개동`], ["사용승인", info.approval], ["시공사", info.builder], ["난방", info.heating], ["주차", info.parking && info.households ? `${info.parking.toLocaleString()}대 (세대당 ${(info.parking / info.households).toFixed(2)})` : info.parking], ["복도", info.hall], ["최고층", info.floors_max && `${info.floors_max}층`], ["평형 구성", [info.units_le60 && `~60㎡ ${info.units_le60}`, info.units_60_85 && `60~85㎡ ${info.units_60_85}`, info.units_85_135 && `85㎡~ ${info.units_85_135 + (info.units_gt135 || 0)}`].filter(Boolean).join(" · ")]].filter(([, v]) => v).map(([l, v]) => (
+            <div key={l} className={`min-w-0 ${l === "평형 구성" || l === "주차" ? "col-span-3" : ""}`}><span className="text-default-500">{l} </span><span className="font-medium">{v}</span></div>
+          ))}
+        </div>
+      )}
+      <div>
+        <div className="mb-1 flex items-baseline justify-between"><span className="text-small font-semibold">평형별 시세</span>{det?.high && <Chip size="sm" color="danger" variant="flat">최근 2년 최고가 경신</Chip>}</div>
+        {!details ? <Skeleton className="h-20 rounded-medium" /> : !det ? <p className="text-tiny text-default-400">평형별 정보가 없습니다.</p> : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-tiny num">
+              <thead className="text-default-500"><tr><th className="py-1 text-left font-medium">전용</th><th className="text-right font-medium">6개월 중위</th><th className="text-right font-medium">최근 거래</th><th className="text-right font-medium">2년 최고</th><th className="text-right font-medium">전세 (전세가율)</th></tr></thead>
+              <tbody>
+                {det.areas.map((a) => (
+                  <tr key={a.a} className="border-t border-default-100 align-top">
+                    <td className="py-1.5 font-medium">{a.a}㎡<div className="text-[10px] font-normal text-default-400">{(a.a / 3.3058).toFixed(0)}평 · {a.n}건</div></td>
+                    <td className="text-right">{a.med ? won(a.med) : "—"}</td>
+                    <td className="text-right">{won(a.last)}<div className="text-[10px] text-default-400">{a.last_date.slice(2)} · {a.last_floor ?? "—"}층</div></td>
+                    <td className="text-right" style={{ color: a.high ? "#E5484D" : undefined }}>{won(a.max)}{a.high && " ▲"}<div className="text-[10px] text-default-400">{a.max_date.slice(2)}</div></td>
+                    <td className="text-right">{a.jeonse ? won(a.jeonse) : "—"}<div className="text-[10px] text-default-400">{a.jeonse_ratio ? `${a.jeonse_ratio}% · ${a.jeonse_n}건` : "전세 거래 없음"}</div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="mt-1 text-[10px] text-default-400">최근 2년 매매, 전세는 4~9월 계약 기준. 전세가율은 같은 평형 6개월 매매 중위가 대비.</p>
       </div>
       <Divider />
       <div>

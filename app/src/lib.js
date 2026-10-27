@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
 
-export const FILES = ["budget", "strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo"];
+export const FILES = ["budget", "strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market"];
+
+// Large per-complex files load once, on first use, and are shared by every panel.
+const lazy = {};
+export function useLazyFile(name, when = true) {
+  const [v, setV] = useState(lazy[name]?.value ?? null);
+  useEffect(() => {
+    if (!when || v) return;
+    lazy[name] ||= { p: fetch(`data/${name}.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})) };
+    lazy[name].p.then((j) => { lazy[name].value = j; setV(j); });
+  }, [name, when, v]);
+  return v;
+}
 
 // Loads every data file independently so light screens render before the big map files arrive.
 export function useData() {
