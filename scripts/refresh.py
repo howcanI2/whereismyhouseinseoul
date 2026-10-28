@@ -48,6 +48,35 @@ med = lambda xs: round(st.median(xs)) if xs else None
 def quant(xs):
     if len(xs) < 5: return None
     xs = sorted(xs); return [xs[round(i / 20 * (len(xs) - 1))] for i in range(21)]
+def deal_flags(rows):
+    """rows: [(unit, date, price, floor, deal)] with unit = complex|size. Each row gets ("high", earlier max) when it beats every
+    earlier sale of that unit (needs 2+), ("dip", 6-month median) when it is 10%+ under the unit's median of the previous
+    6 months (needs 3+; 1~2층 and 직거래 left out, both are routinely cheaper), else None.
+    Gaps beyond ±30% are almost always share sales or family deals, not market moves, so they get no flag."""
+    by, out = defaultdict(list), [None] * len(rows)
+    for i, r in enumerate(rows): by[r[0]].append(i)
+    for idx in by.values():
+        idx.sort(key=lambda i: rows[i][1])
+        for j, i in enumerate(idx):
+            _, d, p, fl, deal = rows[i]; prev = [rows[k] for k in idx[:j] if rows[k][1] < d]
+            if len(prev) >= 2 and p > (mx := max(r[2] for r in prev)):
+                if p <= 1.3 * mx: out[i] = ("high", mx)
+                continue
+            d6 = (dt.date.fromisoformat(d) - dt.timedelta(days=183)).isoformat(); ref = [r[2] for r in prev if r[1] >= d6]
+            if len(ref) >= 3 and 0.7 * (m := st.median(ref)) <= p <= 0.9 * m and (fl or 99) > 2 and deal != "직거래": out[i] = ("dip", round(m))
+    return out
+def sig_shares(c):
+    """share of a window's trades that set a record / sold well under the recent price (rows carry the flag at [4])"""
+    if len(c) < 10: return {"high_share": None, "dip_share": None, "dip_n": None}
+    h = sum(1 for r in c if r[4] and r[4][0] == "high"); dp = sum(1 for r in c if r[4] and r[4][0] == "dip")
+    return {"high_share": round(h / len(c) * 100, 1), "dip_share": round(dp / len(c) * 100, 1), "dip_n": dp}
+def apt_sig(trades, aid_of, flags, start):
+    """complex id -> flag of its latest flagged sale since start (map badge)"""
+    out = {}
+    for t, f in sorted(((t, f) for t, f in zip(trades, flags) if f), key=lambda x: aid_of(x[0])[1]):
+        aid, date = aid_of(t)
+        if date >= start: out[aid] = f[0]
+    return out
 won = lambda v: (f"{v/10000:.1f}".rstrip("0").rstrip(".") + "억") if v >= 10000 else f"{v:,}만"
 
 # ---------------- windows ----------------
@@ -95,7 +124,7 @@ def fetch_month(key, url, code, ym, kind):
             base = {"dong": t("umdNm"), "area_sqm": _f(t("excluUseAr")), "floor": _num(t("floor")), "trade_date": date, "build_year": _num(t("buildYear"))}
             if kind == "trade":
                 p = _num(t("dealAmount"))
-                if p: items.append({"apt_name": t("aptNm"), "price_10k": p, **base})
+                if p: items.append({"apt_name": t("aptNm"), "price_10k": p, "deal": t("dealingGbn"), **base})
             else:
                 d = _num(t("deposit"))
                 if d: items.append({"unit_name": t("aptNm"), "deposit_10k": d, "monthly_rent_10k": _num(t("monthlyRent")) or 0, **base})
@@ -165,7 +194,7 @@ def build(raw, W, kakao_key):
         if code not in GU: continue  # the Seoul build; Gyeonggi goes through build_metro
         gu = GU[code]
         for i in v["items"]:
-            if i.get("price_10k") and i.get("area_sqm"): trades.append((gu, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year")))
+            if i.get("price_10k") and i.get("area_sqm"): trades.append((gu, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year"), i.get("deal")))
     rents = []  # (gu, dong, name, area, deposit) jeonse only
     for k, v in raw["rents"].items():
         if k.split("_")[0] not in GU: continue
@@ -173,6 +202,8 @@ def build(raw, W, kakao_key):
         for i in v["items"]:
             if not i.get("monthly_rent_10k") and i.get("deposit_10k") and i.get("area_sqm"): rents.append((gu, i["dong"], i.get("unit_name", ""), i["area_sqm"], i["deposit_10k"]))
     last, rec, prv, six = W["last"], set(W["p3"][0]), set(W["p3"][1]), set(W["six"])
+    flags = deal_flags([(f"{t[0]} {t[1]} {t[2]}|{round(t[5])}", t[4], t[7], t[6], t[9]) for t in trades])
+    sigs = apt_sig(trades, lambda t: (f"{t[0]} {t[1]} {t[2]}", t[4]), flags, f"{W['p3'][0][0][:4]}-{W['p3'][0][0][4:]}-01")
 
     # monthly series (구 and 서울 전체, last 12 months)
     by = defaultdict(lambda: defaultdict(list))
@@ -217,6 +248,7 @@ def build(raw, W, kakao_key):
         g = geo.get(a["id"]); h = hd.get(a["id"])
         if g: a["lon"], a["lat"] = g["lon"], g["lat"]
         if h: a["hcode"] = h["hcode"]
+        if a["id"] in sigs: a["sig"] = sigs[a["id"]]
     save(os.path.join(OUT, "apts.json"), apt_rows)
 
     # 법정동 summary with apartment-density class
@@ -247,11 +279,11 @@ def build(raw, W, kakao_key):
     hnames = {r["code"]: (r["gu"], r["hdong"]) for r in load(os.path.join(OUT, "hdong_geo.json"), [])}
     coord = {a["id"]: (a.get("lon"), a.get("lat")) for a in apt_rows}
     reg = defaultdict(list); cent = defaultdict(lambda: [0.0, 0.0, 0])
-    for t in trades:
+    for t, fl in zip(trades, flags):
         aid = f"{t[0]} {t[1]} {t[2]}"; h = hd.get(aid)
         keys = [("gu", t[0]), ("bdong", f"{t[0]} {t[1]}")] + ([("hdong", h["hcode"])] if h and h["hcode"] in hnames else [])
         for kk in keys:
-            reg[kk].append((t[3], t[5], t[7], f"{t[2]}|{round(t[5])}"))
+            reg[kk].append((t[3], t[5], t[7], f"{t[2]}|{round(t[5])}", fl))
             c = coord.get(aid)
             if c and c[0] is not None: cc = cent[kk]; cc[0] += c[0]; cc[1] += c[1]; cc[2] += 1
     rent_reg = defaultdict(list)
@@ -271,7 +303,7 @@ def build(raw, W, kakao_key):
             cw, pw = set(W[p][0]), set(W[p][1]); c = [r for r in rows if r[0] in cw]; q = [r for r in rows if r[0] in pw]
             d = {"n": len(c), "n_prev": len(q), "vol_chg": round((len(c) - len(q)) / len(q) * 100, 1) if len(c) >= 5 and len(q) >= 5 else None,
                  "ppp": med([r[2] / r[1] * PY for r in c]), "ppp_prev": med([r[2] / r[1] * PY for r in q]), "chg": unit_chg(c, q, n_min), "p84": med([r[2] for r in c if 75 <= r[1] <= 90]), "q": quant([r[2] for r in c]),
-                 "fit_now": round(sum(r[2] <= NOW_MAX for r in c) / len(c) * 100, 1) if c else None, "fit_later": round(sum(LATER_MIN <= r[2] <= LATER_MAX for r in c) / len(c) * 100, 1) if c else None, "bands": {}}
+                 "fit_now": round(sum(r[2] <= NOW_MAX for r in c) / len(c) * 100, 1) if c else None, "fit_later": round(sum(LATER_MIN <= r[2] <= LATER_MAX for r in c) / len(c) * 100, 1) if c else None, **sig_shares(c), "bands": {}}
             for b, ok in BANDS:
                 bc = [r for r in c if ok(r[1])]; bq = [r for r in q if ok(r[1])]
                 d["bands"][b] = {"share": round(len(bc) / len(c) * 100, 1) if c else 0, "ppp": med([r[2] / r[1] * PY for r in bc]), "chg": unit_chg(bc, bq, n_min), "n": len(bc)}
@@ -362,6 +394,10 @@ def build(raw, W, kakao_key):
     if dup: b.append(("동네", f"행정동 기준(거래 20건 이상)으로는 {', '.join(f'{ins['hdong'][k]['gu']} {ins['hdong'][k]['name']} {v['chg']:+.1f}%' for k, v in dup)}가 가장 많이 올랐습니다."))
     b.append(("인기 단지", f"{rs} 거래가 가장 많은 단지는 {', '.join(f'{a['apt']}({a['gu']}·{n}건)' for a, n in busy)}입니다."))
     if highs: b.append(("신고가", f"{rs} 그 단지·평형의 최근 2년 최고가를 넘은 거래는 {len(highs):,}건이고, 가장 크게 오른 곳은 {highs[0]['name']} {highs[0]['area']}㎡ {won(highs[0]['prev_max'])} → {won(highs[0]['price'])}입니다."))
+    dips = [t for t, f in zip(trades, flags) if f and f[0] == "dip" and t[3] in rec]
+    if dips:
+        sh = round(len(dips) / max(1, sum(1 for t in trades if t[3] in rec)) * 100, 1)
+        b.append(("급매", f"{rs} 같은 단지·평형의 직전 6개월 중위가보다 10% 이상 싸게 팔린 거래는 {len(dips):,}건({sh}%)입니다. 1~2층·직거래는 뺐고, 급매가 아니라 사정이 있는 거래일 수도 있습니다."))
     if js: b.append(("전세", f"전세가율이 가장 높은 구는 {js[0][0]} {js[0][1]}%, 가장 낮은 구는 {js[-1][0]} {js[-1][1]}%입니다. 높을수록 매매가 대비 전세가 비쌉니다."))
     if len(rates) >= 2: b.append(("금리", f"주담대 평균 금리는 {rates[-1]['month']} {rates[-1]['mortgage_pct']:.2f}%로 전월보다 {rates[-1]['mortgage_pct']-rates[-2]['mortgage_pct']:+.2f}%p, 기준금리는 {rates[-1]['base_pct']:.2f}%입니다."))
     b.append(("정비사업", f"올해 사업시행인가 이후 단계로 넘어간 재개발·정비구역은 {len(staged)}곳입니다."))
@@ -449,7 +485,7 @@ def build_metro(raw, W, kakao_key, basic=None):
         if code not in REGIONS: continue
         sgg, name = sgg_of(code)
         for i in v["items"]:
-            if i.get("price_10k") and i.get("area_sqm"): trades.append((sgg, name, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year")))
+            if i.get("price_10k") and i.get("area_sqm"): trades.append((sgg, name, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year"), i.get("deal")))
     for k, v in raw["rents"].items():
         code = k.split("_")[0]
         if code not in REGIONS: continue
@@ -458,6 +494,8 @@ def build_metro(raw, W, kakao_key, basic=None):
             if not i.get("monthly_rent_10k") and i.get("deposit_10k") and i.get("area_sqm"): rents.append((sgg, i["dong"], i.get("unit_name", ""), i["area_sqm"], i["deposit_10k"]))
     six, rec_start = set(W["six"]), f"{W['p3'][0][0][:4]}-{W['p3'][0][0][4:]}-01"
     six_start = f"{W['six'][0][:4]}-{W['six'][0][4:]}-01"
+    flags = deal_flags([(f"{t[1]} {t[2]} {t[3]}|{round(t[6])}", t[5], t[8], t[7], t[10]) for t in trades])
+    sigs = apt_sig(trades, lambda t: (f"{t[1]} {t[2]} {t[3]}", t[5]), flags, rec_start)
     # complexes (Seoul ids stay "구 동 단지" so they share geocodes and detail with the Seoul view)
     cx = defaultdict(list)
     for t in trades:
@@ -480,6 +518,7 @@ def build_metro(raw, W, kakao_key, basic=None):
         g = geo.get(a["id"]); h = hd.get(a["id"])
         if g: a["lon"], a["lat"] = g["lon"], g["lat"]
         if h: a["hcode"] = h["hcode"]
+        if a["id"] in sigs: a["sig"] = sigs[a["id"]]
     # Seoul complexes with no sale in two years (from K-apt), already built by the Seoul pass
     ids = {a["id"] for a in apts}
     gu_code = {v: k for k, v in GU.items()}
@@ -505,11 +544,11 @@ def build_metro(raw, W, kakao_key, basic=None):
     sgg_names = {code: sgg_of(code)[1] for code in REGIONS}
     by_id = {a["id"]: a for a in apts}
     reg = defaultdict(list); cent = defaultdict(lambda: [0.0, 0.0, 0]); rent_reg = defaultdict(list)
-    for t in trades:
+    for t, fl in zip(trades, flags):
         a = by_id.get(f"{t[1]} {t[2]} {t[3]}"); keys = [("sgg", t[0])]
         if a and a.get("hcode") in hnames: keys.append(("hdong", a["hcode"]))
         for kk in keys:
-            reg[kk].append((t[4], t[6], t[8], f"{t[3]}|{round(t[6])}"))
+            reg[kk].append((t[4], t[6], t[8], f"{t[3]}|{round(t[6])}", fl))
             if a and a.get("lon") is not None: c = cent[kk]; c[0] += a["lon"]; c[1] += a["lat"]; c[2] += 1
     for x in rents: rent_reg[("sgg", x[0])].append((x[3], x[4]))
     BANDS = [("s", lambda a: a < 60), ("m", lambda a: 60 <= a <= 85), ("l", lambda a: a > 85)]
@@ -527,7 +566,7 @@ def build_metro(raw, W, kakao_key, basic=None):
             cw, pw = set(W[p][0]), set(W[p][1]); c = [r for r in rows if r[0] in cw]; q = [r for r in rows if r[0] in pw]
             d = {"n": len(c), "n_prev": len(q), "vol_chg": round((len(c) - len(q)) / len(q) * 100, 1) if len(c) >= 5 and len(q) >= 5 else None,
                  "ppp": med([r[2] / r[1] * PY for r in c]), "chg": unit_chg(c, q, n_min), "p84": med([r[2] for r in c if 75 <= r[1] <= 90]), "q": quant([r[2] for r in c]),
-                 "fit_now": round(sum(r[2] <= NOW_MAX for r in c) / len(c) * 100, 1) if c else None, "fit_later": round(sum(LATER_MIN <= r[2] <= LATER_MAX for r in c) / len(c) * 100, 1) if c else None, "bands": {}}
+                 "fit_now": round(sum(r[2] <= NOW_MAX for r in c) / len(c) * 100, 1) if c else None, "fit_later": round(sum(LATER_MIN <= r[2] <= LATER_MAX for r in c) / len(c) * 100, 1) if c else None, **sig_shares(c), "bands": {}}
             for b, ok in BANDS:
                 bc = [r for r in c if ok(r[1])]; bq = [r for r in q if ok(r[1])]
                 d["bands"][b] = {"share": round(len(bc) / len(c) * 100, 1) if c else 0, "ppp": med([r[2] / r[1] * PY for r in bc]), "chg": unit_chg(bc, bq, n_min), "n": len(bc)}
@@ -543,6 +582,16 @@ def build_metro(raw, W, kakao_key, basic=None):
         ins[lv][key] = rec
     ins["meta"] = {"as_of": dt.date.today().isoformat(), "notes": {p: f"{span(W[p][0])} vs {span(W[p][1])}" for p in ("p3", "p6", "p12")}}
     save(os.path.join(OUT, "metro_insights.json"), ins)
+    # recent record highs and well-under-market sales, Seoul + Gyeonggi, for the map list
+    rows = []
+    for t, f in zip(trades, flags):
+        if not f or t[5] < rec_start: continue
+        a = by_id.get(f"{t[1]} {t[2]} {t[3]}") or {}
+        rows.append({"id": f"{t[1]} {t[2]} {t[3]}", "kind": f[0], "sido": t[0][:2], "gu": t[1], "dong": t[2], "apt": t[3], "area": round(t[6], 1), "date": t[5], "floor": t[7],
+                     "price": t[8], "ref": f[1], "gap_pct": round((t[8] / f[1] - 1) * 100, 1), "hcode": a.get("hcode")})
+    dips = sorted((r for r in rows if r["kind"] == "dip"), key=lambda r: r["gap_pct"])[:300]
+    highs = sorted((r for r in rows if r["kind"] == "high"), key=lambda r: -r["gap_pct"])[:300]
+    save(os.path.join(OUT, "deals.json"), {"since": rec_start, "n": {sd: {k: sum(r["kind"] == k and r["sido"] == sd for r in rows) for k in ("dip", "high")} for sd in ("11", "41")}, "dips": dips, "highs": highs})
     # per-complex detail and trade history for Gyeonggi complexes (Seoul ones already live in apt_detail.json)
     tr = defaultdict(list)
     for t in trades:

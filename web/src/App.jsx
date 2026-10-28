@@ -6,8 +6,9 @@ import KakaoAtlas from "./KakaoAtlas.jsx";
 import { PERIOD_NOTE } from "./Atlas.jsx";
 
 import ProfileModal from "./Profile.jsx";
+import WatchModal from "./Watch.jsx";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
-import { budgetsFrom, derive, fmt, useData, useProfile, won } from "./lib.js";
+import { budgetsFrom, derive, fmt, useData, useProfile, useWatch, won } from "./lib.js";
 
 // Next.js inlines this at build time; the claude.ai build has no Kakao key and uses the drawn map.
 const KAKAO_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_KAKAO_JS_KEY : undefined;
@@ -33,6 +34,8 @@ export default function App() {
   const { data: loaded, errors } = useData();
   const [profile, saveProfile, resetProfile] = useProfile();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [watchOpen, setWatchOpen] = useState(false);
+  const [watch] = useWatch(), nWatch = Object.keys(watch).length;
   // budgets come from the viewer's own 내 조건, never from a shared file
   const data = useMemo(() => ({ ...loaded, budget: budgetsFrom(profile, loaded.rates?.at(-1)?.mortgage_pct) }), [loaded, profile]);
   const dv = useMemo(() => derive(data), [data]);
@@ -49,9 +52,14 @@ export default function App() {
     <main className="page mx-auto flex max-w-[1440px] flex-col gap-4">
       <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-col gap-1">
-          <button type="button" onClick={() => setProfileOpen(true)} className="flex w-fit items-center gap-2 rounded-full bg-primary-50 px-3 py-1 text-tiny font-medium text-primary hover:bg-primary-100">
-            {profile.example ? "예시 조건으로 보는 중 · 내 조건 입력하기" : `내 조건: 연소득 ${won(profile.income)} · 모은 돈 ${won(profile.cash)}${Number(profile.marry) ? ` · ${profile.marry}년 뒤 둘이` : ""} · 수정`}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => setProfileOpen(true)} className="flex w-fit items-center gap-2 rounded-full bg-primary-50 px-3 py-1 text-tiny font-medium text-primary hover:bg-primary-100">
+              {profile.example ? "예시 조건으로 보는 중 · 내 조건 입력하기" : `내 조건: 연소득 ${won(profile.income)} · 모은 돈 ${won(profile.cash)}${Number(profile.marry) ? ` · ${profile.marry}년 뒤 둘이` : ""} · 수정`}
+            </button>
+            <button type="button" onClick={() => setWatchOpen(true)} className="flex w-fit items-center gap-1 rounded-full bg-warning-50 px-3 py-1 text-tiny font-medium text-warning-700 hover:bg-warning-100">
+              {nWatch ? `★ 관심 단지 ${nWatch}` : "☆ 관심 단지"}
+            </button>
+          </div>
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">서울 내집마련 전략판</h1>
         </div>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-large bg-content1 px-4 py-3 shadow-small sm:grid-cols-4">
@@ -63,6 +71,7 @@ export default function App() {
       </header>
 
       {failed.length > 0 && <p className="text-small text-danger">일부 데이터를 불러오지 못했습니다: {failed.join(", ")}</p>}
+      <WatchModal open={watchOpen} onClose={() => setWatchOpen(false)} data={data} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={saveProfile} onReset={resetProfile} budgets={data.budget} />
 
       <Tabs aria-label="화면" color="primary" variant="solid" radius="full" size="lg" selectedKey={tab} onSelectionChange={(k) => setTab(String(k))}

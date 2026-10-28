@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ButtonGroup, Chip, Divider, Skeleton, Slider, Switch } from "@heroui/react";
-import { attachCommute, fitState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
+import { attachCommute, attachGrowth, dday, fitState, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
-import { DOWN, LEVEL_NAME, LEVELS, lum, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, UP } from "./Atlas.jsx";
+import { DOWN, GrowthPick, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, SIG, UP } from "./Atlas.jsx";
 
 // Load the Kakao Maps SDK once; resolves with window.kakao or rejects (bad key, unregistered domain, offline).
 let sdk;
@@ -29,13 +29,14 @@ const SCOPES = {
   metro: { levels: [["auto", "자동"], ["sgg", "시군구"], ["hdong", "행정동"]], levelFor: (kz) => (kz >= 9 ? "sgg" : kz >= 6 ? "hdong" : "apt"), fine: "hdong", center: [127.02, 37.47], kz: 10 },
 };
 const el = (html, style, onClick) => { const d = document.createElement("div"); d.innerHTML = html; Object.assign(d.style, style); if (onClick) d.addEventListener("click", (e) => { e.stopPropagation(); onClick(); }); return d; };
+const TONE = { amber: "#C77A12", rose: "#C2410C", indigo: "#4F63C9" };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul" }) {
   const S = SCOPES[scope], metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
   // one data object per scope; the panels read insights/apts from it
-  const data = useMemo(() => (metro ? { ...base, insights: attachCommute(mIns, mApts, base.commute), apts: mApts, scope } : { ...base, insights: attachCommute(base.insights, base.apts, base.commute), scope }), [metro, base, mIns, mApts]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachGrowth(attachCommute(mIns, mApts, base.commute)), apts: mApts, scope } : { ...base, insights: attachGrowth(attachCommute(base.insights, base.apts, base.commute)), scope }), [metro, base, mIns, mApts]);
   const [maxMin, setMaxMin] = useState(0);
   const [showQuiet, setShowQuiet] = useState(true);
   const dark = useIsDark(), P = palette(dark);
@@ -45,6 +46,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [level, setLevel] = useState("auto");
   const [period, setPeriod] = useState("p6");
   const [metricId, setMetricId] = useState("chg");
+  const [growth, setGrowth] = useState("half");
   const [area, setArea] = useState("all");
   const [age, setAge] = useState("all");
   const [sel, setSel] = useState(null);
@@ -55,15 +57,18 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [showLines, setShowLines] = useState(false);
   const [showRedev, setShowRedev] = useState(false);
   const [showDistrict, setShowDistrict] = useState(false);
+  const [showApply, setShowApply] = useState(false);
+  const ah = useLazyFile("applyhome", showApply);
   const [stageGroup, setStageGroup] = useState("all");
   const [legendOpen, setLegendOpen] = useState(true);
   const [ready, setReady] = useState(false);
   const [view, setView] = useState({ kz: 8, tick: 0 });
   const boxRef = useRef(null), mapRef = useRef(null), kRef = useRef(null);
-  const layers = useRef({ polys: {}, outline: [], tags: [], pins: [], zones: [], lines: [], refs: [] });
+  const layers = useRef({ polys: {}, outline: [], tags: [], pins: [], zones: [], lines: [], refs: [], apply: [] });
   const handlers = useRef({});
   const m = METRICS.find((x) => x.id === metricId);
   fitState.budget = budget;
+  Object.assign(futureState, { growth, years: later?.years || 3, budget: later?.max_price_10k ?? budget });
   const ins = data.insights;
 
   useEffect(() => { if (later && now) setBudget(scen === "later" ? later.max_price_10k : now.max_price_10k); }, [scen, later, now]);
@@ -127,9 +132,9 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     const q = (p) => vals[Math.floor(p * (vals.length - 1))];
     const lo = q(0.05), hi = q(0.95), base0 = "#EEF2F1";
     if (m.div) { const a = Math.max(Math.abs(lo), Math.abs(hi), 1); return { lo: -a, hi: a, color: (v) => (v >= 0 ? mixc(base0, UP, v / a) : mixc(base0, DOWN, -v / a)) }; }
-    const base = m.id === "jeonse" ? "#C77A12" : "#0B7A64";
+    const base = TONE[m.tone] || "#0B7A64";
     return { lo, hi, color: (v) => { const t = hi > lo ? (v - lo) / (hi - lo) : 0.5; return mixc(base0, base, m.inv ? 1 - t : t); } };
-  }, [ins, regionLevel, period, metricId, scen, budget]);
+  }, [ins, regionLevel, period, metricId, scen, budget, growth]);
   const valueOf = (lv, key) => { const r = ins?.[lv]?.[key]; return r && (r[period]?.n || 0) >= 5 ? m.get(r, period, scen) : null; };
 
   // ---- region polygons: built once per level, recoloured on demand ----
@@ -190,7 +195,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
       let labels = 0;
       vis.forEach(({ a, ll }) => {
         const quiet = !a.trades_6m, none = a.median_price_10k == null;
-        const f = fitOf(a.median_price_10k), txt = none ? "" : won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), pt = proj.containerPointFromCoords(ll), w = txt.length * 7 + 16;
+        const f = fitOf(a.median_price_10k), txt = none ? "" : (SIG[a.sig]?.[0] || "") + won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), pt = proj.containerPointFromCoords(ll), w = txt.length * 7 + 16;
         const bx = { x0: pt.x - w / 2, x1: pt.x + w / 2, y0: pt.y - 30, y1: pt.y };
         const label = !none && labels < 150 && fits(bx), on = a.id === sel;
         if (label) { placed.push(bx); labels++; }
@@ -227,6 +232,19 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     if (!L.lines.length && data.subway_lines) L.lines = data.subway_lines.map((s) => new k.maps.Polyline({ path: s.coords.map(([x, y]) => new k.maps.LatLng(y, x)), strokeWeight: 4, strokeColor: LINE_COLOR[s.line] || "#888", strokeOpacity: 0.85 }));
     L.lines.forEach((l) => l.setMap(showLines ? map : null));
   }, [ready, showLines, data.subway_lines]);
+  // ---- 청약 접수 예정 단지 ----
+  useEffect(() => {
+    if (!ready) return;
+    const k = kRef.current, map = mapRef.current, L = layers.current, td = new Date().toISOString().slice(0, 10);
+    L.apply.forEach((o) => o.setMap(null)); L.apply = [];
+    if (!showApply) return;
+    (ah?.items || []).filter((r) => r.lon != null && (metro || r.sido === "11") && (r.receipt_end || r.notice) >= td).forEach((r) => {
+      const node = el(`<div style="font-size:10.5px;font-weight:700;color:#4F63C9;text-shadow:0 0 3px #fff,0 0 3px #fff">${esc(dday(r.special_from || r.receipt_start) || "")}</div><div style="width:12px;height:12px;margin:2px auto 0;background:#4F63C9;border:2px solid #fff;border-radius:3px;box-shadow:0 0 2px rgba(0,0,0,.4)"></div>`,
+        { textAlign: "center", cursor: "pointer", fontFamily: "Noto Sans KR, sans-serif" }, () => r.url && window.open(r.url, "_blank", "noopener"));
+      node.title = `${r.name} · ${r.households}세대 · 특공 ${r.special_from || "—"} · 1순위 ${r.first_rank || r.receipt_start || "—"}`;
+      L.apply.push(new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(r.lat, r.lon), content: node, yAnchor: 1, zIndex: 6 }));
+    });
+  }, [ready, showApply, ah, metro]);
   useEffect(() => {
     if (!ready) return;
     const k = kRef.current, map = mapRef.current;
@@ -272,6 +290,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
           <ButtonGroup size="sm" radius="full">{PERIODS.map(([k, l]) => <Button key={k} color={period === k ? "primary" : "default"} variant={period === k ? "solid" : "flat"} onPress={() => setPeriod(k)}>{l}</Button>)}</ButtonGroup>
           <Divider orientation="vertical" className="h-6" />
           <div className="flex flex-wrap gap-1">{METRICS.filter((x) => x.id !== "commute" || Object.keys(data.commute || {}).length).map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
+          {m.id === "future" && <GrowthPick growth={growth} setGrowth={setGrowth} />}
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>
         <div className="relative h-[62vh] min-h-[440px] overflow-hidden rounded-large shadow-small lg:h-[calc(100vh-230px)] lg:min-h-[560px]">
@@ -284,13 +303,17 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
               </button>
               {legendOpen && (
                 <div className="mt-1.5 flex flex-col gap-1.5">
-                  {scale && <div className="flex items-center gap-2 num"><span>{m.f(scale.lo)}</span><span className="h-2 flex-1 rounded-full" style={{ background: m.div ? `linear-gradient(90deg,${DOWN},#EEF2F1,${UP})` : `linear-gradient(90deg,#EEF2F1,${m.id === "jeonse" ? "#C77A12" : "#0B7A64"})` }} /><span>{m.f(scale.hi)}</span></div>}
+                  {scale && <div className="flex items-center gap-2 num"><span>{m.f(scale.lo)}</span><span className="h-2 flex-1 rounded-full" style={{ background: m.div ? `linear-gradient(90deg,${DOWN},#EEF2F1,${UP})` : `linear-gradient(90deg,#EEF2F1,${TONE[m.tone] || "#0B7A64"})` }} /><span>{m.f(scale.hi)}</span></div>}
                   {m.div && <span className="text-default-500">빨강 = 상승, 파랑 = 하락</span>}
+                  <MetricNote m={m} />
+                  {showPins && <span className="text-default-500">가격 앞 ▲ 최근 3개월 신고가 · ▼ 급매</span>}
                   {showPins && ["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border border-default-300" style={{ background: fitColor[f] }} />{fitText[f]}</span>)}
                   {showPins && showQuiet && <><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: "#c3cbc8" }} />최근 6개월 거래 없음 (마지막 거래가)</span><span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full border-[1.5px] border-default-400 bg-white" />최근 2년 거래 없음</span></>}
                   <Switch size="sm" isSelected={showQuiet} onValueChange={setShowQuiet}>거래 없는 단지도 보기</Switch>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선 강조</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
+                  <Switch size="sm" isSelected={showApply} onValueChange={setShowApply}>청약 접수 예정 단지</Switch>
+                  {showApply && ah && !ah.items && <span className="text-[10px] text-default-400">청약 데이터가 아직 연결되지 않았습니다.</span>}
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}
                   {showRedev && STAGES.slice(0, 6).map((s) => <span key={s} className="inline-flex items-center gap-1.5 text-[10px]"><span className="h-2.5 w-2.5 rounded-full border" style={{ background: STAGE_COLOR[s] + "70", borderColor: STAGE_COLOR[s] }} />{s}</span>)}
                   <Switch size="sm" isSelected={showDistrict} onValueChange={setShowDistrict}>지적편집도 (용도지역)</Switch>

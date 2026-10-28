@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, attachCommute, DSR, fitState, fmt, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
+import { annuity, attachCommute, attachGrowth, dday, DSR, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, dist, LINE_COLOR, polysOf, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 
 export const LEVELS = [["auto", "자동"], ["gu", "구"], ["bdong", "법정동"], ["hdong", "행정동"]];
@@ -18,8 +18,18 @@ export const METRICS = [
   { id: "ppp", l: "평당가", get: (r, p) => r[p]?.ppp, f: (v) => won(v) },
   { id: "fit", l: "내 예산 이하 거래", get: (r, p) => shareBelow(r[p]?.q, fitState.budget), f: fmt.share },
   { id: "vol", l: "거래량 변화", get: (r, p) => r[p]?.vol_chg, f: fmt.pct, div: true },
-  { id: "jeonse", l: "전세가율", get: (r) => r.jeonse_ratio, f: fmt.share },
+  { id: "jeonse", l: "전세가율", get: (r) => r.jeonse_ratio, f: fmt.share, tone: "amber" },
+  { id: "future", get l() { return `${futureState.years || 3}년 뒤 내 예산 이하`; }, get: (r, p) => futureShare(r, p), f: fmt.share },
+  { id: "high", l: "신고가 비율", get: (r, p) => r[p]?.high_share, f: fmt.share, tone: "rose" },
+  { id: "dip", l: "급매 비율", get: (r, p) => r[p]?.dip_share, f: fmt.share, tone: "indigo" },
 ];
+// metric colour: rising-to-tone ramp for one-sided metrics
+export const toneOf = (m, P) => (m.tone ? P[m.tone] : P.primary);
+// N년 뒤 controls, shown in the map toolbar while that metric is on
+export function GrowthPick({ growth, setGrowth }) {
+  return <ButtonGroup size="sm" radius="full">{GROWTH.map(([k, l]) => <Button key={k} color={growth === k ? "secondary" : "default"} variant={growth === k ? "solid" : "flat"} onPress={() => setGrowth(k)}>{l}</Button>)}</ButtonGroup>;
+}
+export const SIG = { high: ["▲", "신고가"], dip: ["▼", "급매"] };
 export const BAND = [["s", "소형 ~60㎡", "#7DD3C0"], ["m", "중형 60~85㎡", "#2E9F86"], ["l", "중대형 85㎡~", "#0B5D4B"]];
 export const UP = "#E5484D", DOWN = "#3E7BFA";
 const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -48,7 +58,7 @@ const DRAWN_LEVELS = { seoul: LEVELS, metro: [["auto", "자동"], ["sgg", "시�
 export default function Atlas({ data: base, scope = "seoul" }) {
   const metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
-  const data = useMemo(() => (metro ? { ...base, insights: attachCommute(mIns, mApts, base.commute), apts: mApts, scope } : { ...base, insights: attachCommute(base.insights, base.apts, base.commute), scope }), [metro, base, mIns, mApts]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachGrowth(attachCommute(mIns, mApts, base.commute)), apts: mApts, scope } : { ...base, insights: attachGrowth(attachCommute(base.insights, base.apts, base.commute)), scope }), [metro, base, mIns, mApts]);
   const outlineGeo = metro ? mSgg : data.seoul_geo;
   const dark = useIsDark(), P = palette(dark);
   const later = data.budget?.find((b) => b.scenario === "later"), now = data.budget?.find((b) => b.scenario === "now");
@@ -57,6 +67,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const [level, setLevel] = useState("auto");
   const [period, setPeriod] = useState("p6");
   const [metricId, setMetricId] = useState("chg");
+  const [growth, setGrowth] = useState("half");
   const [area, setArea] = useState("all");
   const [age, setAge] = useState("all");
   const [sel, setSel] = useState(null);
@@ -67,6 +78,9 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const trades = useMemo(() => (tS || tG ? { ...(tS || {}), ...(tG || {}) } : null), [tS, tG]);
   const [showLines, setShowLines] = useState(true);
   const [showRedev, setShowRedev] = useState(false);
+  const [showApply, setShowApply] = useState(false);
+  const ah = useLazyFile("applyhome", showApply);
+  const applyPts = useMemo(() => { const td = new Date().toISOString().slice(0, 10); return (ah?.items || []).filter((r) => r.lon != null && (metro || r.sido === "11") && (r.receipt_end || r.notice) >= td); }, [ah, metro]);
   const [stageGroup, setStageGroup] = useState("all");
   const [legendOpen, setLegendOpen] = useState(() => window.innerWidth >= 1024);
   const [t, setT] = useState(null);
@@ -74,6 +88,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const wrapRef = useRef(null), svgRef = useRef(null), zoomRef = useRef(null), k0Ref = useRef(1), raf = useRef(0), moved = useRef(false);
   const m = METRICS.find((x) => x.id === metricId);
   fitState.budget = budget;
+  Object.assign(futureState, { growth, years: later?.years || 3, budget: later?.max_price_10k ?? budget });
 
   useEffect(() => { if (later && now) setBudget(scen === "later" ? later.max_price_10k : now.max_price_10k); }, [scen, later, now]);
   useEffect(() => { setLevel("auto"); setSelRegion(null); setSel(null); setSelZone(null); moved.current = false; }, [scope]);
@@ -128,9 +143,9 @@ export default function Atlas({ data: base, scope = "seoul" }) {
     return () => { s.on(".zoom", null); zoomRef.current = null; };
   }, [world, sized]);
   useEffect(() => { if (world && zoomRef.current && size.w && !moved.current) select(svgRef.current).call(zoomRef.current.transform, fit()); }, [size.w, size.h]);
-  const zoomTo = (cx, cy, rel) => { moved.current = true; const k = k0Ref.current * rel; select(svgRef.current).transition().duration(650).call(zoomRef.current.transform, zoomIdentity.translate(size.w / 2 - cx * k, size.h / 2 - cy * k).scale(k)); };
-  const zoomBy = (f) => { moved.current = true; select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleBy, f); };
-  const reset = () => { if (!world) return; select(svgRef.current).transition().duration(650).call(zoomRef.current.transform, fit()); moved.current = false; };
+  const zoomTo = (cx, cy, rel) => { if (!zoomRef.current) return; moved.current = true; const k = k0Ref.current * rel; select(svgRef.current).transition().duration(650).call(zoomRef.current.transform, zoomIdentity.translate(size.w / 2 - cx * k, size.h / 2 - cy * k).scale(k)); };
+  const zoomBy = (f) => { if (!zoomRef.current) return; moved.current = true; select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleBy, f); };
+  const reset = () => { if (!world || !zoomRef.current) return; select(svgRef.current).transition().duration(650).call(zoomRef.current.transform, fit()); moved.current = false; };
 
   const z = t ? t.k / k0Ref.current : 1;
   const eff = level === "auto" ? (z < 2 ? (metro ? "sgg" : "gu") : z < 5 ? (metro ? "hdong" : "bdong") : "apt") : level;
@@ -151,9 +166,9 @@ export default function Atlas({ data: base, scope = "seoul" }) {
     const q = (p) => vals[Math.floor(p * (vals.length - 1))];
     const lo = q(0.05), hi = q(0.95);
     if (m.div) { const a = Math.max(Math.abs(lo), Math.abs(hi), 1); return { lo: -a, hi: a, color: (v) => (v >= 0 ? mixc(P.faint, UP, v / a) : mixc(P.faint, DOWN, -v / a)) }; }
-    const base = m.id === "jeonse" ? P.amber : P.primary;
+    const base = toneOf(m, P);
     return { lo, hi, color: (v) => { const t = hi > lo ? (v - lo) / (hi - lo) : 0.5; return mixc(P.faint, base, m.inv ? 1 - t : t); } };
-  }, [ins, regionLevel, period, metricId, scen, dark, budget]);
+  }, [ins, regionLevel, period, metricId, scen, dark, budget, growth]);
   const polyPaths = useMemo(() => {
     if (!geoms || !scale) return (geoms?.[regionLevel] || []).map((g) => ({ k: g.key, d: g.d, fill: P.none, op: 1 }));
     const tbl = ins[regionLevel] || {};
@@ -161,7 +176,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
       const r = tbl[g.key], v = r && (r[period]?.n || 0) >= 5 ? m.get(r, period, scen) : null;
       return { k: g.key, d: g.d, fill: v == null ? P.none : scale.color(v), op: eff === "apt" ? 0.35 : 0.85 };
     });
-  }, [geoms, scale, regionLevel, period, metricId, scen, eff, dark]);
+  }, [geoms, scale, regionLevel, period, metricId, scen, eff, dark, growth]);
 
   // labelled region tags, busiest first, skipping overlaps
   const tags = useMemo(() => {
@@ -176,7 +191,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
       out.push({ key, r, x, y, v, full, fill: v == null || !scale ? "#ffffff" : scale.color(v) });
     });
     return out;
-  }, [t, ins, regionLevel, period, metricId, scen, eff, scale, size]);
+  }, [t, ins, regionLevel, period, metricId, scen, eff, scale, size, growth]);
 
   const apts = useMemo(() => (data.apts || []).filter((a) => a.lon != null), [data.apts]);
   const visibleApts = useMemo(() => {
@@ -190,7 +205,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
     const rank = (a) => (a.trades_6m ? 2e6 + a.trades_6m : a.stale ? 1e6 + (a.trades_24m || 0) : 0);
     [...visibleApts].sort((a, b) => rank(b) - rank(a)).forEach((a) => {
       if (a.median_price_10k == null) { dots.push(a); return; }
-      const txt = won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), w = txt.length * 7 + 14, bx = { x0: a.x - w / 2, x1: a.x + w / 2, y0: a.y - 26, y1: a.y - 4 };
+      const txt = (SIG[a.sig]?.[0] || "") + won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), w = txt.length * 7 + 14, bx = { x0: a.x - w / 2, x1: a.x + w / 2, y0: a.y - 26, y1: a.y - 4 };
       if (labels.length < 140 && placed.every((p) => bx.x1 < p.x0 || bx.x0 > p.x1 || bx.y1 < p.y0 || bx.y0 > p.y1)) { placed.push(bx); labels.push({ ...a, txt, w }); } else dots.push(a);
     });
     return { labels, dots };
@@ -243,6 +258,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
           <ButtonGroup size="sm" radius="full">{PERIODS.map(([k, l]) => <Button key={k} color={period === k ? "primary" : "default"} variant={period === k ? "solid" : "flat"} onPress={() => setPeriod(k)}>{l}</Button>)}</ButtonGroup>
           <Divider orientation="vertical" className="h-6" />
           <div className="flex flex-wrap gap-1">{METRICS.filter((x) => x.id !== "commute" || Object.keys(data.commute || {}).length).map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
+          {m.id === "future" && <GrowthPick growth={growth} setGrowth={setGrowth} />}
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>
         <div ref={wrapRef} className="relative h-[62vh] min-h-[440px] overflow-hidden rounded-large bg-content1 shadow-small lg:h-[calc(100vh-230px)] lg:min-h-[560px]" style={{ touchAction: "none" }}>
@@ -290,6 +306,13 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                     </g>
                   );
                 })}
+                {showApply && applyPts.map((r) => (
+                  <g key={r.id} transform={`translate(${sx(r.lon)},${sy(r.lat)})`} className="cursor-pointer" onClick={() => r.url && window.open(r.url, "_blank", "noopener")}>
+                    <rect x={-6} y={-6} width={12} height={12} rx={3} fill={P.indigo} stroke="hsl(var(--heroui-content1))" strokeWidth="2" />
+                    <text y={-10} textAnchor="middle" className="map-label" style={{ fontWeight: 700, fill: P.indigo }}>{dday(r.special_from || r.receipt_start)}</text>
+                    <title>{`${r.name} · ${r.households}세대 · 특공 ${r.special_from || "—"} · 1순위 ${r.first_rank || r.receipt_start || "—"}`}</title>
+                  </g>
+                ))}
                 {REF.map((r) => (
                   <g key={r.n} transform={`translate(${sx(r.lon)},${sy(r.lat)})`} style={{ pointerEvents: "none" }}>
                     <path d="M0,-9L9,0L0,9L-9,0Z" fill={P.fg} stroke="hsl(var(--heroui-content1))" strokeWidth="2" />
@@ -306,12 +329,16 @@ export default function Atlas({ data: base, scope = "seoul" }) {
               </button>
               {legendOpen && (
                 <div className="mt-1.5 flex flex-col gap-1.5">
-                  {scale && <div className="flex items-center gap-2 num"><span>{m.f(scale.lo)}</span><span className="h-2 flex-1 rounded-full" style={{ background: m.div ? `linear-gradient(90deg,${DOWN},${P.faint},${UP})` : `linear-gradient(90deg,${P.faint},${m.id === "jeonse" ? P.amber : P.primary})` }} /><span>{m.f(scale.hi)}</span></div>}
+                  {scale && <div className="flex items-center gap-2 num"><span>{m.f(scale.lo)}</span><span className="h-2 flex-1 rounded-full" style={{ background: m.div ? `linear-gradient(90deg,${DOWN},${P.faint},${UP})` : `linear-gradient(90deg,${P.faint},${toneOf(m, P)})` }} /><span>{m.f(scale.hi)}</span></div>}
                   {m.div && <span className="text-default-500">빨강 = 상승, 파랑 = 하락</span>}
+                  <MetricNote m={m} />
                   {showPins && ["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: fitColor[f] }} />{fitText[f]}</span>)}
+                  {showPins && <span className="text-default-500">가격 앞 ▲ 최근 3개월 신고가 · ▼ 급매</span>}
                   <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>광화문</span>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
+                  <Switch size="sm" isSelected={showApply} onValueChange={setShowApply}>청약 접수 예정 단지</Switch>
+                  {showApply && ah && !ah.items && <span className="text-[10px] text-default-400">청약 데이터가 아직 연결되지 않았습니다.</span>}
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}
                   {showRedev && STAGES.slice(0, 6).map((s) => <span key={s} className="inline-flex items-center gap-1.5 text-[10px]"><span className="h-2.5 w-2.5 rounded-full border" style={{ background: STAGE_COLOR[s] + "70", borderColor: STAGE_COLOR[s] }} />{s}</span>)}
                 </div>
@@ -328,6 +355,68 @@ export default function Atlas({ data: base, scope = "seoul" }) {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+// one line under the legend for metrics that need explaining
+export function MetricNote({ m }) {
+  const t = {
+    future: `${futureState.years}년 뒤 가격 = 지금 거래가 × 그 지역 최근 1년 상승률(같은 단지·평형)로 키운 값. 예산은 내 조건의 '${futureState.years}년 뒤 둘이' 기준 ${won(futureState.budget)}.`,
+    high: "같은 단지·평형의 최근 2년 최고가를 넘은 거래 비중.",
+    dip: "같은 단지·평형 직전 6개월 중위가보다 10~30% 싸게 팔린 거래 비중. 1~2층·직거래 제외.",
+  }[m.id];
+  return t ? <span className="text-[10px] leading-snug text-default-500">{t}</span> : null;
+}
+
+/* --- recent sales well under the complex's own recent price, within my budget --- */
+export function DealsCard({ scope, budget, onApt }) {
+  const deals = useLazyFile("deals");
+  const [kind, setKind] = useState("dips");
+  if (!deals?.dips) return null;
+  const cnt = (k) => (deals.n?.["11"]?.[k] || 0) + (scope === "metro" ? deals.n?.["41"]?.[k] || 0 : 0);
+  const rows = (deals[kind] || []).filter((r) => (scope === "metro" || r.sido === "11") && (kind === "highs" || r.price <= budget * 1.05)).slice(0, 8);
+  return (
+    <div className="rounded-large bg-content1 p-4 shadow-small">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-small font-semibold">{kind === "dips" ? "시세보다 싸게 팔린 거래" : "신고가 거래"}</span>
+        <ButtonGroup size="sm" radius="full">
+          <Button variant={kind === "dips" ? "solid" : "flat"} color={kind === "dips" ? "primary" : "default"} onPress={() => setKind("dips")}>급매 {cnt("dip").toLocaleString()}</Button>
+          <Button variant={kind === "highs" ? "solid" : "flat"} color={kind === "highs" ? "danger" : "default"} onPress={() => setKind("highs")}>신고가 {cnt("high").toLocaleString()}</Button>
+        </ButtonGroup>
+      </div>
+      <p className="mb-1 mt-1 text-[10px] text-default-400">{deals.since.slice(2, 7).replace("-", ".")} 이후 신고분{kind === "dips" ? ` · 내 예산(${won(budget)}) 근처 이하만 · 1~2층·직거래 제외. 급매가 아니라 사정이 있는 거래일 수 있습니다.` : " · 같은 단지·평형 2년 최고가 대비"}</p>
+      {rows.length === 0 ? <p className="text-tiny text-default-400">해당하는 거래가 없습니다.</p> : rows.map((r) => (
+        <button key={r.id + r.area + r.date} type="button" onClick={() => onApt(r.id)} className="flex w-full items-center justify-between gap-2 rounded-small px-1.5 py-1 text-left text-tiny num hover:bg-default-100">
+          <span className="min-w-0 truncate">{r.gu} {r.apt} {Math.round(r.area)}㎡ · {r.floor}층 · {r.date.slice(5).replace("-", ".")}</span>
+          <span className="shrink-0"><span className="text-default-400">{won(r.ref)} → </span><b style={{ color: kind === "dips" ? DOWN : UP }}>{won(r.price)}</b> <span className="text-default-400">{fmt.pct(r.gap_pct)}</span></span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* --- will this region still be affordable when I buy? three growth paths for its 84㎡ price --- */
+export function FutureCard({ r, period, data }) {
+  const later = data.budget?.find((x) => x.scenario === "later");
+  const d = r[period] || {}, p84 = d.p84 ?? (d.ppp ? Math.round(d.ppp * 25.4) : null);
+  if (!later || !p84 || r.g12 == null) return null;
+  const yrs = later.years || 3, B = later.max_price_10k;
+  const verdict = (f) => (B >= f ? ["살 수 있음", "success"] : B >= f * 0.9 ? ["빠듯", "warning"] : ["부족", "danger"]);
+  return (
+    <div className="rounded-large bg-content1 p-4 shadow-small">
+      <div className="text-small font-semibold">{yrs}년 뒤에도 살 수 있을까</div>
+      <p className="mb-2 text-tiny text-default-500 num">지금 84㎡ {won(p84)} · 최근 1년 {fmt.pct(r.g12)} · {later.label} 예산 {won(B)}</p>
+      <div className="grid grid-cols-3 gap-2">
+        {GROWTH.map(([k, l]) => { const f = Math.round(p84 * growthMult(r.g12, k, yrs)), [v, c] = verdict(f); return (
+          <div key={k} className="rounded-medium bg-default-100 px-2 py-2">
+            <div className="text-[10px] text-default-500">{l}</div>
+            <div className="text-medium font-bold num">{won(f)}</div>
+            <Chip size="sm" variant="flat" color={c} className="mt-1 h-5 text-[10px]">{v}</Chip>
+          </div>
+        ); })}
+      </div>
+      <p className="mt-2 text-[10px] text-default-400">이 지역 같은 단지·평형 기준 최근 1년 상승률을 {yrs}년 이어 붙인 단순 계산입니다. 예측이 아니라 "이 속도가 이어지면"의 범위입니다.</p>
     </div>
   );
 }
@@ -390,6 +479,7 @@ export function Overview({ data, ins, period, level, m, scen, onPick, P, onApt }
         const share = near.reduce((s, r) => s + (shareBelow(r.p3.q, fitState.budget) || 0) * r.p3.n, 0) / n;
         return { tag: "나에게", text: `${hasC ? `광화문까지 대중교통 50분 이내 ${topLv === "sgg" ? "시군구" : "구"} ${near.length}곳` : "전체 지역"}에서 최근 3개월 거래 중 내 예산(${won(fitState.budget)}) 이하는 ${share.toFixed(1)}%입니다.` };
       })()} />
+      {(m.id === "dip" || m.id === "high") && <DealsCard scope={data.scope} budget={fitState.budget} onApt={onApt} />}
       <div className="rounded-large bg-content1 p-4 shadow-small">
         <div className="text-small font-semibold">{LEVEL_NAME[level]} 순위 · {m.l}</div>
         <p className="mb-2 text-tiny text-default-400">{PERIOD_NOTE[period]} · 거래 {TOP(level) ? 5 : 10}건 이상인 곳만</p>
@@ -529,8 +619,10 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
             <div key={l} className="rounded-medium bg-default-100 px-2.5 py-2"><div className="text-tiny text-default-500">{l}</div><div className="text-large font-bold num">{v}</div><div className="text-tiny num">{s}</div></div>
           ))}
         </div>
+        {d.high_share != null && <div className="text-tiny num">신고가 비율 <b style={{ color: UP }}>{fmt.share(d.high_share)}</b> · 시세보다 10% 넘게 싼 거래 <b style={{ color: DOWN }}>{d.dip_n}건</b> ({fmt.share(d.dip_share)})</div>}
         <p className="text-tiny text-default-400">평당가는 전용 3.3㎡ 기준 중위값. 변화율은 직전 같은 기간 대비, 거래 5건 이상일 때만.</p>
       </div>
+      <FutureCard r={r} period={period} data={data} />
 
       <CommuteCard commute={data.commute} hcode={lv === "hdong" ? rkey : null} apts={apts.filter(inRegion)} />
       <RegionStats s={data.region_stats?.[lv]?.[rkey]} asOf={data.region_stats?.as_of} lv={lv} />

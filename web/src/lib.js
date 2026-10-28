@@ -113,6 +113,26 @@ export function useProfile() {
   return [p, save, reset];
 }
 
+// 청약 접수까지 남은 날
+export const dday = (d) => { if (!d) return null; const n = Math.round((Date.parse(d) - Date.parse(new Date().toISOString().slice(0, 10))) / 864e5); return n > 0 ? `D-${n}` : n === 0 ? "D-day" : "접수 중"; };
+
+/* ---------- 관심 단지: saved per browser, shared live by every component that shows it ---------- */
+const WKEY = "hb-watch-v1", wsubs = new Set();
+let watchVal = (() => { try { return JSON.parse(localStorage.getItem(WKEY) || "{}"); } catch (e) { return {}; } })();
+export function useWatch() {
+  const [, tick] = useState(0);
+  useEffect(() => { const f = () => tick((x) => x + 1); wsubs.add(f); return () => wsubs.delete(f); }, []);
+  const set = (next) => { watchVal = next; try { localStorage.setItem(WKEY, JSON.stringify(next)); } catch (e) { /* private window: keep in memory */ } wsubs.forEach((f) => f()); };
+  // remembers the size and price at the moment of saving, so the list can show the change since
+  const toggle = (apt, area, price) => {
+    const n = { ...watchVal };
+    if (n[apt.id]) delete n[apt.id];
+    else n[apt.id] = { savedAt: new Date().toISOString().slice(0, 10), area, price, name: apt.apt, gu: apt.gu, dong: apt.dong, sido: apt.sido || "11" };
+    set(n);
+  };
+  return [watchVal, toggle, set];
+}
+
 // Highest price the cash + allowed loan can cover, with 2.5% purchase costs (취득세·중개비 등).
 export const COSTS = 0.025;
 function maxPrice(cash, income, rate, firstHome) {
@@ -136,7 +156,7 @@ export function budgetsFrom(p, rate) {
   const note = (cash, n) => `현금 ${won(cash)}에서 취득 비용 2.5%를 빼고, 금리 ${r}% + 스트레스 3%p, 30년 상환으로 계산${n ? ` (저축 ${n}년 반영)` : ""}`;
   return [
     { scenario: "now", label: "지금 사면", income_10k: p.income, cash_10k: p.cash, loan_10k: now.loan, max_price_10k: now.P, binding: now.binding, loan_dsr_10k: now.dsrLoan, note: note(p.cash, 0) },
-    { scenario: "later", label: yrs ? `${yrs}년 뒤 둘이 사면` : "지금 둘이 사면", income_10k: incomeL, cash_10k: cashL, loan_10k: later.loan, max_price_10k: later.P, binding: later.binding, loan_dsr_10k: later.dsrLoan, note: note(cashL, yrs) },
+    { scenario: "later", label: yrs ? `${yrs}년 뒤 둘이 사면` : "지금 둘이 사면", years: yrs, income_10k: incomeL, cash_10k: cashL, loan_10k: later.loan, max_price_10k: later.P, binding: later.binding, loan_dsr_10k: later.dsrLoan, note: note(cashL, yrs) },
   ];
 }
 // share of trades at or under a budget, from a region's 21-point price distribution
@@ -147,7 +167,28 @@ export function shareBelow(q, B) {
   for (let i = 0; i < 20; i++) if (B < q[i + 1]) return Math.round((i + (q[i + 1] > q[i] ? (B - q[i]) / (q[i + 1] - q[i]) : 0)) * 50) / 10;
   return 100;
 }
-export const fitState = { budget: 100000 };  // the map's budget slider; read by the "내 예산 비중" metric
+export const fitState = { budget: 100000 };
+
+/* ---------- N년 뒤: each region's prices grown at its own recent pace, against my later budget ---------- */
+export const GROWTH = [["full", "최근 1년 속도로 오르면"], ["half", "그 절반 속도면"], ["flat", "안 오르면"]];
+export const futureState = { growth: "half", years: 3, budget: 100000 };
+// yearly change per region: its own 1-year same-unit change, else its 구/시군구's, else the median 구/시군구
+export function attachGrowth(ins) {
+  if (!ins || ins.__growth) return ins;
+  const tops = Object.values(ins.gu || ins.sgg || {}).map((r) => r.p12?.chg).filter((v) => v != null).sort((a, b) => a - b);
+  const mid = tops.length ? tops[Math.floor(tops.length / 2)] : 5;
+  Object.entries(ins).forEach(([lv, tbl]) => {
+    if (lv === "meta" || typeof tbl !== "object") return;
+    Object.values(tbl).forEach((r) => { const up = lv === "gu" || lv === "sgg" ? null : ins.gu?.[r.gu] || ins.sgg?.[r.sgg]; r.g12 = r.p12?.chg ?? up?.p12?.chg ?? mid; });
+  });
+  Object.defineProperty(ins, "__growth", { value: true });
+  return ins;
+}
+export const growthMult = (g, mode = futureState.growth, years = futureState.years) => Math.pow(1 + (mode === "flat" ? 0 : mode === "half" ? g / 2 : g) / 100, years);
+export function futureShare(r, p, B = futureState.budget) {
+  const q = r?.[p]?.q; if (!q || r.g12 == null) return null;
+  const k = growthMult(r.g12); return shareBelow(q.map((x) => x * k), B);
+}  // the map's budget slider; read by the "내 예산 비중" metric
 export const annuity = (rate, years = YEARS) => { const r = rate / 1200, n = years * 12; return r ? r / (1 - Math.pow(1 + r, -n)) : 1 / n; };
 export const loanCap = (price) => (price <= 150000 ? 60000 : price <= 250000 ? 40000 : 20000);
 

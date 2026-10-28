@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Input, Link, Select, SelectItem, Skeleton, Slider, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, DSR, fmt, loanCap, LTV, palette, STRESS, useIsDark, won, YEARS } from "./lib.js";
+import { annuity, attachGrowth, DSR, fmt, GROWTH, growthMult, loanCap, LTV, palette, STRESS, dday, useIsDark, useLazyFile, won, YEARS } from "./lib.js";
 
 const Box = ({ title, sub, children, className = "", right }) => (
   <Card shadow="sm" className={className}>
@@ -76,6 +76,8 @@ export function PlanTab({ data, dv, part }) {
           )}
         </Box>
       </div>
+      <ApplyhomeCard />
+      <FutureDongs data={data} />
       <Box title="내집마련 로드맵" sub="지금부터 매수 시점까지 할 일을 순서대로 정리했습니다.">
         {!data.strategy ? <Loading h={240} /> : (
           <ol className="relative flex flex-col gap-0 border-l-2 border-primary-200 pl-6">
@@ -92,6 +94,78 @@ export function PlanTab({ data, dv, part }) {
         )}
       </Box>
     </div>
+  );
+}
+
+/* 다가오는 청약: 접수 마감 전 서울·경기 공고, 접수 시작 순 */
+function ApplyhomeCard() {
+  const ah = useLazyFile("applyhome");
+  const [sido, setSido] = useState("11");
+  const today = new Date().toISOString().slice(0, 10);
+  const items = (ah?.items || []).filter((r) => (r.receipt_end || r.notice) >= today && (sido === "all" || r.sido === sido));
+  return (
+    <Box title="다가오는 청약" sub="청약홈 분양 공고 중 접수가 안 끝난 곳. 특별공급(생애최초·신혼부부)은 일반공급보다 먼저 접수합니다."
+      right={<ButtonGroup size="sm" radius="full">{[["11", "서울"], ["all", "서울+경기"]].map(([k, l]) => <Button key={k} color={sido === k ? "primary" : "default"} variant={sido === k ? "solid" : "flat"} onPress={() => setSido(k)}>{l}</Button>)}</ButtonGroup>}>
+      {!ah ? <Loading h={120} /> : !ah.items ? <p className="text-small text-default-500">청약 데이터가 아직 연결되지 않았습니다. 공공데이터포털 '청약홈 분양정보 조회 서비스' 활용신청 후 매일 자동으로 채워집니다.</p>
+        : items.length === 0 ? <p className="text-small text-default-500">지금 접수 예정인 공고가 없습니다 ({ah.as_of} 기준).</p> : (
+        <ul className="flex flex-col">
+          {items.slice(0, 12).map((r) => {
+            const prices = r.types.map((t) => t.price_max).filter(Boolean), sp = r.types.reduce((s, t) => s + (t.special || 0), 0), small = r.types.filter((t) => t.area && t.area <= 85).length;
+            return (
+              <li key={r.id} className="grid grid-cols-[4.2rem_minmax(0,1fr)_auto] items-start gap-3 border-b border-default-100 py-2 text-small num">
+                <Chip size="sm" variant="flat" color={dday(r.special_from || r.receipt_start) === "접수 중" ? "danger" : "primary"}>{dday(r.special_from || r.receipt_start) || "—"}</Chip>
+                <span className="min-w-0">
+                  <span className="block truncate font-medium">{r.name}</span>
+                  <span className="block truncate text-tiny text-default-500">{r.addr}</span>
+                  <span className="block text-tiny text-default-500">특별공급 {r.special_from || "—"} · 1순위 {r.first_rank || r.receipt_start || "—"} · 발표 {r.winner || "—"}</span>
+                </span>
+                <span className="text-right text-tiny">
+                  <b className="text-small">{r.households.toLocaleString()}세대</b>{sp ? <span className="block text-default-500">특공 {sp.toLocaleString()}</span> : null}
+                  {prices.length > 0 && <span className="block">{won(Math.min(...prices))}~{won(Math.max(...prices))}</span>}
+                  {small > 0 && <span className="block text-default-400">85㎡ 이하 {small}개 타입</span>}
+                  {r.url && <Link href={r.url} isExternal size="sm" className="text-tiny">공고문</Link>}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <p className="mt-2 text-tiny text-default-400">분양가는 주택형별 최고가. 추첨·가점 비율과 자격은 공고마다 달라 공고문에서 확인하세요. 출처: 한국부동산원 청약홈.</p>
+    </Box>
+  );
+}
+
+/* N년 뒤 예산으로도 84㎡가 닿는 행정동: 통근 추정 45분 이내, 최근 6개월 거래 40건 이상 */
+function FutureDongs({ data }) {
+  const [mode, setMode] = useState("half");
+  const later = data.budget?.find((x) => x.scenario === "later");
+  const rows = useMemo(() => {
+    const ins = attachGrowth(data.insights);
+    if (!ins?.hdong || !later || !data.gu_summary) return null;
+    const cm = Object.fromEntries(data.gu_summary.map((g) => [g.gu, g.commute_min_est]));
+    const yrs = later.years || 3, B = later.max_price_10k;
+    return Object.entries(ins.hdong).map(([k, r]) => ({ k, r, p: r.p6?.p84, c: cm[r.gu] ?? 99 }))
+      .filter((x) => x.p && (x.r.p6?.n || 0) >= 40 && x.c <= 45)
+      .map((x) => ({ ...x, f: Math.round(x.p * growthMult(x.r.g12, mode, yrs)) }))
+      .filter((x) => x.f <= B && x.f >= B * 0.7)
+      .sort((a, b) => b.r.p6.n - a.r.p6.n).slice(0, 12);
+  }, [data.insights, data.gu_summary, later, mode]);
+  if (!later) return null;
+  return (
+    <Box title={`${later.years || 3}년 뒤에도 84㎡가 닿는 동네`} sub={`${later.label} 예산 ${won(later.max_price_10k)} 기준. 광화문 45분 이내(구 단위 추정), 최근 6개월 거래 40건 이상, 예산의 70~100%에 드는 행정동을 거래 많은 순으로.`}
+      right={<ButtonGroup size="sm" radius="full">{GROWTH.map(([k, l]) => <Button key={k} color={mode === k ? "secondary" : "default"} variant={mode === k ? "solid" : "flat"} onPress={() => setMode(k)}>{l}</Button>)}</ButtonGroup>}>
+      {!rows ? <Loading h={200} /> : rows.length === 0 ? <p className="text-small text-default-500">이 조건에 맞는 동네가 없습니다. '내 조건'에서 예산이나 결혼 시점을 바꿔 보세요.</p> : (
+        <ul className="grid gap-x-6 gap-y-1.5 md:grid-cols-2">
+          {rows.map((x) => (
+            <li key={x.k} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 border-b border-default-100 py-1 text-small num">
+              <span className="truncate"><b>{x.r.gu.replace(/구$/, "")} {x.r.name}</b> <span className="text-tiny text-default-400">{x.c}분 · {x.r.p6.n}건 · 1년 {fmt.pct(x.r.g12)}</span></span>
+              <span className="text-right">{won(x.p)} → <b>{won(x.f)}</b></span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="mt-2 text-tiny text-default-400">84㎡ 실거래 중위가를 그 동의 최근 1년 상승률(같은 단지·평형 기준)로 키운 단순 계산입니다. 예측이 아니며, 지도 탭의 '{later.years || 3}년 뒤 내 예산 이하' 지표에서 지역별로 볼 수 있습니다.</p>
+    </Box>
   );
 }
 

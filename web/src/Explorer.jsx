@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
-import { annuity, DSR, fmt, loanCap, LTV, palette, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
+import { annuity, DSR, fmt, loanCap, LTV, palette, STRESS, useIsDark, useLazyFile, useWatch, won } from "./lib.js";
 
 export const REF = [{ n: "광화문", lon: 126.9769, lat: 37.5759 }];
 export const LINE_COLOR = { "1호선": "#0052A4", "2호선": "#00A84D", "3호선": "#EF7C1C", "4호선": "#00A5DE", "5호선": "#996CAC", "6호선": "#CD7C2F", "7호선": "#747F00", "8호선": "#E6186C", "9호선": "#BDB092", "신분당선": "#D4003B", "경의중앙선": "#77C4A3", "공항철도": "#0090D2", "수인분당선": "#F5A200", "우이신설선": "#B0CE18", "신림선": "#6789CA", "서해선": "#8FC31F", "GTX-A": "#9A6292", "경춘선": "#0C8E72" };
@@ -420,6 +420,9 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const details = useLazyFile(apt.sido === "41" ? "apt_detail_gg" : "apt_detail"), basics = useLazyFile(apt.sido === "41" ? "apt_info_gg" : "apt_info");
   const ride = data.commute?.[apt.hcode];
   const det = details?.[apt.id], info = basics?.[apt.id];
+  const [watch, toggleWatch] = useWatch(), saved = watch[apt.id];
+  // the size people trade most here, and its recent price, are what the watchlist tracks
+  const main = det?.areas?.length ? [...det.areas].sort((a, b2) => b2.n6 - a.n6 || b2.n - a.n)[0] : null;
   return (
     <div className="flex flex-col gap-3 rounded-large bg-content1 p-4 shadow-small">
       <div className="flex items-start justify-between gap-2">
@@ -427,8 +430,13 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
           <div className="text-tiny text-default-500">{apt.gu} {apt.dong} · {apt.build_year || "—"}년 준공</div>
           <h3 className="text-large font-bold leading-snug">{apt.apt}</h3>
         </div>
-        <Button size="sm" variant="light" onPress={onClose}>목록</Button>
+        <div className="flex shrink-0 gap-1">
+          <Button size="sm" variant={saved ? "solid" : "flat"} color={saved ? "warning" : "default"} isDisabled={!saved && !details}
+            onPress={() => toggleWatch(apt, main?.a ?? apt.median_area_sqm, main ? main.med ?? main.last : price)}>{saved ? "★ 관심" : "☆ 관심"}</Button>
+          <Button size="sm" variant="light" onPress={onClose}>목록</Button>
+        </div>
       </div>
+      {saved && <p className="-mt-1 text-[10px] text-default-400 num">{saved.savedAt}에 {saved.area}㎡ {won(saved.price)}로 저장 · 헤더의 '관심 단지'에서 비교</p>}
       <div className="flex flex-wrap items-center gap-2">
         <Chip size="sm" variant="flat" style={{ background: fitColor[f] + "33" }}>{fitText[f]}</Chip>
         {dong && <Chip size="sm" variant="flat">{dong.apt_zone}</Chip>}
