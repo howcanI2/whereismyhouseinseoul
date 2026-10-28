@@ -16,7 +16,7 @@ export const stageOk = (s, g) => g === "all" || (g === "early" ? STAGES.indexOf(
 export const AGES = [["all", "전체 연식"], ["new", "신축 10년 이내"], ["old", "30년+ 재건축 연한"]];
 export const ageOk = (y, f) => f === "all" || (y && (f === "new" ? y >= 2016 : y <= 1996));
 // studios under 40㎡ are left out: they are not a home for a couple and crowd the price tags
-export const areaOk = (a, f) => a >= 40 && (f === "all" || (f === "s" ? a < 60 : f === "m" ? a >= 60 && a <= 85 : a > 85));
+export const areaOk = (a, f) => (a == null ? f === "all" : a >= 40 && (f === "all" || (f === "s" ? a < 60 : f === "m" ? a >= 60 && a <= 85 : a > 85)));
 export const polysOf = (g) => (g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : []);
 export const dist = (a, b) => { const R = 6371000, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r; const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
 
@@ -417,7 +417,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const mon = Math.min(need, maxLoan) * annuity(rate);
   const pts = (rows || []).map(([d, a, fl, p]) => ({ t: Date.parse(d), p: p / 10000, a, d, fl }));
   const dong = data.dong_summary?.find((r) => r.id === `${apt.gu} ${apt.dong}`);
-  const details = useLazyFile(apt.sido === "41" ? "apt_detail_gg" : "apt_detail"), basics = useLazyFile("apt_info");
+  const details = useLazyFile(apt.sido === "41" ? "apt_detail_gg" : "apt_detail"), basics = useLazyFile(apt.sido === "41" ? "apt_info_gg" : "apt_info");
   const ride = data.commute?.[apt.hcode];
   const det = details?.[apt.id], info = basics?.[apt.id];
   return (
@@ -436,11 +436,13 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         {near?.[0] && <Chip size="sm" variant="flat">{near[0].station} {near[0].lines.join("·")} · 도보 약 {Math.max(1, Math.round(near[0].d / 75))}분</Chip>}
         {ride && <Chip size="sm" variant="flat" color="primary">광화문까지 대중교통 약 {ride.min}분{ride.route ? ` · ${ride.route}` : ""}</Chip>}
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        {[["중위가", won(price)], ["가격 범위", `${won(apt.min_price_10k)}~${won(apt.max_price_10k)}`], ["대표 면적", `${apt.median_area_sqm}㎡`]].map(([l, v]) => (
+      {apt.no_trade && <p className="rounded-medium bg-default-100 px-3 py-2 text-small text-default-600">최근 2년 동안 이 단지의 아파트 매매 신고가 없습니다. 아래는 K-apt 단지 기본정보입니다.</p>}
+      {apt.stale && <p className="rounded-medium bg-default-100 px-3 py-2 text-tiny text-default-600">최근 6개월 매매가 없어 <b>마지막 거래({apt.last_trade}, {apt.median_area_sqm}㎡)</b> 가격을 보여줍니다. 지금 시세와 다를 수 있습니다.</p>}
+      {!apt.no_trade && <div className="grid grid-cols-3 gap-2">
+        {[[apt.stale ? "마지막 거래가" : "중위가", won(price)], ["가격 범위", `${won(apt.min_price_10k)}~${won(apt.max_price_10k)}`], [apt.stale ? "그 거래 면적" : "대표 면적", `${apt.median_area_sqm}㎡`]].map(([l, v]) => (
           <div key={l} className="rounded-medium bg-default-100 px-2.5 py-2"><div className="text-tiny text-default-500">{l}</div><div className="text-small font-semibold num">{v}</div></div>
         ))}
-      </div>
+      </div>}
       {info && (
         <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 rounded-medium bg-default-50 px-3 py-2 text-tiny num">
           {[["세대수", info.households && `${Number(info.households).toLocaleString()}세대`], ["동수", info.buildings && `${info.buildings}개동`], ["사용승인", info.approval], ["시공사", info.builder], ["난방", info.heating], ["주차", info.parking && info.households ? `${info.parking.toLocaleString()}대 (세대당 ${(info.parking / info.households).toFixed(2)})` : info.parking], ["복도", info.hall], ["최고층", info.floors_max && `${info.floors_max}층`], ["평형 구성", [info.units_le60 && `~60㎡ ${info.units_le60}`, info.units_60_85 && `60~85㎡ ${info.units_60_85}`, info.units_85_135 && `85㎡~ ${info.units_85_135 + (info.units_gt135 || 0)}`].filter(Boolean).join(" · ")]].filter(([, v]) => v).map(([l, v]) => (
@@ -470,15 +472,15 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         )}
         <p className="mt-1 text-[10px] text-default-400">최근 2년 매매, 전세는 4~9월 계약 기준. 전세가율은 같은 평형 6개월 매매 중위가 대비.</p>
       </div>
-      <Divider />
+      {price != null && <><Divider />
       <div>
-        <div className="mb-1 text-small font-semibold">{scen === "later" ? "결혼 후 둘이" : "지금 혼자"} 이 집을 사면</div>
+        <div className="mb-1 text-small font-semibold">{b?.label || "내 조건으로"} 이 집을 사면{apt.stale ? " (마지막 거래가 기준)" : ""}</div>
         <div className="flex flex-wrap items-center gap-2 text-small">
           <Chip color={ok ? "success" : "danger"} variant="flat" size="sm">{ok ? "대출 가능" : `대출 ${won(need - maxLoan)} 부족`}</Chip>
           <span className="text-default-500">필요 대출 {won(need)} · 최대 {won(maxLoan)} ({bind})</span>
         </div>
         <div className="mt-1 text-small">월 상환 약 <b className="num">{won(mon)}원</b> <span className="text-tiny text-default-400">(금리 {rate}%, 30년)</span></div>
-      </div>
+      </div></>}
       <Divider />
       <div>
         <div className="mb-1 flex items-baseline justify-between"><span className="text-small font-semibold">실거래 (최근 12개월)</span><span className="text-tiny text-default-500">{rows ? `${rows.length}건` : ""}</span></div>

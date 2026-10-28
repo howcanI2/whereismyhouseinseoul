@@ -1,22 +1,186 @@
 [
-{"month":"2025-01","mortgage_pct":4.27,"fixed_pct":4.26,"variable_pct":4.34,"household_pct":4.65,"base_pct":3.00},
-{"month":"2025-02","mortgage_pct":4.23,"fixed_pct":4.22,"variable_pct":4.25,"household_pct":4.52,"base_pct":2.75},
-{"month":"2025-03","mortgage_pct":4.17,"fixed_pct":4.15,"variable_pct":4.25,"household_pct":4.51,"base_pct":2.75},
-{"month":"2025-04","mortgage_pct":3.98,"fixed_pct":3.96,"variable_pct":4.12,"household_pct":4.36,"base_pct":2.75},
-{"month":"2025-05","mortgage_pct":3.87,"fixed_pct":3.86,"variable_pct":3.97,"household_pct":4.26,"base_pct":2.50},
-{"month":"2025-06","mortgage_pct":3.93,"fixed_pct":3.92,"variable_pct":3.99,"household_pct":4.21,"base_pct":2.50},
-{"month":"2025-07","mortgage_pct":3.96,"fixed_pct":3.95,"variable_pct":4.05,"household_pct":4.20,"base_pct":2.50},
-{"month":"2025-08","mortgage_pct":3.96,"fixed_pct":3.94,"variable_pct":4.08,"household_pct":4.17,"base_pct":2.50},
-{"month":"2025-09","mortgage_pct":3.96,"fixed_pct":3.94,"variable_pct":4.08,"household_pct":4.17,"base_pct":2.50},
-{"month":"2025-10","mortgage_pct":3.98,"fixed_pct":3.97,"variable_pct":4.11,"household_pct":4.24,"base_pct":2.50},
-{"month":"2025-11","mortgage_pct":4.17,"fixed_pct":4.17,"variable_pct":4.18,"household_pct":4.32,"base_pct":2.50},
-{"month":"2025-12","mortgage_pct":4.23,"fixed_pct":4.22,"variable_pct":4.32,"household_pct":4.35,"base_pct":2.50},
-{"month":"2026-01","mortgage_pct":4.29,"fixed_pct":4.26,"variable_pct":4.40,"household_pct":4.50,"base_pct":2.50},
-{"month":"2026-02","mortgage_pct":4.32,"fixed_pct":4.30,"variable_pct":4.38,"household_pct":4.45,"base_pct":2.50},
-{"month":"2026-03","mortgage_pct":4.34,"fixed_pct":4.32,"variable_pct":4.39,"household_pct":4.51,"base_pct":2.50},
-{"month":"2026-04","mortgage_pct":4.31,"fixed_pct":4.34,"variable_pct":4.28,"household_pct":4.43,"base_pct":2.50},
-{"month":"2026-05","mortgage_pct":4.32,"fixed_pct":4.44,"variable_pct":4.23,"household_pct":4.46,"base_pct":2.50},
-{"month":"2026-06","mortgage_pct":4.36,"fixed_pct":4.53,"variable_pct":4.27,"household_pct":4.50,"base_pct":2.50},
-{"month":"2026-07","mortgage_pct":4.48,"fixed_pct":4.76,"variable_pct":4.35,"household_pct":4.64,"base_pct":2.75},
-{"month":"2026-08","mortgage_pct":4.66,"fixed_pct":4.88,"variable_pct":4.53,"household_pct":4.76,"base_pct":3.00}
+{
+"month": "2024-10",
+"mortgage_pct": 4.05,
+"fixed_pct": 4.04,
+"variable_pct": 4.14,
+"household_pct": 4.55,
+"base_pct": 3.25
+},
+{
+"month": "2024-11",
+"mortgage_pct": 4.3,
+"fixed_pct": 4.31,
+"variable_pct": 4.25,
+"household_pct": 4.79,
+"base_pct": 3.0
+},
+{
+"month": "2024-12",
+"mortgage_pct": 4.25,
+"fixed_pct": 4.23,
+"variable_pct": 4.32,
+"household_pct": 4.72,
+"base_pct": 3.0
+},
+{
+"month": "2025-01",
+"mortgage_pct": 4.27,
+"fixed_pct": 4.26,
+"variable_pct": 4.34,
+"household_pct": 4.65,
+"base_pct": 3.0
+},
+{
+"month": "2025-02",
+"mortgage_pct": 4.23,
+"fixed_pct": 4.22,
+"variable_pct": 4.25,
+"household_pct": 4.52,
+"base_pct": 2.75
+},
+{
+"month": "2025-03",
+"mortgage_pct": 4.17,
+"fixed_pct": 4.15,
+"variable_pct": 4.25,
+"household_pct": 4.51,
+"base_pct": 2.75
+},
+{
+"month": "2025-04",
+"mortgage_pct": 3.98,
+"fixed_pct": 3.96,
+"variable_pct": 4.12,
+"household_pct": 4.36,
+"base_pct": 2.75
+},
+{
+"month": "2025-05",
+"mortgage_pct": 3.87,
+"fixed_pct": 3.86,
+"variable_pct": 3.97,
+"household_pct": 4.26,
+"base_pct": 2.5
+},
+{
+"month": "2025-06",
+"mortgage_pct": 3.93,
+"fixed_pct": 3.92,
+"variable_pct": 3.99,
+"household_pct": 4.21,
+"base_pct": 2.5
+},
+{
+"month": "2025-07",
+"mortgage_pct": 3.96,
+"fixed_pct": 3.95,
+"variable_pct": 4.05,
+"household_pct": 4.2,
+"base_pct": 2.5
+},
+{
+"month": "2025-08",
+"mortgage_pct": 3.96,
+"fixed_pct": 3.94,
+"variable_pct": 4.08,
+"household_pct": 4.17,
+"base_pct": 2.5
+},
+{
+"month": "2025-09",
+"mortgage_pct": 3.96,
+"fixed_pct": 3.94,
+"variable_pct": 4.08,
+"household_pct": 4.17,
+"base_pct": 2.5
+},
+{
+"month": "2025-10",
+"mortgage_pct": 3.98,
+"fixed_pct": 3.97,
+"variable_pct": 4.11,
+"household_pct": 4.24,
+"base_pct": 2.5
+},
+{
+"month": "2025-11",
+"mortgage_pct": 4.17,
+"fixed_pct": 4.17,
+"variable_pct": 4.18,
+"household_pct": 4.32,
+"base_pct": 2.5
+},
+{
+"month": "2025-12",
+"mortgage_pct": 4.23,
+"fixed_pct": 4.22,
+"variable_pct": 4.32,
+"household_pct": 4.35,
+"base_pct": 2.5
+},
+{
+"month": "2026-01",
+"mortgage_pct": 4.29,
+"fixed_pct": 4.26,
+"variable_pct": 4.4,
+"household_pct": 4.5,
+"base_pct": 2.5
+},
+{
+"month": "2026-02",
+"mortgage_pct": 4.32,
+"fixed_pct": 4.3,
+"variable_pct": 4.38,
+"household_pct": 4.45,
+"base_pct": 2.5
+},
+{
+"month": "2026-03",
+"mortgage_pct": 4.34,
+"fixed_pct": 4.32,
+"variable_pct": 4.39,
+"household_pct": 4.51,
+"base_pct": 2.5
+},
+{
+"month": "2026-04",
+"mortgage_pct": 4.31,
+"fixed_pct": 4.34,
+"variable_pct": 4.28,
+"household_pct": 4.43,
+"base_pct": 2.5
+},
+{
+"month": "2026-05",
+"mortgage_pct": 4.32,
+"fixed_pct": 4.44,
+"variable_pct": 4.23,
+"household_pct": 4.46,
+"base_pct": 2.5
+},
+{
+"month": "2026-06",
+"mortgage_pct": 4.36,
+"fixed_pct": 4.53,
+"variable_pct": 4.27,
+"household_pct": 4.5,
+"base_pct": 2.5
+},
+{
+"month": "2026-07",
+"mortgage_pct": 4.48,
+"fixed_pct": 4.76,
+"variable_pct": 4.35,
+"household_pct": 4.64,
+"base_pct": 2.75
+},
+{
+"month": "2026-08",
+"mortgage_pct": 4.66,
+"fixed_pct": 4.88,
+"variable_pct": 4.53,
+"household_pct": 4.76,
+"base_pct": 3.0
+}
 ]

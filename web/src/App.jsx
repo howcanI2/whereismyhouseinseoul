@@ -69,7 +69,7 @@ export default function App() {
         classNames={{ base: "w-full", tabList: "bg-content1 shadow-small", tab: "px-5 h-11", panel: "px-0 pt-1" }}>
         {TABS.map(([k, l, q]) => (
           <Tab key={k} title={<span className="flex items-baseline gap-2"><span className="font-semibold">{l}</span><span className="hidden text-tiny opacity-70 sm:inline">{q}</span></span>}>
-            {k === "map" && KAKAO_KEY && !kakaoError && (
+            {k === "map" && (
               <div className="mb-3 flex flex-wrap items-center gap-3">
                 <ButtonGroup size="md" radius="full">
                   <Button color={scope === "seoul" ? "primary" : "default"} variant={scope === "seoul" ? "solid" : "flat"} onPress={() => setScope("seoul")}>서울</Button>
@@ -81,7 +81,7 @@ export default function App() {
             {k === "map" && (KAKAO_KEY && !kakaoError ? <KakaoAtlas data={data} appKey={KAKAO_KEY} onFail={setKakaoError} scope={scope} /> : (
               <div className="flex flex-col gap-2">
                 {kakaoError && <p className="rounded-medium bg-warning-50 px-3 py-2 text-small text-warning-700">카카오맵을 불러오지 못해 기본 지도로 보여드립니다. 카카오 개발자 콘솔 &gt; 플랫폼 &gt; Web에 이 사이트 주소({typeof window !== "undefined" ? window.location.origin : ""})가 등록돼 있는지 확인하세요.</p>}
-                <Atlas data={data} />
+                <Atlas data={data} scope={scope} />
               </div>
             ))}
             {k === "money" && (

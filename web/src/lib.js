@@ -12,7 +12,7 @@ export function attachCommute(ins, apts, commute) {
     if (lv === "hdong") { Object.entries(tbl).forEach(([k, r]) => { r.commute = commute[k]?.min ?? null; }); return; }
     const f = keyOf[lv]; if (!f) return;
     const acc = {};
-    apts.forEach((a) => { const c = commute[a.hcode]; if (c) (acc[f(a)] ||= []).push([c.min, a.trades_6m || 1]); });
+    apts.forEach((a) => { const c = commute[a.hcode]; if (c && a.trades_6m) (acc[f(a)] ||= []).push([c.min, a.trades_6m]); });
     Object.entries(tbl).forEach(([k, r]) => {
       const xs = (acc[k] || []).sort((x, y) => x[0] - y[0]); let half = xs.reduce((s, x) => s + x[1], 0) / 2;
       r.commute = xs.length ? xs.find((x) => (half -= x[1]) <= 0)[0] : null;

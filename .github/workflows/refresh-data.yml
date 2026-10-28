@@ -1,7 +1,8 @@
 name: Refresh data
 
-# Every morning (06:30 KST) pull the latest 국토부 apartment trades, rebuild web/public/data and commit it.
-# A connected Vercel project redeploys on that commit.
+# Every morning (06:30 KST): 국토부 apartment trades, 한국은행 rates, K-apt / 인구 / 서울 정비사업 files,
+# then rebuild web/public/data and commit it. A connected Vercel project redeploys on that commit.
+# Transit times (ODsay) are not refreshed here: ODsay only accepts registered server IPs.
 on:
   schedule:
     - cron: "30 21 * * *"
@@ -17,23 +18,30 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
+    env:
+      DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
+      KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+      ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
+      TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Rebuild data
-        env:
-          DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
-          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
-          TZ: Asia/Seoul
+      - name: 한국은행 금리 (ECOS)
+        continue-on-error: true
+        run: python scripts/rates_ecos.py
+      - name: K-apt · 인구 · 서울 정비사업 files
+        continue-on-error: true
+        run: if [ -f scripts/fetch_static.py ]; then python scripts/fetch_static.py; fi
+      - name: 실거래가 and derived data
         run: python scripts/refresh.py
       - name: Commit if anything changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw web/public/data
+          git add data web/public/data
           if git diff --cached --quiet; then
             echo "No data changes"
           else

@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, DSR, fitState, fmt, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, won } from "./lib.js";
+import { annuity, attachCommute, DSR, fitState, fmt, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, dist, LINE_COLOR, polysOf, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 
 export const LEVELS = [["auto", "자동"], ["gu", "구"], ["bdong", "법정동"], ["hdong", "행정동"]];
@@ -43,7 +43,13 @@ const Polys = memo(function Polys({ paths, guPaths, linePaths, showLines }) {
   );
 });
 
-export default function Atlas({ data }) {
+const DRAWN_LEVELS = { seoul: LEVELS, metro: [["auto", "자동"], ["sgg", "시군구"], ["hdong", "행정동"]] };
+
+export default function Atlas({ data: base, scope = "seoul" }) {
+  const metro = scope === "metro";
+  const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
+  const data = useMemo(() => (metro ? { ...base, insights: attachCommute(mIns, mApts, base.commute), apts: mApts, scope } : { ...base, insights: attachCommute(base.insights, base.apts, base.commute), scope }), [metro, base, mIns, mApts]);
+  const outlineGeo = metro ? mSgg : data.seoul_geo;
   const dark = useIsDark(), P = palette(dark);
   const later = data.budget?.find((b) => b.scenario === "later"), now = data.budget?.find((b) => b.scenario === "now");
   const [scen, setScen] = useState("later");
@@ -57,7 +63,8 @@ export default function Atlas({ data }) {
   const [selRegion, setSelRegion] = useState(null);
   const [selZone, setSelZone] = useState(null);
   const [hover, setHover] = useState(null);
-  const [trades, setTrades] = useState(null);
+  const tS = useLazyFile("trades", !!sel), tG = useLazyFile("trades_gg", !!sel && metro);
+  const trades = useMemo(() => (tS || tG ? { ...(tS || {}), ...(tG || {}) } : null), [tS, tG]);
   const [showLines, setShowLines] = useState(true);
   const [showRedev, setShowRedev] = useState(false);
   const [stageGroup, setStageGroup] = useState("all");
@@ -69,24 +76,30 @@ export default function Atlas({ data }) {
   fitState.budget = budget;
 
   useEffect(() => { if (later && now) setBudget(scen === "later" ? later.max_price_10k : now.max_price_10k); }, [scen, later, now]);
-  useEffect(() => { if (sel && !trades) fetch("data/trades.json").then((r) => r.json()).then(setTrades).catch(() => setTrades({})); }, [sel, trades]);
+  useEffect(() => { setLevel("auto"); setSelRegion(null); setSel(null); setSelZone(null); moved.current = false; }, [scope]);
 
   const world = useMemo(() => {
-    if (!data.seoul_geo) return null;
+    if (!outlineGeo) return null;
     let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
-    data.seoul_geo.forEach((r) => polysOf(r.geometry).forEach((p) => p[0].forEach(([x, y]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); })));
+    outlineGeo.forEach((r) => polysOf(r.geometry).forEach((p) => p[0].forEach(([x, y]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); })));
     const kx = Math.cos(((y0 + y1) / 2) * Math.PI / 180), S = 1000 / ((x1 - x0) * kx);
     return { X: (lon) => (lon - x0) * kx * S, Y: (lat) => (y1 - lat) * S, W: 1000, H: (y1 - y0) * S, perM: S / 110574 };
-  }, [data.seoul_geo]);
+  }, [outlineGeo]);
   const dOf = (g) => polysOf(g).map((p) => p.map((ring) => "M" + ring.map(([x, y]) => `${world.X(x).toFixed(2)},${world.Y(y).toFixed(2)}`).join("L") + "Z").join("")).join("");
   const geoms = useMemo(() => {
     if (!world) return null;
+    if (metro) return {
+      outline: (mSgg || []).map((r) => ({ key: r.sgg, d: dOf(r.geometry) })),
+      sgg: (mSgg || []).map((r) => ({ key: r.sgg, d: dOf(r.geometry) })),
+      hdong: (mHd || []).map((r) => ({ key: r.code, d: dOf(r.geometry) })),
+    };
+    const gu = (data.seoul_geo || []).map((r) => ({ key: r.gu, d: dOf(r.geometry) }));
     return {
-      gu: (data.seoul_geo || []).map((r) => ({ key: r.gu, d: dOf(r.geometry) })),
+      outline: gu, gu,
       bdong: (data.dong_geo || []).map((r) => ({ key: r.id, d: dOf(r.geometry) })),
       hdong: (data.hdong_geo || []).map((r) => ({ key: r.code, d: dOf(r.geometry) })),
     };
-  }, [world, data.seoul_geo, data.dong_geo, data.hdong_geo]);
+  }, [world, metro, mSgg, mHd, data.seoul_geo, data.dong_geo, data.hdong_geo]);
   const linePaths = useMemo(() => {
     if (!world || !data.subway_lines) return [];
     const by = {};
@@ -120,8 +133,8 @@ export default function Atlas({ data }) {
   const reset = () => { if (!world) return; select(svgRef.current).transition().duration(650).call(zoomRef.current.transform, fit()); moved.current = false; };
 
   const z = t ? t.k / k0Ref.current : 1;
-  const eff = level === "auto" ? (z < 2 ? "gu" : z < 5 ? "bdong" : "apt") : level;
-  const regionLevel = eff === "apt" ? "bdong" : eff;
+  const eff = level === "auto" ? (z < 2 ? (metro ? "sgg" : "gu") : z < 5 ? (metro ? "hdong" : "bdong") : "apt") : level;
+  const regionLevel = eff === "apt" ? (metro ? "hdong" : "bdong") : eff;
   const showPins = eff === "apt" || (level !== "auto" && z >= 6);
   const sx = (lon) => t.applyX(world.X(lon)), sy = (lat) => t.applyY(world.Y(lat));
   const inView = (x, y, mg = 30) => x > -mg && y > -mg && x < size.w + mg && y < size.h + mg;
@@ -173,8 +186,11 @@ export default function Atlas({ data }) {
   const pins = useMemo(() => {
     if (!showPins) return { labels: [], dots: [] };
     const placed = [], labels = [], dots = [];
-    [...visibleApts].sort((a, b) => b.trades_6m - a.trades_6m).forEach((a) => {
-      const txt = won(a.median_price_10k), w = txt.length * 7.5 + 14, bx = { x0: a.x - w / 2, x1: a.x + w / 2, y0: a.y - 26, y1: a.y - 4 };
+    // recent sales first, then stale (older sale, grey with its date), then no sale in two years (dot only)
+    const rank = (a) => (a.trades_6m ? 2e6 + a.trades_6m : a.stale ? 1e6 + (a.trades_24m || 0) : 0);
+    [...visibleApts].sort((a, b) => rank(b) - rank(a)).forEach((a) => {
+      if (a.median_price_10k == null) { dots.push(a); return; }
+      const txt = won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), w = txt.length * 7 + 14, bx = { x0: a.x - w / 2, x1: a.x + w / 2, y0: a.y - 26, y1: a.y - 4 };
       if (labels.length < 140 && placed.every((p) => bx.x1 < p.x0 || bx.x0 > p.x1 || bx.y1 < p.y0 || bx.y0 > p.y1)) { placed.push(bx); labels.push({ ...a, txt, w }); } else dots.push(a);
     });
     return { labels, dots };
@@ -192,7 +208,7 @@ export default function Atlas({ data }) {
   const pickRegion = (lv, key) => {
     setSelRegion({ level: lv, key }); setSel(null); setSelZone(null);
     const r = ins?.[lv]?.[key];
-    if (r?.center) zoomTo(world.X(r.center[0]), world.Y(r.center[1]), lv === "gu" ? 3.2 : lv === "bdong" ? 6 : 7);
+    if (r?.center) zoomTo(world.X(r.center[0]), world.Y(r.center[1]), lv === "gu" || lv === "sgg" ? 3.2 : lv === "bdong" ? 6 : 7);
   };
   const ready = world && data.dong_geo && ins;
 
@@ -222,7 +238,7 @@ export default function Atlas({ data }) {
 
       <section className="order-1 flex flex-col gap-2 lg:order-2">
         <div className="flex flex-wrap items-center gap-2 rounded-large bg-content1 px-3 py-2 shadow-small">
-          <ButtonGroup size="sm" radius="full" variant="flat">{LEVELS.map(([k, l]) => <Button key={k} color={level === k ? "primary" : "default"} variant={level === k ? "solid" : "flat"} onPress={() => setLevel(k)}>{l}</Button>)}</ButtonGroup>
+          <ButtonGroup size="sm" radius="full" variant="flat">{DRAWN_LEVELS[scope].map(([k, l]) => <Button key={k} color={level === k ? "primary" : "default"} variant={level === k ? "solid" : "flat"} onPress={() => setLevel(k)}>{l}</Button>)}</ButtonGroup>
           <Divider orientation="vertical" className="h-6" />
           <ButtonGroup size="sm" radius="full">{PERIODS.map(([k, l]) => <Button key={k} color={period === k ? "primary" : "default"} variant={period === k ? "solid" : "flat"} onPress={() => setPeriod(k)}>{l}</Button>)}</ButtonGroup>
           <Divider orientation="vertical" className="h-6" />
@@ -234,7 +250,7 @@ export default function Atlas({ data }) {
           <svg ref={svgRef} width={size.w} height={size.h} className="block cursor-grab active:cursor-grabbing" role="img" aria-label="서울 아파트 지역 지도">
             {t && world && geoms && (
               <>
-                <g transform={`translate(${t.x},${t.y}) scale(${t.k})`}><Polys paths={polyPaths} guPaths={geoms.gu} linePaths={linePaths} showLines={showLines} /></g>
+                <g transform={`translate(${t.x},${t.y}) scale(${t.k})`}><Polys paths={polyPaths} guPaths={geoms.outline} linePaths={linePaths} showLines={showLines} /></g>
                 {showRedev && (
                   <g transform={`translate(${t.x},${t.y}) scale(${t.k})`}>
                     {zones.filter((r) => stageOk(r.stage, stageGroup)).map((r) => (
@@ -263,13 +279,13 @@ export default function Atlas({ data }) {
                     </g>
                   );
                 })}
-                {showPins && pins.dots.map((a) => <circle key={a.id} cx={a.x} cy={a.y} r={4} fill={fitColor[a.f]} stroke="hsl(var(--heroui-content1))" strokeWidth="1" className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)} />)}
+                {showPins && pins.dots.map((a) => <circle key={a.id} cx={a.x} cy={a.y} r={a.median_price_10k == null ? 3 : 4} fill={a.median_price_10k == null ? "hsl(var(--heroui-content1))" : a.trades_6m ? fitColor[a.f] : P.muted} stroke={a.median_price_10k == null ? P.axis : "hsl(var(--heroui-content1))"} strokeWidth={a.median_price_10k == null ? 1.5 : 1} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}><title>{a.median_price_10k == null ? `${a.apt} · 최근 2년 실거래 없음` : a.apt}</title></circle>)}
                 {showPins && pins.labels.map((a) => {
-                  const on = a.id === sel || a.id === hover, fill = a.f === "over" ? "hsl(var(--heroui-content1))" : fitColor[a.f];
+                  const quiet = !a.trades_6m, on = a.id === sel || a.id === hover, fill = quiet ? P.none : a.f === "over" ? "hsl(var(--heroui-content1))" : fitColor[a.f];
                   return (
                     <g key={a.id} transform={`translate(${a.x},${a.y})`} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}>
-                      <path d={`M${-a.w / 2},-26h${a.w}v18h${-a.w / 2 + 5}l-5,6l-5,-6h${-a.w / 2 + 5}z`} fill={fill} stroke={on ? P.fg : a.f === "over" ? P.axis : "none"} strokeWidth={on ? 2 : 1} />
-                      <text y={-13} textAnchor="middle" fontSize="12" fontWeight="700" fill={a.f === "over" ? P.fg : "#fff"} className="num">{a.txt}</text>
+                      <path d={`M${-a.w / 2},-26h${a.w}v18h${-a.w / 2 + 5}l-5,6l-5,-6h${-a.w / 2 + 5}z`} fill={fill} stroke={on ? P.fg : quiet || a.f === "over" ? P.axis : "none"} strokeDasharray={quiet && !on ? "3 2" : undefined} strokeWidth={on ? 2 : 1} />
+                      <text y={-13} textAnchor="middle" fontSize={quiet ? 11 : 12} fontWeight={quiet ? 500 : 700} fill={quiet ? P.text : a.f === "over" ? P.fg : "#fff"} className="num">{a.txt}</text>
                       {on && <text y={14} textAnchor="middle" className="map-label" style={{ fontWeight: 600 }}>{a.apt}</text>}
                     </g>
                   );
