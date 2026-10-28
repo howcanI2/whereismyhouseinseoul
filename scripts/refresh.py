@@ -570,7 +570,12 @@ if __name__ == "__main__":
     key = os.environ.get("DATA_GO_KR_API_KEY")
     if args.no_fetch: raw = load(os.path.join(RAW, "molit.json.gz"))
     elif not key: sys.exit("DATA_GO_KR_API_KEY is not set (use --no-fetch to rebuild from data/raw)")
-    else: raw = fetch(W, key)
+    else:
+        try: raw = fetch(W, key)
+        except RuntimeError as e:
+            # data.go.kr refuses some non-Korean IPs (GitHub's runners); keep the other sources' updates flowing
+            print(f"fetch: WARNING trades not refreshed ({e}); rebuilding from cached data/raw")
+            raw = load(os.path.join(RAW, "molit.json.gz"))
     kk = os.environ.get("KAKAO_REST_KEY")
     basic = kapt_located(kk)
     build(raw, W, kk)
