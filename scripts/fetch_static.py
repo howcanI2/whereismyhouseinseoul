@@ -23,6 +23,10 @@ import urllib.parse, urllib.request, zipfile
 import xml.etree.ElementTree as ET
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# keys for local runs live in <repo>/.env (gitignored); CI passes them as real environment variables
+if os.path.exists(os.path.join(ROOT, ".env")):
+    for _l in open(os.path.join(ROOT, ".env"), encoding="utf-8"):
+        if "=" in _l and not _l.lstrip().startswith("#"): os.environ.setdefault(*[s.strip() for s in _l.split("=", 1)])
 RAW, STATIC, OUT = (os.path.join(ROOT, "data", "raw"), os.path.join(ROOT, "data", "static"), os.path.join(ROOT, "web", "public", "data"))
 SRC = os.path.join(RAW, "static_src")
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"

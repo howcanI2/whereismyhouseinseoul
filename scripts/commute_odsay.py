@@ -9,6 +9,10 @@ so the time reflects where people actually live in that 동. ODsay registers cal
 import argparse, json, math, os, time, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# keys for local runs live in <repo>/.env (gitignored); CI passes them as real environment variables
+if os.path.exists(os.path.join(ROOT, ".env")):
+    for _l in open(os.path.join(ROOT, ".env"), encoding="utf-8"):
+        if "=" in _l and not _l.lstrip().startswith("#"): os.environ.setdefault(*[s.strip() for s in _l.split("=", 1)])
 RAW = os.path.join(ROOT, "data", "raw", "commute_odsay.json")
 OUT = os.path.join(ROOT, "web", "public", "data")
 DEST = (126.9769, 37.5759)  # 광화문 (직장)

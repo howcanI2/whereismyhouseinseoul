@@ -7,6 +7,10 @@ Series: 121Y006 예금은행 신규취급액 가중평균금리 (주담대 / 고
 import datetime as dt, json, os, time, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# keys for local runs live in <repo>/.env (gitignored); CI passes them as real environment variables
+if os.path.exists(os.path.join(ROOT, ".env")):
+    for _l in open(os.path.join(ROOT, ".env"), encoding="utf-8"):
+        if "=" in _l and not _l.lstrip().startswith("#"): os.environ.setdefault(*[s.strip() for s in _l.split("=", 1)])
 OUT = os.path.join(ROOT, "web", "public", "data", "rates.json")
 KEY = os.environ.get("ECOS_API_KEY") or "sample"
 SERIES = {"mortgage_pct": ("121Y006", "BECBLA0302"), "fixed_pct": ("121Y006", "BECBLA030201"), "variable_pct": ("121Y006", "BECBLA030202"),

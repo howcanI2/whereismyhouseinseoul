@@ -11,6 +11,10 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# keys for local runs live in <repo>/.env (gitignored); CI passes them as real environment variables
+if os.path.exists(os.path.join(ROOT, ".env")):
+    for _l in open(os.path.join(ROOT, ".env"), encoding="utf-8"):
+        if "=" in _l and not _l.lstrip().startswith("#"): os.environ.setdefault(*[s.strip() for s in _l.split("=", 1)])
 RAW, STATIC, OUT = (os.path.join(ROOT, "data", "raw"), os.path.join(ROOT, "data", "static"), os.path.join(ROOT, "web", "public", "data"))
 GU = {"11110":"종로구","11140":"중구","11170":"용산구","11200":"성동구","11215":"광진구","11230":"동대문구","11260":"중랑구","11290":"성북구","11305":"강북구","11320":"도봉구","11350":"노원구","11380":"은평구","11410":"서대문구","11440":"마포구","11470":"양천구","11500":"강서구","11530":"구로구","11545":"금천구","11560":"영등포구","11590":"동작구","11620":"관악구","11650":"서초구","11680":"강남구","11710":"송파구","11740":"강동구"}
 # Gyeonggi at the finest level the trade API answers for (구 codes where a city has 구, else the city/county)
