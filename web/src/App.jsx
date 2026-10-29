@@ -8,7 +8,7 @@ import { PERIOD_NOTE } from "./Atlas.jsx";
 import ProfileModal from "./Profile.jsx";
 import WatchModal from "./Watch.jsx";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
-import { budgetsFrom, derive, fmt, useData, useProfile, useWatch, won } from "./lib.js";
+import { budgetsFrom, derive, fmt, pendingFocus, useData, useProfile, useWatch, won } from "./lib.js";
 
 // Next.js inlines this at build time; the claude.ai build has no Kakao key and uses the drawn map.
 const KAKAO_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_KAKAO_JS_KEY : undefined;
@@ -47,6 +47,11 @@ export default function App() {
   const failed = Object.keys(errors);
   const [kakaoError, setKakaoError] = useState(null);
   const [scope, setScope] = useState("seoul");
+  // a 청약 row's "지도에서 위치 보기": open the map (서울+경기 for a Gyeonggi site); the map then zooms to it
+  useEffect(() => {
+    const go = () => { const r = pendingFocus.apply; if (!r) return; if (r.sido !== "11") setScope("metro"); setTab("map"); window.scrollTo({ top: 0, behavior: "smooth" }); };
+    window.addEventListener("hb:focus-apply", go); return () => window.removeEventListener("hb:focus-apply", go);
+  }, []);
 
   return (
     <main className="page mx-auto flex max-w-[1440px] flex-col gap-4">

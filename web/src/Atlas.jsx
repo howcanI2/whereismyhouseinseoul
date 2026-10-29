@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, attachCommute, attachGrowth, dday, DSR, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
+import { annuity, attachCommute, attachGrowth, dday, DSR, pendingFocus, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, dist, LINE_COLOR, polysOf, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 
 export const LEVELS = [["auto", "자동"], ["gu", "구"], ["bdong", "법정동"], ["hdong", "행정동"]];
@@ -79,6 +79,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const [showLines, setShowLines] = useState(true);
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
+  const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const applyPts = useMemo(() => { const td = new Date().toISOString().slice(0, 10); return (ah?.items || []).filter((r) => r.lon != null && (metro || r.sido === "11") && (r.receipt_end || r.notice) >= td); }, [ah, metro]);
   const [stageGroup, setStageGroup] = useState("all");
@@ -219,6 +220,14 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const zones = useMemo(() => (data.redev || []).filter((r) => r.lon != null && r.stage !== "준공"), [data.redev]);
 
   const selApt = sel ? (data.apts || []).find((a) => a.id === sel) : null;
+  // opened from a 청약 row: turn the layer on, zoom to the site and label it
+  useEffect(() => {
+    const go = () => {
+      const r = pendingFocus.apply; if (!r || !world || !zoomRef.current || (r.sido !== "11" && !metro)) return;
+      pendingFocus.apply = null; setShowApply(true); setFocusApplyId(r.id); setLegendOpen(false); zoomTo(world.X(r.lon), world.Y(r.lat), 9);
+    };
+    go(); window.addEventListener("hb:focus-apply", go); return () => window.removeEventListener("hb:focus-apply", go);
+  }, [world, sized, metro]);
   const pickApt = (a) => { setSel(a.id); setSelZone(null); if (a.lon != null && world) zoomTo(world.X(a.lon), world.Y(a.lat), Math.max(z, 7)); };
   const pickRegion = (lv, key) => {
     setSelRegion({ level: lv, key }); setSel(null); setSelZone(null);
@@ -309,7 +318,8 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                 {showApply && applyPts.map((r) => (
                   <g key={r.id} transform={`translate(${sx(r.lon)},${sy(r.lat)})`} className="cursor-pointer" onClick={() => r.url && window.open(r.url, "_blank", "noopener")}>
                     <rect x={-6} y={-6} width={12} height={12} rx={3} fill={P.indigo} stroke="hsl(var(--heroui-content1))" strokeWidth="2" />
-                    <text y={-10} textAnchor="middle" className="map-label" style={{ fontWeight: 700, fill: P.indigo }}>{dday(r.special_from || r.receipt_start)}</text>
+                    <text y={-10} textAnchor="middle" className="map-label" style={{ fontWeight: 700, fill: P.indigo }}>{r.id === focusApplyId ? `${r.name.replace(/\(.*/, "").trim()} · ${dday(r.special_from || r.receipt_start)}${r.approx ? " · 대략 위치" : ""}` : dday(r.special_from || r.receipt_start)}</text>
+                    {r.id === focusApplyId && <circle r={14} fill="none" stroke={P.indigo} strokeWidth="2.5" />}
                     <title>{`${r.name} · ${r.households}세대 · 특공 ${r.special_from || "—"} · 1순위 ${r.first_rank || r.receipt_start || "—"}${r.approx ? " · 위치는 동 중심(대략)" : ""}`}</title>
                   </g>
                 ))}

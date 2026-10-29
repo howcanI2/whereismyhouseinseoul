@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ButtonGroup, Chip, Divider, Skeleton, Slider, Switch } from "@heroui/react";
-import { attachCommute, attachGrowth, dday, fitState, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
+import { attachCommute, attachGrowth, dday, fitState, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 import { DOWN, GrowthPick, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, SIG, UP } from "./Atlas.jsx";
 
@@ -58,6 +58,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [showRedev, setShowRedev] = useState(false);
   const [showDistrict, setShowDistrict] = useState(false);
   const [showApply, setShowApply] = useState(false);
+  const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const [stageGroup, setStageGroup] = useState("all");
   const [legendOpen, setLegendOpen] = useState(true);
@@ -233,18 +234,28 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     L.lines.forEach((l) => l.setMap(showLines ? map : null));
   }, [ready, showLines, data.subway_lines]);
   // ---- 청약 접수 예정 단지 ----
+  // opened from a 청약 row: turn the layer on, zoom to the site and label it
+  useEffect(() => {
+    const go = () => {
+      const r = pendingFocus.apply; if (!r || !ready || (r.sido !== "11" && !metro)) return;
+      pendingFocus.apply = null; setShowApply(true); setFocusApplyId(r.id); setLegendOpen(false);
+      const k = kRef.current, map = mapRef.current, ll = new k.maps.LatLng(r.lat, r.lon); map.setLevel(4); map.setCenter(ll);
+    };
+    go(); window.addEventListener("hb:focus-apply", go); return () => window.removeEventListener("hb:focus-apply", go);
+  }, [ready, metro]);
   useEffect(() => {
     if (!ready) return;
     const k = kRef.current, map = mapRef.current, L = layers.current, td = new Date().toISOString().slice(0, 10);
     L.apply.forEach((o) => o.setMap(null)); L.apply = [];
     if (!showApply) return;
     (ah?.items || []).filter((r) => r.lon != null && (metro || r.sido === "11") && (r.receipt_end || r.notice) >= td).forEach((r) => {
-      const node = el(`<div style="font-size:10.5px;font-weight:700;color:#4F63C9;text-shadow:0 0 3px #fff,0 0 3px #fff">${esc(dday(r.special_from || r.receipt_start) || "")}</div><div style="width:12px;height:12px;margin:2px auto 0;background:#4F63C9;border:2px solid #fff;border-radius:3px;box-shadow:0 0 2px rgba(0,0,0,.4)"></div>`,
+      const on = r.id === focusApplyId, label = on ? `${r.name.replace(/\(.*/, "").trim()} · ${dday(r.special_from || r.receipt_start) || ""}${r.approx ? " · 대략 위치" : ""}` : dday(r.special_from || r.receipt_start) || "";
+      const node = el(`<div style="font-size:${on ? 12.5 : 10.5}px;font-weight:700;color:#4F63C9;white-space:nowrap;${on ? "background:#fff;padding:2px 8px;border-radius:8px;border:2px solid #4F63C9;" : "text-shadow:0 0 3px #fff,0 0 3px #fff"}">${esc(label)}</div><div style="width:${on ? 16 : 12}px;height:${on ? 16 : 12}px;margin:2px auto 0;background:#4F63C9;border:2px solid #fff;border-radius:3px;box-shadow:0 0 2px rgba(0,0,0,.4)"></div>`,
         { textAlign: "center", cursor: "pointer", fontFamily: "Noto Sans KR, sans-serif" }, () => r.url && window.open(r.url, "_blank", "noopener"));
       node.title = `${r.name} · ${r.households}세대 · 특공 ${r.special_from || "—"} · 1순위 ${r.first_rank || r.receipt_start || "—"}${r.approx ? " · 위치는 동 중심(대략)" : ""}`;
-      L.apply.push(new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(r.lat, r.lon), content: node, yAnchor: 1, zIndex: 6 }));
+      L.apply.push(new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(r.lat, r.lon), content: node, yAnchor: 1, zIndex: on ? 8 : 6 }));
     });
-  }, [ready, showApply, ah, metro]);
+  }, [ready, showApply, ah, metro, focusApplyId]);
   useEffect(() => {
     if (!ready) return;
     const k = kRef.current, map = mapRef.current;

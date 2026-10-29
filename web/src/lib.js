@@ -113,6 +113,9 @@ export function useProfile() {
   return [p, save, reset];
 }
 
+// "지도에서 위치 보기": the 청약 card asks the map to open on a notice; the map may mount after the request, so it is kept here
+export const pendingFocus = { apply: null };
+export function focusApply(r) { pendingFocus.apply = r; window.dispatchEvent(new CustomEvent("hb:focus-apply", { detail: r })); }
 // 청약 접수까지 남은 날
 export const dday = (d) => { if (!d) return null; const n = Math.round((Date.parse(d) - Date.parse(new Date().toISOString().slice(0, 10))) / 864e5); return n > 0 ? `D-${n}` : n === 0 ? "D-day" : "접수 중"; };
 

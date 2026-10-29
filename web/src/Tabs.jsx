@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Input, Link, Select, SelectItem, Skeleton, Slider, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, attachGrowth, DSR, fmt, GROWTH, growthMult, loanCap, LTV, palette, STRESS, dday, useIsDark, useLazyFile, won, YEARS } from "./lib.js";
+import { annuity, attachGrowth, DSR, fmt, GROWTH, growthMult, loanCap, LTV, palette, STRESS, dday, focusApply, useIsDark, useLazyFile, won, YEARS } from "./lib.js";
 
 const Box = ({ title, sub, children, className = "", right }) => (
   <Card shadow="sm" className={className}>
@@ -97,6 +97,7 @@ export function PlanTab({ data, dv, part }) {
   );
 }
 
+const APPLYHOME = "https://www.applyhome.co.kr/";
 /* 다가오는 청약: 접수 마감 전 서울·경기 공고, 접수 시작 순 */
 function ApplyhomeCard() {
   const ah = useLazyFile("applyhome");
@@ -123,14 +124,17 @@ function ApplyhomeCard() {
                   <b className="text-small">{r.households.toLocaleString()}세대</b>{sp ? <span className="block text-default-500">특공 {sp.toLocaleString()}</span> : null}
                   {prices.length > 0 && <span className="block">{won(Math.min(...prices))}~{won(Math.max(...prices))}</span>}
                   {small > 0 && <span className="block text-default-400">85㎡ 이하 {small}개 타입</span>}
-                  {r.url && <Link href={r.url} isExternal size="sm" className="text-tiny">공고문</Link>}
+                </span>
+                <span className="col-span-3 -mt-1 flex flex-wrap gap-1.5 sm:col-start-2 sm:col-span-2">
+                  {r.url && <Button as={Link} href={r.url} isExternal size="sm" variant="flat" color="primary" className="h-7">공고문 보기 ↗</Button>}
+                  {r.lon != null && <Button size="sm" variant="flat" className="h-7" onPress={() => focusApply(r)}>지도에서 위치 보기{r.approx ? " (대략)" : ""}</Button>}
                 </span>
               </li>
             );
           })}
         </ul>
       )}
-      <p className="mt-2 text-tiny text-default-400">분양가는 주택형별 최고가. 추첨·가점 비율과 자격은 공고마다 달라 공고문에서 확인하세요. 출처: 한국부동산원 청약홈.</p>
+      <p className="mt-2 text-tiny text-default-400">분양가는 주택형별 최고가. 추첨·가점 비율과 자격은 공고마다 달라 공고문에서 확인하세요. 민간 분양은 청약홈, 공공분양(신혼희망타운·토지임대부 등)은 공고를 낸 기관(LH·SH·GH 등)에서 접수하니 공고 상세의 접수처를 확인하세요. 출처: 한국부동산원 청약홈 · <Link href={APPLYHOME} isExternal size="sm" className="text-tiny">청약홈 바로가기</Link></p>
     </Box>
   );
 }
