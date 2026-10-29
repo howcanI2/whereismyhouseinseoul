@@ -7,6 +7,7 @@ import { PERIOD_NOTE } from "./Atlas.jsx";
 
 import ProfileModal from "./Profile.jsx";
 import WatchModal from "./Watch.jsx";
+import NewBuildTab from "./NewBuild.jsx";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
 import { budgetsFrom, derive, fmt, HOUSEHOLDS, householdOf, pendingFocus, useData, useProfile, useWatch, won } from "./lib.js";
 
@@ -17,6 +18,7 @@ const KAKAO_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_KAKAO
 const TABS = [
   ["map", "지도", "어디를 살 수 있나"],
   ["money", "내 돈", "얼마까지, 월 얼마"],
+  ["new", "신축", "어디에 새로 짓나"],
   ["todo", "할 일", "언제 무엇을"],
 ];
 
@@ -104,6 +106,7 @@ export default function App() {
                 <LoanTab data={data} />
               </div>
             )}
+            {k === "new" && <NewBuildTab data={data} />}
             {k === "todo" && (
               <div className="flex flex-col gap-4">
                 <PlanTab data={data} dv={dv} />

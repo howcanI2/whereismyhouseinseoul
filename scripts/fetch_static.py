@@ -225,6 +225,35 @@ def run_pop(keep):
     return f"pop: 구 {len(gu)}, 시군구 {len(sgg)} (서울 {ss}, 경기 {len(sgg)-ss}), 행정동 {len(hd):,} (서울 {hs}, 경기 {hg}; {skipped} empty skipped), as_of {y}-{m}"
 
 
+def run_age(keep):
+    """10세 단위 연령별 인구, every 행정동 / 시군구 in 서울·경기 (jumin.mois.go.kr/ageStatMonth.do) → data/static/population_age.json"""
+    op = opener()
+    page = fetch(op, MOIS + "ageStatMonth.do", timeout=60)[0].decode("utf-8", "replace")
+    y = re.search(r"var yearDB = '(\d{4})'", page).group(1); m = re.search(r"var monthDB = '(\d{2})'", page).group(1)
+    form = dict(sltOrgType="1", sltOrgLvl1="A", sltOrgLvl2="", gender="gender", sum="sum", sltUndefType="", searchYearStart=y, searchMonthStart=m, searchYearEnd=y, searchMonthEnd=m,
+                sltOrderType="1", sltOrderValue="ASC", sltArgTypes="10", sltArgTypeA="0", sltArgTypeB="100", category="month", state="3")
+    b, _ = fetch(op, MOIS + "downloadCsvAge.do?searchYearMonth=month&xlsStats=3", form, {"Referer": MOIS + "ageStatMonth.do"}, timeout=300)
+    try: text = b.decode("cp949")
+    except UnicodeDecodeError: text = b.decode("utf-8-sig")
+    rows = list(csv.reader(io.StringIO(text)))
+    head = rows[0]
+    if "연령구간인구수" not in "".join(head[:3]): raise RuntimeError(f"MOIS age: unexpected header {head[:3]!r}")
+    bands = [h.split("_")[-1] for h in head[3:13]]  # 0~9세 … 90~99세 (100세 이상 folded into the last)
+    out = {"as_of": f"{y}-{m}", "bands": [b_.replace("~99세", "세 이상").replace("~", "-") for b_ in bands], "sgg": {}, "hdong": {}}
+    num = lambda v: int((v or "0").replace(",", "") or 0)
+    for r in rows[1:]:
+        mm = re.match(r"^(\S+)\s+(.*?)\s*\((\d{10})\)$", (r[0] if r else "").strip())
+        if not mm or mm.group(1) not in SIDO or not mm.group(2).strip(): continue
+        code = mm.group(3); v = [num(x) for x in r[3:14]]; v = v[:9] + [v[9] + v[10]]
+        if not sum(v): continue
+        if code[5:] == "00000": out["sgg"][code[:5]] = v
+        else: out["hdong"][code] = v
+    old = load(os.path.join(STATIC, "population_age.json"), {}) or {}
+    guard("population age hdong", len(out["hdong"]), len(old.get("hdong") or {}))
+    save(os.path.join(STATIC, "population_age.json"), out, indent=0)
+    return f"age: 시군구 {len(out['sgg'])}, 행정동 {len(out['hdong']):,}, as_of {y}-{m}"
+
+
 # ---------------- 정비사업 (redev) ----------------
 SEOUL_SHEET = [("OA-23112", "https://data.seoul.go.kr/dataList/OA-23112/S/1/datasetView.do"),
                ("OA-23113", "https://data.seoul.go.kr/dataList/OA-23113/S/1/datasetView.do")]
@@ -359,7 +388,7 @@ def run_redev(keep):
             f"({looked} looked up now), latest update {as_of}")
 
 
-SOURCES = {"kapt": run_kapt, "pop": run_pop, "redev": run_redev}
+SOURCES = {"kapt": run_kapt, "pop": run_pop, "age": run_age, "redev": run_redev}
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", default=",".join(SOURCES), help="comma list of: " + ",".join(SOURCES))

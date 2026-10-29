@@ -48,6 +48,18 @@ med = lambda xs: round(st.median(xs)) if xs else None
 def quant(xs):
     if len(xs) < 5: return None
     xs = sorted(xs); return [xs[round(i / 20 * (len(xs) - 1))] for i in range(21)]
+def rent_only(apt, dong_rents):
+    """Brand-new complexes with no sale yet often have 전세 contracts filed under a slightly different name
+    ("엘리프미아역" vs "엘리프미아역1단지"). dong_rents: [(name, area, deposit)] in the same 동. Returns per-size 전세 or None."""
+    norm = lambda s: re.sub(r"\(.*?\)|아파트|apt|[\s\-·.,]", "", (s or "").lower())
+    n = norm(apt)
+    if len(n) < 3: return None
+    rs = [(ar, d) for nm, ar, d in dong_rents if (m := norm(nm)) and (m.startswith(n) or n.startswith(m))]
+    if not rs: return None
+    ba = defaultdict(list)
+    for ar, d in rs: ba[round(ar)].append(d)
+    return [{"a": ar, "jeonse": med(v), "n": len(v), "min": min(v), "max": max(v)} for ar, v in sorted(ba.items())]
+
 def deal_flags(rows):
     """rows: [(unit, date, price, floor, deal)] with unit = complex|size. Each row gets ("high", earlier max) when it beats every
     earlier sale of that unit (needs 2+), ("dip", 6-month median) when it is 10%+ under the unit's median of the previous
@@ -372,6 +384,11 @@ def build(raw, W, kakao_key):
         info[aid] = {k: b.get(k) for k in ("kaptCode", "name", "households", "buildings", "approval", "builder", "heating", "hall", "parking", "floors_max", "units_le60", "units_60_85", "units_85_135", "units_gt135", "sale_type", "rental_units")}
     save(os.path.join(OUT, "apts.json"), apt_rows)
     save(os.path.join(OUT, "apt_info.json"), info)
+    by_dong = defaultdict(list)
+    for x in rents: by_dong[(x[0], x[1])].append((x[2], x[3], x[4]))
+    for a in apt_rows:
+        if a.get("no_trade") and (ro := rent_only(a["apt"], by_dong[(a["gu"], a["dong"])])): detail[a["id"]] = {"areas": [], "high": False, "rent_only": ro}
+    save(os.path.join(OUT, "apt_detail.json"), detail)
 
     # auto-written market summary
     seoul = {r["month"].replace("-", ""): r["trades"] for r in monthly if r["gu"] == "서울 전체"}
@@ -613,6 +630,11 @@ def build_metro(raw, W, kakao_key, basic=None):
             areas.append({"a": ar, "n": len(rs), "n6": len(recent), "med": med([r[3] for r in recent]), "last": lst[3], "last_date": lst[0], "last_floor": lst[2], "max": max(r[3] for r in rs),
                           "max_date": max(rs, key=lambda r: r[3])[0], "min": min(r[3] for r in rs), "jeonse": med(jr), "jeonse_n": len(jr), "jeonse_ratio": round(med(jr) / mp * 100, 1) if jr and mp else None, "high": nh})
         detail[a["id"]] = {"areas": areas, "high": high}
+    gg_dong = defaultdict(list)
+    for x in rents:
+        if x[0][:2] == "41": gg_dong[(sgg_names.get(x[0], ""), x[1])].append((x[2], x[3], x[4]))
+    for a in apts:
+        if a["sido"] == "41" and a.get("no_trade") and (ro := rent_only(a["apt"], gg_dong[(a["gu"], a["dong"])])): detail[a["id"]] = {"areas": [], "high": False, "rent_only": ro}
     save(os.path.join(OUT, "apt_detail_gg.json"), detail); save(os.path.join(OUT, "trades_gg.json"), hist)
     print(f"metro: {len(apts):,} complexes ({sum(1 for a in apts if a.get('lon') is not None):,} located), {len(ins['sgg'])} 시군구, {len(ins['hdong'])} 행정동")
 

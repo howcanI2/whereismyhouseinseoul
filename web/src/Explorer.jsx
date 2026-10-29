@@ -473,7 +473,9 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         {near?.[0] && <Chip size="sm" variant="flat">{near[0].station} {near[0].lines.join("·")} · 도보 약 {Math.max(1, Math.round(near[0].d / 75))}분</Chip>}
         {ride && <Chip size="sm" variant="flat" color="primary">광화문까지 대중교통 약 {ride.min}분{ride.route ? ` · ${ride.route}` : ""}</Chip>}
       </div>
-      {apt.no_trade && <p className="rounded-medium bg-default-100 px-3 py-2 text-small text-default-600">최근 2년 동안 이 단지의 아파트 매매 신고가 없습니다. 아래는 K-apt 단지 기본정보입니다.</p>}
+      {apt.no_trade && <p className="rounded-medium bg-default-100 px-3 py-2 text-small text-default-600">{apt.build_year && apt.build_year >= new Date().getFullYear() - 1
+        ? "최근 입주한 신축이라 아직 아파트 매매 신고가 없습니다. 입주 전 거래는 분양권 전매로 따로 신고됩니다."
+        : "최근 2년 동안 이 단지의 아파트 매매 신고가 없습니다."}{det?.rent_only ? " 대신 최근 전세 계약을 아래에 보여줍니다." : " 아래는 K-apt 단지 기본정보입니다."}</p>}
       {apt.stale && <p className="rounded-medium bg-default-100 px-3 py-2 text-tiny text-default-600">최근 6개월 매매가 없어 <b>마지막 거래({apt.last_trade}, {apt.median_area_sqm}㎡)</b> 가격을 보여줍니다. 지금 시세와 다를 수 있습니다.</p>}
       {!apt.no_trade && <div className="grid grid-cols-3 gap-2">
         {[[apt.stale ? "마지막 거래가" : "중위가", won(price)], ["가격 범위", `${won(apt.min_price_10k)}~${won(apt.max_price_10k)}`], [apt.stale ? "그 거래 면적" : "대표 면적", `${apt.median_area_sqm}㎡`]].map(([l, v]) => (
@@ -490,7 +492,12 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
       {land && <LandUse land={land} apt={apt} />}
       <div>
         <div className="mb-1 flex items-baseline justify-between"><span className="text-small font-semibold">평형별 시세</span>{det?.high && <Chip size="sm" color="danger" variant="flat">최근 2년 최고가 경신</Chip>}</div>
-        {!details ? <Skeleton className="h-20 rounded-medium" /> : !det ? <p className="text-tiny text-default-400">평형별 정보가 없습니다.</p> : (
+        {!details ? <Skeleton className="h-20 rounded-medium" /> : det?.rent_only && !det.areas.length ? (
+          <table className="w-full text-tiny num">
+            <thead className="text-default-500"><tr><th className="py-1 text-left font-medium">전용</th><th className="text-right font-medium">전세 중위</th><th className="text-right font-medium">범위</th><th className="text-right font-medium">계약</th></tr></thead>
+            <tbody>{det.rent_only.map((r) => <tr key={r.a} className="border-t border-default-100"><td className="py-1.5 font-medium">{r.a}㎡ <span className="text-[10px] font-normal text-default-400">{(r.a / 3.3058).toFixed(0)}평</span></td><td className="text-right font-semibold">{won(r.jeonse)}</td><td className="text-right">{r.min === r.max ? "—" : `${won(r.min)}~${won(r.max)}`}</td><td className="text-right">{r.n}건</td></tr>)}</tbody>
+          </table>
+        ) : !det ? <p className="text-tiny text-default-400">평형별 정보가 없습니다.</p> : (
           <div className="overflow-x-auto">
             <table className="w-full text-tiny num">
               <thead className="text-default-500"><tr><th className="py-1 text-left font-medium">전용</th><th className="text-right font-medium">6개월 중위</th><th className="text-right font-medium">최근 거래</th><th className="text-right font-medium">2년 최고</th><th className="text-right font-medium">전세 (전세가율)</th></tr></thead>
