@@ -399,6 +399,34 @@ export function ZoneDetail({ zone, apts, onClose, P, budget }) {
   );
 }
 
+// 용도지역·규제 (브이월드 토지이용계획, 단지 대표 필지 기준)
+const FLAG_COLOR = { 토지거래허가구역: "warning", 정비구역: "primary", 재정비촉진지구: "primary", 지구단위계획구역: "secondary", 고도지구: "danger", 경관지구: "danger", 개발제한구역: "danger", 군사시설보호구역: "danger", 비행안전구역: "danger", "문화유산 주변": "danger" };
+const FLAG_NOTE = { 토지거래허가구역: "사면 2년 실거주 의무", 정비구역: "재개발·재건축 등 정비사업 구역", 재정비촉진지구: "뉴타운 등 광역 정비", 지구단위계획구역: "높이·용도를 따로 정한 계획구역",
+  고도지구: "건물 높이 제한", 경관지구: "경관 보호로 높이·형태 제한", 개발제한구역: "그린벨트", 군사시설보호구역: "건축·증축 시 협의 필요", 비행안전구역: "높이 제한", "문화유산 주변": "주변 건축 시 심의" };
+function LandUse({ land, apt }) {
+  const [more, setMore] = useState(false);
+  const old = apt.build_year && new Date().getFullYear() - apt.build_year >= 30;
+  return (
+    <div className="rounded-medium bg-default-50 px-3 py-2">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-small font-semibold">용도지역·규제</span>
+        {land.pnu && <a className="text-tiny text-primary underline" href={`https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?pnu=${land.pnu}&mode=search&isNoScr=script&selGbn=umd`} target="_blank" rel="noopener noreferrer">토지이음에서 확인 ↗</a>}
+      </div>
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-tiny num">
+        {land.zones[0] ? <Chip size="sm" variant="solid" color="default" className="h-6">{land.zones[0]}</Chip> : <span className="text-default-400">용도지역 정보 없음</span>}
+        {land.zones.slice(1).map((z) => <Chip key={z} size="sm" variant="flat" className="h-6">일부 {z}</Chip>)}
+        {land.far_max && <span className="text-default-600">용적률 상한 <b>{land.far_max}%</b> <span className="text-default-400">({land.far_basis})</span></span>}
+      </div>
+      {land.flags.length > 0 && <div className="mt-1.5 flex flex-wrap gap-1.5">{land.flags.map((f) => <Chip key={f} size="sm" variant="flat" color={FLAG_COLOR[f] || "default"} className="h-6" title={FLAG_NOTE[f]}>{f}</Chip>)}</div>}
+      {land.flags.some((f) => FLAG_NOTE[f]) && <p className="mt-1 text-[10px] text-default-500">{land.flags.filter((f) => FLAG_NOTE[f]).map((f) => `${f}: ${FLAG_NOTE[f]}`).join(" · ")}</p>}
+      {old && land.far_max && <p className="mt-1 text-[10px] text-default-500">준공 30년+ 단지입니다. 지금 용적률이 상한({land.far_max}%)보다 많이 낮을수록 재건축 때 더 지을 여지가 큽니다. 현재 용적률은 건축물대장에서 확인하세요.</p>}
+      <button type="button" className="mt-1 text-[10px] text-default-400 underline" onClick={() => setMore((v) => !v)}>{more ? "접기" : `걸린 지역·지구 전체 ${land.all.length}개`}</button>
+      {more && <p className="text-[10px] leading-relaxed text-default-500">{land.all.join(" · ")}</p>}
+      <p className="mt-1 text-[10px] text-default-400">브이월드 토지이용계획, 단지 대표 필지 기준. 단지가 여러 필지면 다를 수 있으니 계약 전에는 토지이용계획확인서로 확인하세요.</p>
+    </div>
+  );
+}
+
 export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, fitText, fitColor }) {
   const rows = trades?.[apt.id];
   const b = data.budget?.find((x) => x.scenario === scen), rate = data.rates?.at(-1)?.mortgage_pct ?? 4.66;
@@ -420,6 +448,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const details = useLazyFile(apt.sido === "41" ? "apt_detail_gg" : "apt_detail"), basics = useLazyFile(apt.sido === "41" ? "apt_info_gg" : "apt_info");
   const ride = data.commute?.[apt.hcode];
   const det = details?.[apt.id], info = basics?.[apt.id];
+  const landuse = useLazyFile("landuse"), land = info?.kaptCode ? landuse?.items?.[info.kaptCode] : null;
   const [watch, toggleWatch] = useWatch(), saved = watch[apt.id];
   // the size people trade most here, and its recent price, are what the watchlist tracks
   const main = det?.areas?.length ? [...det.areas].sort((a, b2) => b2.n6 - a.n6 || b2.n - a.n)[0] : null;
@@ -458,6 +487,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
           ))}
         </div>
       )}
+      {land && <LandUse land={land} apt={apt} />}
       <div>
         <div className="mb-1 flex items-baseline justify-between"><span className="text-small font-semibold">평형별 시세</span>{det?.high && <Chip size="sm" color="danger" variant="flat">최근 2년 최고가 경신</Chip>}</div>
         {!details ? <Skeleton className="h-20 rounded-medium" /> : !det ? <p className="text-tiny text-default-400">평형별 정보가 없습니다.</p> : (
