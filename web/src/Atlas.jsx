@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, attachCommute, attachGrowth, dday, DSR, pendingFocus, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
+import { annuity, attachCommute, attachGrowth, attachLanduse, dday, DSR, pendingFocus, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, dist, LINE_COLOR, polysOf, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 
 export const LEVELS = [["auto", "자동"], ["gu", "구"], ["bdong", "법정동"], ["hdong", "행정동"]];
@@ -22,6 +22,7 @@ export const METRICS = [
   { id: "future", get l() { return `${futureState.years || 3}년 뒤 내 예산 이하`; }, get: (r, p) => futureShare(r, p), f: fmt.share },
   { id: "high", l: "신고가 비율", get: (r, p) => r[p]?.high_share, f: fmt.share, tone: "rose" },
   { id: "dip", l: "급매 비율", get: (r, p) => r[p]?.dip_share, f: fmt.share, tone: "indigo" },
+  { id: "zone", l: "3종·준주거 이상", get: (r) => r.lu?.high, f: fmt.share, tone: "amber" },
 ];
 // metric colour: rising-to-tone ramp for one-sided metrics
 export const toneOf = (m, P) => (m.tone ? P[m.tone] : P.primary);
@@ -58,7 +59,7 @@ const DRAWN_LEVELS = { seoul: LEVELS, metro: [["auto", "자동"], ["sgg", "시�
 export default function Atlas({ data: base, scope = "seoul" }) {
   const metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
-  const data = useMemo(() => (metro ? { ...base, insights: attachGrowth(attachCommute(mIns, mApts, base.commute)), apts: mApts, scope } : { ...base, insights: attachGrowth(attachCommute(base.insights, base.apts, base.commute)), scope }), [metro, base, mIns, mApts]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region), scope }), [metro, base, mIns, mApts]);
   const outlineGeo = metro ? mSgg : data.seoul_geo;
   const dark = useIsDark(), P = palette(dark);
   const later = data.budget?.find((b) => b.scenario === "later"), now = data.budget?.find((b) => b.scenario === "now");
@@ -375,6 +376,7 @@ export function MetricNote({ m }) {
     future: `${futureState.years}년 뒤 가격 = 지금 거래가 × 그 지역 최근 1년 상승률(같은 단지·평형)로 키운 값. 예산은 내 조건의 '${futureState.years}년 뒤 둘이' 기준 ${won(futureState.budget)}.`,
     high: "같은 단지·평형의 최근 2년 최고가를 넘은 거래 비중.",
     dip: "같은 단지·평형 직전 6개월 중위가보다 10~30% 싸게 팔린 거래 비중. 1~2층·직거래 제외.",
+    zone: "아파트 세대 중 제3종일반주거·준주거·상업지역 단지에 사는 비중. 높을수록 용적률 상한이 높아 재건축 때 더 지을 여지가 큽니다. 브이월드 토지이용계획, 단지 대표 필지 기준.",
   }[m.id];
   return t ? <span className="text-[10px] leading-snug text-default-500">{t}</span> : null;
 }
@@ -562,6 +564,29 @@ export function CommuteCard({ commute, hcode, apts }) {
   );
 }
 
+/* --- zoning mix of the region's apartment complexes (브이월드, households-weighted) --- */
+const ZONE_BAR = [["1종", "1종 일반·전용", "#C9E7DC"], ["2종", "2종 일반", "#7DD3C0"], ["3종", "3종 일반", "#2E9F86"], ["준주거·상업", "준주거·상업", "#0B5D4B"], ["기타", "준공업·녹지 등", "#B5C0BC"]];
+export function ZoningCard({ lu, sido }) {
+  if (!lu?.hh) return null;
+  const fl = lu.flags || {};
+  return (
+    <div className="rounded-large bg-content1 p-4 shadow-small">
+      <div className="mb-1 flex items-baseline justify-between"><span className="text-small font-semibold">용도지역 구성</span><span className="text-[10px] text-default-400 num">아파트 {lu.n.toLocaleString()}단지 · {lu.hh.toLocaleString()}세대 기준</span></div>
+      <div className="flex h-3 overflow-hidden rounded-full">{ZONE_BAR.map(([k, l, c]) => lu.zones[k] ? <span key={k} style={{ width: `${lu.zones[k]}%`, background: c }} title={`${l} ${lu.zones[k]}%`} /> : null)}</div>
+      <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-tiny num">
+        {ZONE_BAR.map(([k, l, c]) => lu.zones[k] ? <span key={k} className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: c }} />{l} <b>{lu.zones[k]}%</b></span> : null)}
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2 text-tiny num">
+        {[["평균 용적률 상한", lu.far_avg ? `${lu.far_avg}%` : "—", sido === "11" ? "서울시 조례 기준" : "법정 상한 기준"], ["토지거래허가구역", fl["토허"] >= 99.5 ? "전체" : `${fl["토허"] || 0}%`, "2년 실거주 의무"],
+          ["정비구역 안", `${fl["정비"] || 0}%`, "재개발·재건축 구역"], ["높이 제한", `${fl["높이제한"] || 0}%`, "고도·경관·비행안전·문화유산"]].map(([l, v, s]) => (
+          <div key={l} className="rounded-medium bg-default-100 px-2.5 py-1.5"><div className="text-default-500">{l}</div><div className="text-small font-semibold">{v}</div><div className="text-[10px] text-default-400">{s}</div></div>
+        ))}
+      </div>
+      <p className="mt-2 text-[10px] text-default-400">비율은 이 지역 아파트 세대 중 해당 단지에 사는 비중. 단지마다 대표 필지 하나 기준(브이월드 토지이용계획)이라 실제와 조금 다를 수 있습니다.</p>
+    </div>
+  );
+}
+
 /* --- population (행안부) and apartment stock (K-apt) for the selected region --- */
 export function RegionStats({ s, asOf, lv }) {
   if (!s) return null;
@@ -634,6 +659,7 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
       </div>
       <FutureCard r={r} period={period} data={data} />
 
+      <ZoningCard lu={r.lu} sido={lv === "sgg" ? rkey.slice(0, 2) : r.sido || "11"} />
       <CommuteCard commute={data.commute} hcode={lv === "hdong" ? rkey : null} apts={apts.filter(inRegion)} />
       <RegionStats s={data.region_stats?.[lv]?.[rkey]} asOf={data.region_stats?.as_of} lv={lv} />
 

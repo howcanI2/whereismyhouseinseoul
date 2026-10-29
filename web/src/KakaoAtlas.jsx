@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ButtonGroup, Chip, Divider, Skeleton, Slider, Switch } from "@heroui/react";
-import { attachCommute, attachGrowth, dday, fitState, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
+import { attachCommute, attachGrowth, attachLanduse, dday, fitState, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 import { DOWN, GrowthPick, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, SIG, UP } from "./Atlas.jsx";
 
@@ -36,7 +36,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const S = SCOPES[scope], metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
   // one data object per scope; the panels read insights/apts from it
-  const data = useMemo(() => (metro ? { ...base, insights: attachGrowth(attachCommute(mIns, mApts, base.commute)), apts: mApts, scope } : { ...base, insights: attachGrowth(attachCommute(base.insights, base.apts, base.commute)), scope }), [metro, base, mIns, mApts]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region), scope }), [metro, base, mIns, mApts]);
   const [maxMin, setMaxMin] = useState(0);
   const [showQuiet, setShowQuiet] = useState(true);
   const dark = useIsDark(), P = palette(dark);
@@ -81,7 +81,6 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
       if (dead || !boxRef.current) return;
       kRef.current = kakao;
       const map = new kakao.maps.Map(boxRef.current, { center: new kakao.maps.LatLng(S.center[1], S.center[0]), level: S.kz });
-      map.addControl(new kakao.maps.MapTypeControl(), kakao.maps.ControlPosition.TOPRIGHT);
       map.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
       kakao.maps.event.addListener(map, "idle", () => setView((v) => ({ kz: map.getLevel(), tick: v.tick + 1 })));
       mapRef.current = map;

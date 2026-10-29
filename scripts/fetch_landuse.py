@@ -1,4 +1,4 @@
-"""용도지역·용도지구·규제 for every K-apt complex in 서울·경기 (브이월드 토지이용계획 속성) → web/public/data/landuse.json.
+"""용도지역·용도지구·규제 for every K-apt complex in 서울·경기 (브이월드 토지이용계획 속성) → web/public/data/landuse.json (per complex) and landuse_region.json (구·동·시군구 mix).
 
     python scripts/fetch_landuse.py [--limit 9000]
 
@@ -79,6 +79,38 @@ def summarize(rows, sido):
     far = (FAR_SEOUL if sido == "11" else FAR_LAW).get(zones[0]) if zones else None
     return {"zones": zones, "far_max": far, "far_basis": "서울시 조례" if sido == "11" else "국토계획법 상한", "flags": flags, "all": names}
 
+# 용도지역 groups for the region view (share of apartment households in each)
+BUCKETS = [("1종", ("제1종일반주거지역", "제1종전용주거지역", "제2종전용주거지역")), ("2종", ("제2종일반주거지역",)), ("3종", ("제3종일반주거지역",)),
+           ("준주거·상업", ("준주거지역", "중심상업지역", "일반상업지역", "근린상업지역", "유통상업지역"))]
+REGION_FLAGS = {"토허": ("토지거래허가구역",), "정비": ("정비구역", "재정비촉진지구"), "지구단위": ("지구단위계획구역",), "높이제한": ("고도지구", "경관지구", "비행안전구역", "문화유산 주변")}
+
+def region_rollup(out, basic, geo):
+    """구 / 법정동 / 행정동 / 시군구 → households-weighted zoning mix and flag shares of the apartment complexes in it."""
+    acc = {lv: {} for lv in ("gu", "bdong", "hdong", "sgg")}
+    for b in basic:
+        v = out.get(b["kaptCode"])
+        if not v: continue
+        w = b.get("households") or 0
+        if not w: continue
+        sgg = b.get("sgg") or ""; sgg = "41590" if sgg.startswith("4159") else sgg
+        keys = [("hdong", (geo.get(b["kaptCode"]) or {}).get("hcode")), ("sgg", sgg)]
+        if b.get("sido", "11") == "11": keys += [("gu", b.get("gu")), ("bdong", f"{b.get('gu')} {b.get('dong')}")]
+        zone = v["zones"][0] if v["zones"] else None
+        bucket = next((k for k, zs in BUCKETS if zone in zs), "기타")
+        for lv, k in keys:
+            if not k: continue
+            a = acc[lv].setdefault(k, {"n": 0, "hh": 0, "zones": {}, "flags": {}, "far": [0, 0]})
+            a["n"] += 1; a["hh"] += w; a["zones"][bucket] = a["zones"].get(bucket, 0) + w
+            for f, labels in REGION_FLAGS.items():
+                if any(l in v["flags"] for l in labels): a["flags"][f] = a["flags"].get(f, 0) + w
+            if v.get("far_max"): a["far"][0] += v["far_max"] * w; a["far"][1] += w
+    res = {}
+    for lv, tbl in acc.items():
+        res[lv] = {k: {"n": a["n"], "hh": a["hh"], "zones": {z: round(c / a["hh"] * 100, 1) for z, c in a["zones"].items()},
+                       "flags": {f: round(c / a["hh"] * 100, 1) for f, c in a["flags"].items()}, "far_avg": round(a["far"][0] / a["far"][1]) if a["far"][1] else None,
+                       "high": round((a["zones"].get("3종", 0) + a["zones"].get("준주거·상업", 0)) / a["hh"] * 100, 1)} for k, a in tbl.items()}
+    return res
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--limit", type=int, default=9000); args = ap.parse_args()
     vk, kk = os.environ.get("VWORLD_API_KEY"), os.environ.get("KAKAO_REST_KEY")
@@ -115,6 +147,7 @@ def main():
     sido = {b["kaptCode"]: b.get("sido", "11") for b in basic}
     out = {code: {"pnu": v.get("pnu"), **summarize(v["rows"], sido.get(code, "11"))} for code, v in lu.items() if v.get("rows")}
     json.dump({"as_of": dt.date.today().isoformat(), "items": out}, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    json.dump({"as_of": dt.date.today().isoformat(), **region_rollup(out, basic, geo)}, open(OUT.replace("landuse.json", "landuse_region.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     left = sum(1 for b in basic if b["kaptCode"] not in lu)
     print(f"landuse: {done} looked up this run ({calls} 브이월드 calls), {len(out)} complexes with zoning, {left} left")
 
