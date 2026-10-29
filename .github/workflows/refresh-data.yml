@@ -1,7 +1,7 @@
 name: Refresh data
 
 # Every morning (06:30 KST): 국토부 apartment trades, 한국은행 rates, K-apt / 인구 / 서울 정비사업 files,
-# then rebuild web/public/data and commit it. A connected Vercel project redeploys on that commit.
+# then rebuild web/public/data and commit it. pages.yml redeploys GitHub Pages when this run finishes.
 # Transit times (ODsay) are not refreshed here: ODsay only accepts registered server IPs.
 on:
   schedule:

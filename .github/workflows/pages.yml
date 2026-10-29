@@ -1,0 +1,57 @@
+name: Deploy to GitHub Pages
+
+# Static export of web/ to https://howcani2.github.io/whereismyhouseinseoul/.
+# Runs on app/data pushes to main (incl. the PC refresh task) and after the morning Actions refresh,
+# whose own commit cannot trigger push workflows (GITHUB_TOKEN pushes don't).
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", ".github/workflows/pages.yml"]
+  workflow_run:
+    workflows: ["Refresh data"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+        env:
+          PAGES_BASE_PATH: /${{ github.event.repository.name }}
+          # Kakao JS keys are public by design (they only work on domains registered in the Kakao console)
+          NEXT_PUBLIC_KAKAO_JS_KEY: ${{ secrets.NEXT_PUBLIC_KAKAO_JS_KEY }}
+      - run: touch web/.next-pages/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/.next-pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
