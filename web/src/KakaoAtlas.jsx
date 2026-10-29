@@ -69,7 +69,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const handlers = useRef({});
   const m = METRICS.find((x) => x.id === metricId);
   fitState.budget = budget;
-  Object.assign(futureState, { growth, years: later?.years || 3, budget: later?.max_price_10k ?? budget });
+  Object.assign(futureState, { growth, years: later?.years || 3, budget: later?.max_price_10k ?? budget, label: later?.label });
   const ins = data.insights;
 
   useEffect(() => { if (later && now) setBudget(scen === "later" ? later.max_price_10k : now.max_price_10k); }, [scen, later, now]);

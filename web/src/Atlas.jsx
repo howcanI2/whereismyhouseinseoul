@@ -90,7 +90,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const wrapRef = useRef(null), svgRef = useRef(null), zoomRef = useRef(null), k0Ref = useRef(1), raf = useRef(0), moved = useRef(false);
   const m = METRICS.find((x) => x.id === metricId);
   fitState.budget = budget;
-  Object.assign(futureState, { growth, years: later?.years || 3, budget: later?.max_price_10k ?? budget });
+  Object.assign(futureState, { growth, years: later?.years || 3, budget: later?.max_price_10k ?? budget, label: later?.label });
 
   useEffect(() => { if (later && now) setBudget(scen === "later" ? later.max_price_10k : now.max_price_10k); }, [scen, later, now]);
   useEffect(() => { setLevel("auto"); setSelRegion(null); setSel(null); setSelZone(null); moved.current = false; }, [scope]);
@@ -373,7 +373,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
 // one line under the legend for metrics that need explaining
 export function MetricNote({ m }) {
   const t = {
-    future: `${futureState.years}년 뒤 가격 = 지금 거래가 × 그 지역 최근 1년 상승률(같은 단지·평형)로 키운 값. 예산은 내 조건의 '${futureState.years}년 뒤 둘이' 기준 ${won(futureState.budget)}.`,
+    future: `${futureState.years}년 뒤 가격 = 지금 거래가 × 그 지역 최근 1년 상승률(같은 단지·평형)로 키운 값. 예산은 내 조건의 '${futureState.label || "나중에"}' 기준 ${won(futureState.budget)}.`,
     high: "같은 단지·평형의 최근 2년 최고가를 넘은 거래 비중.",
     dip: "같은 단지·평형 직전 6개월 중위가보다 10~30% 싸게 팔린 거래 비중. 1~2층·직거래 제외.",
     zone: "아파트 세대 중 제3종일반주거·준주거·상업지역 단지에 사는 비중. 높을수록 용적률 상한이 높아 재건축 때 더 지을 여지가 큽니다. 브이월드 토지이용계획, 단지 대표 필지 기준.",
@@ -700,7 +700,7 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
       </div>
 
       <div className="rounded-large bg-content1 p-4 shadow-small">
-        <div className="mb-1 text-small font-semibold">내가 여기 84㎡를 사면 ({scen === "later" ? "결혼 후 둘이" : "지금 혼자"})</div>
+        <div className="mb-1 text-small font-semibold">내가 여기 84㎡를 사면 ({b?.label || (scen === "later" ? "나중에" : "지금")})</div>
         {price84 ? (
           <div className="flex flex-col gap-1.5 text-small">
             <div className="num">84㎡ 기준가 <b>{won(price84)}</b> <span className="text-tiny text-default-400">{d.p84 ? "실거래 중위가" : "평당가 × 25.4평 환산"}</span></div>

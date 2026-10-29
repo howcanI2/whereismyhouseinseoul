@@ -63,7 +63,7 @@ export function PlanTab({ data, dv, part }) {
     </ul>
   );
   const P = palette(useIsDark());
-  if (part === "budget") return <div className="grid gap-4 md:grid-cols-2">{card("now", "지금 혼자 사면")}{card("later", "결혼 후 둘이 사면")}</div>;
+  if (part === "budget") return <div className="grid gap-4 md:grid-cols-2">{card("now", b("now")?.label || "지금 사면")}{card("later", b("later")?.label || "나중에 사면")}</div>;
   return (
     <div className="flex flex-col gap-4">
       <div className="hidden">
@@ -158,7 +158,7 @@ function FutureDongs({ data }) {
   return (
     <Box title={`${later.years || 3}년 뒤에도 84㎡가 닿는 동네`} sub={`${later.label} 예산 ${won(later.max_price_10k)} 기준. 광화문 45분 이내(구 단위 추정), 최근 6개월 거래 40건 이상, 예산의 70~100%에 드는 행정동을 거래 많은 순으로.`}
       right={<ButtonGroup size="sm" radius="full">{GROWTH.map(([k, l]) => <Button key={k} color={mode === k ? "secondary" : "default"} variant={mode === k ? "solid" : "flat"} onPress={() => setMode(k)}>{l}</Button>)}</ButtonGroup>}>
-      {!rows ? <Loading h={200} /> : rows.length === 0 ? <p className="text-small text-default-500">이 조건에 맞는 동네가 없습니다. '내 조건'에서 예산이나 결혼 시점을 바꿔 보세요.</p> : (
+      {!rows ? <Loading h={200} /> : rows.length === 0 ? <p className="text-small text-default-500">이 조건에 맞는 동네가 없습니다. '내 조건'에서 예산이나 매수 시점을 바꿔 보세요.</p> : (
         <ul className="grid gap-x-6 gap-y-1.5 md:grid-cols-2">
           {rows.map((x) => (
             <li key={x.k} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2 border-b border-default-100 py-1 text-small num">
@@ -194,7 +194,7 @@ export function LoanTab({ data }) {
   return (
     <div className="flex flex-col gap-4">
       <Box title="내 대출 계산기" sub="집값을 움직이면 필요한 대출이 서울 규제 안에 드는지와 월 상환액이 바로 나옵니다."
-        right={<ButtonGroup size="sm" radius="full">{[["now", "지금 혼자"], ["later", "결혼 후 둘이"]].map(([k, l]) => <Button key={k} color={scen === k ? "primary" : "default"} variant={scen === k ? "solid" : "flat"} onPress={() => setScen(k)}>{l}</Button>)}</ButtonGroup>}>
+        right={<ButtonGroup size="sm" radius="full">{[["now", data.budget?.[0]?.short || "지금"], ["later", data.budget?.[1]?.short || "나중에"]].map(([k, l]) => <Button key={k} color={scen === k ? "primary" : "default"} variant={scen === k ? "solid" : "flat"} onPress={() => setScen(k)}>{l}</Button>)}</ButtonGroup>}>
         {!base || !last ? <Loading h={260} /> : (
           <div className="grid gap-8 md:grid-cols-2">
             <div className="flex flex-col gap-5">

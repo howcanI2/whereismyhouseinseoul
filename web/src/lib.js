@@ -112,7 +112,7 @@ export const LTV = 0.7, DSR = 0.4, STRESS = 3, YEARS = 30;
 
 /* ---------- 내 조건: each viewer's own numbers, kept only in their browser ---------- */
 // Example values a first-time visitor sees; nothing about the person who built the app.
-export const DEFAULT_PROFILE = { income: 5000, cash: 10000, saving: 200, marry: 3, partnerIncome: 5000, partnerCash: 8000, partnerSaving: 150, firstHome: true, rate: null, example: true };
+export const DEFAULT_PROFILE = { household: "plan", income: 5000, cash: 10000, saving: 200, marry: 3, partnerIncome: 5000, partnerCash: 8000, partnerSaving: 150, firstHome: true, rate: null, example: true };
 const PKEY = "hb-profile-v1";
 export function useProfile() {
   const [p, setP] = useState(() => { try { return { ...DEFAULT_PROFILE, ...JSON.parse(localStorage.getItem(PKEY) || "{}") }; } catch (e) { return DEFAULT_PROFILE; } });
@@ -156,18 +156,25 @@ function maxPrice(cash, income, rate, firstHome) {
   }
   return { P: Math.max(0, Math.round(cash / (1 + COSTS))), loan: 0, binding: "현금만", dsrLoan: Math.round(dsrLoan), ltvLoan: 0 };
 }
+// 가구 형태: 혼자 / 결혼 예정 (N년 뒤 합가) / 이미 기혼·맞벌이. Older saved profiles have no household: infer it from the plan.
+export const HOUSEHOLDS = [["single", "혼자"], ["plan", "결혼 예정"], ["married", "기혼·맞벌이"]];
+export const householdOf = (p) => p.household || (Number(p.marry) ? "plan" : "single");
 // Same shape as the old budget.json rows, so every screen keeps reading data.budget.
+//   now   = buying today: me, or both of us if already married
+//   later = buying in N years with N years of saving: both of us unless single
 export function budgetsFrom(p, rate) {
-  const r = p.rate || rate || 4.5;
-  const now = maxPrice(p.cash, p.income, r, p.firstHome);
-  const yrs = Math.max(0, Number(p.marry) || 0);
-  const cashL = p.cash + p.saving * 12 * yrs + (yrs ? p.partnerCash + p.partnerSaving * 12 * yrs : 0);
-  const incomeL = p.income + (yrs ? p.partnerIncome : 0);
+  const r = p.rate || rate || 4.5, hh = householdOf(p);
+  const yrs = Math.max(0, Number(p.marry) || 0), twoNow = hh === "married", twoLater = hh !== "single";
+  const cashN = p.cash + (twoNow ? p.partnerCash : 0), incomeN = p.income + (twoNow ? p.partnerIncome : 0);
+  const now = maxPrice(cashN, incomeN, r, p.firstHome);
+  const cashL = p.cash + p.saving * 12 * yrs + (twoLater ? p.partnerCash + p.partnerSaving * 12 * yrs : 0);
+  const incomeL = p.income + (twoLater ? p.partnerIncome : 0);
   const later = maxPrice(cashL, incomeL, r, p.firstHome);
   const note = (cash, n) => `현금 ${won(cash)}에서 취득 비용 2.5%를 빼고, 금리 ${r}% + 스트레스 3%p, 30년 상환으로 계산${n ? ` (저축 ${n}년 반영)` : ""}`;
+  const who = (two) => (two ? " 둘이" : "");
   return [
-    { scenario: "now", label: "지금 사면", income_10k: p.income, cash_10k: p.cash, loan_10k: now.loan, max_price_10k: now.P, binding: now.binding, loan_dsr_10k: now.dsrLoan, note: note(p.cash, 0) },
-    { scenario: "later", label: yrs ? `${yrs}년 뒤 둘이 사면` : "지금 둘이 사면", years: yrs, income_10k: incomeL, cash_10k: cashL, loan_10k: later.loan, max_price_10k: later.P, binding: later.binding, loan_dsr_10k: later.dsrLoan, note: note(cashL, yrs) },
+    { scenario: "now", label: `지금${who(twoNow)} 사면`, short: `지금${who(twoNow)}`, income_10k: incomeN, cash_10k: cashN, loan_10k: now.loan, max_price_10k: now.P, binding: now.binding, loan_dsr_10k: now.dsrLoan, note: note(cashN, 0) },
+    { scenario: "later", label: yrs ? `${yrs}년 뒤${who(twoLater)} 사면` : `지금${who(twoLater)} 사면`, short: yrs ? `${yrs}년 뒤${who(twoLater)}` : `지금${who(twoLater)}`, years: yrs, income_10k: incomeL, cash_10k: cashL, loan_10k: later.loan, max_price_10k: later.P, binding: later.binding, loan_dsr_10k: later.dsrLoan, note: note(cashL, yrs) },
   ];
 }
 // share of trades at or under a budget, from a region's 21-point price distribution
