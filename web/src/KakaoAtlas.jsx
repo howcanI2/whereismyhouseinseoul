@@ -241,7 +241,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     (ah?.items || []).filter((r) => r.lon != null && (metro || r.sido === "11") && (r.receipt_end || r.notice) >= td).forEach((r) => {
       const node = el(`<div style="font-size:10.5px;font-weight:700;color:#4F63C9;text-shadow:0 0 3px #fff,0 0 3px #fff">${esc(dday(r.special_from || r.receipt_start) || "")}</div><div style="width:12px;height:12px;margin:2px auto 0;background:#4F63C9;border:2px solid #fff;border-radius:3px;box-shadow:0 0 2px rgba(0,0,0,.4)"></div>`,
         { textAlign: "center", cursor: "pointer", fontFamily: "Noto Sans KR, sans-serif" }, () => r.url && window.open(r.url, "_blank", "noopener"));
-      node.title = `${r.name} · ${r.households}세대 · 특공 ${r.special_from || "—"} · 1순위 ${r.first_rank || r.receipt_start || "—"}`;
+      node.title = `${r.name} · ${r.households}세대 · 특공 ${r.special_from || "—"} · 1순위 ${r.first_rank || r.receipt_start || "—"}${r.approx ? " · 위치는 동 중심(대략)" : ""}`;
       L.apply.push(new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(r.lat, r.lon), content: node, yAnchor: 1, zIndex: 6 }));
     });
   }, [ready, showApply, ah, metro]);

@@ -310,7 +310,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                   <g key={r.id} transform={`translate(${sx(r.lon)},${sy(r.lat)})`} className="cursor-pointer" onClick={() => r.url && window.open(r.url, "_blank", "noopener")}>
                     <rect x={-6} y={-6} width={12} height={12} rx={3} fill={P.indigo} stroke="hsl(var(--heroui-content1))" strokeWidth="2" />
                     <text y={-10} textAnchor="middle" className="map-label" style={{ fontWeight: 700, fill: P.indigo }}>{dday(r.special_from || r.receipt_start)}</text>
-                    <title>{`${r.name} · ${r.households}세대 · 특공 ${r.special_from || "—"} · 1순위 ${r.first_rank || r.receipt_start || "—"}`}</title>
+                    <title>{`${r.name} · ${r.households}세대 · 특공 ${r.special_from || "—"} · 1순위 ${r.first_rank || r.receipt_start || "—"}${r.approx ? " · 위치는 동 중심(대략)" : ""}`}</title>
                   </g>
                 ))}
                 {REF.map((r) => (

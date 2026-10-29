@@ -117,7 +117,7 @@ function ApplyhomeCard() {
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{r.name}</span>
                   <span className="block truncate text-tiny text-default-500">{r.addr}</span>
-                  <span className="block text-tiny text-default-500">특별공급 {r.special_from || "—"} · 1순위 {r.first_rank || r.receipt_start || "—"} · 발표 {r.winner || "—"}</span>
+                  <span className="block text-tiny text-default-500">{r.special_from ? `특별공급 ${r.special_from} · 1순위 ${r.first_rank || r.receipt_start || "—"}` : `접수 ${r.receipt_start || "—"} ~ ${r.receipt_end || "—"}`} · 발표 {r.winner || "—"}</span>
                 </span>
                 <span className="text-right text-tiny">
                   <b className="text-small">{r.households.toLocaleString()}세대</b>{sp ? <span className="block text-default-500">특공 {sp.toLocaleString()}</span> : null}
