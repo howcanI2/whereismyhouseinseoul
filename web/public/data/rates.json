@@ -182,5 +182,13 @@
 "variable_pct": 4.53,
 "household_pct": 4.76,
 "base_pct": 3.0
+},
+{
+"month": "2026-09",
+"mortgage_pct": 4.88,
+"fixed_pct": 5.11,
+"variable_pct": 4.76,
+"household_pct": 4.96,
+"base_pct": 3.0
 }
 ]
