@@ -1,13 +1,5 @@
 [
 {
-"month": "2024-10",
-"mortgage_pct": 4.05,
-"fixed_pct": 4.04,
-"variable_pct": 4.14,
-"household_pct": 4.55,
-"base_pct": 3.25
-},
-{
 "month": "2024-11",
 "mortgage_pct": 4.3,
 "fixed_pct": 4.31,
