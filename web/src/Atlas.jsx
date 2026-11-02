@@ -22,6 +22,7 @@ export const METRICS = [
   { id: "future", get l() { return `${futureState.years || 3}년 뒤 내 예산 이하`; }, get: (r, p) => futureShare(r, p), f: fmt.share },
   { id: "high", l: "신고가 비율", get: (r, p) => r[p]?.high_share, f: fmt.share, tone: "rose" },
   { id: "dip", l: "급매 비율", get: (r, p) => r[p]?.dip_share, f: fmt.share, tone: "indigo" },
+  { id: "school", l: "초등학교 가까운 단지", get: (r) => r.sch?.near, f: fmt.share },
   { id: "zone", l: "3종·준주거 이상", get: (r) => r.lu?.high, f: fmt.share, tone: "amber" },
 ];
 // metric colour: rising-to-tone ramp for one-sided metrics
@@ -59,7 +60,7 @@ const DRAWN_LEVELS = { seoul: LEVELS, metro: [["auto", "자동"], ["sgg", "시�
 export default function Atlas({ data: base, scope = "seoul" }) {
   const metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
-  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region), scope }), [metro, base, mIns, mApts]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region, base.school_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region, base.school_region), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region]);
   const outlineGeo = metro ? mSgg : data.seoul_geo;
   const dark = useIsDark(), P = palette(dark);
   const later = data.budget?.find((b) => b.scenario === "later"), now = data.budget?.find((b) => b.scenario === "now");
@@ -376,6 +377,7 @@ export function MetricNote({ m }) {
     future: `${futureState.years}년 뒤 가격 = 지금 거래가 × 그 지역 최근 1년 상승률(같은 단지·평형)로 키운 값. 예산은 내 조건의 '${futureState.label || "나중에"}' 기준 ${won(futureState.budget)}.`,
     high: "같은 단지·평형의 최근 2년 최고가를 넘은 거래 비중.",
     dip: "같은 단지·평형 직전 6개월 중위가보다 10~30% 싸게 팔린 거래 비중. 1~2층·직거래 제외.",
+    school: "단지에서 배정 초등학교(통학구역 기준)까지 직선 400m(도보 5~6분) 이내인 단지 비율. 교육부 학구도 기준.",
     zone: "아파트 세대 중 제3종일반주거·준주거·상업지역 단지에 사는 비중. 높을수록 용적률 상한이 높아 재건축 때 더 지을 여지가 큽니다. 브이월드 토지이용계획, 단지 대표 필지 기준.",
   }[m.id];
   return t ? <span className="text-[10px] leading-snug text-default-500">{t}</span> : null;
@@ -659,6 +661,16 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
       </div>
       <FutureCard r={r} period={period} data={data} />
 
+      {r.sch && (
+        <div className="rounded-large bg-content1 p-4 shadow-small">
+          <div className="mb-1 text-small font-semibold">초등학교 거리</div>
+          <div className="grid grid-cols-2 gap-2 text-tiny num">
+            <div className="rounded-medium bg-default-100 px-2.5 py-1.5"><div className="text-default-500">배정 초등학교 400m 이내 단지</div><div className="text-small font-semibold">{fmt.share(r.sch.near)}</div></div>
+            <div className="rounded-medium bg-default-100 px-2.5 py-1.5"><div className="text-default-500">단지→학교 거리 중위값</div><div className="text-small font-semibold">{r.sch.dist.toLocaleString()}m</div></div>
+          </div>
+          <p className="mt-1 text-[10px] text-default-400">아파트 {r.sch.n.toLocaleString()}단지, 교육부 학구도(통학구역) 기준 직선거리. 단지를 누르면 배정 학교가 보입니다.</p>
+        </div>
+      )}
       <ZoningCard lu={r.lu} sido={lv === "sgg" ? rkey.slice(0, 2) : r.sido || "11"} />
       <CommuteCard commute={data.commute} hcode={lv === "hdong" ? rkey : null} apts={apts.filter(inRegion)} />
       <RegionStats s={data.region_stats?.[lv]?.[rkey]} asOf={data.region_stats?.as_of} lv={lv} />

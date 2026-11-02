@@ -36,7 +36,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const S = SCOPES[scope], metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
   // one data object per scope; the panels read insights/apts from it
-  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region), scope }), [metro, base, mIns, mApts]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region, base.school_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region, base.school_region), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region]);
   const [maxMin, setMaxMin] = useState(0);
   const [showQuiet, setShowQuiet] = useState(true);
   const dark = useIsDark(), P = palette(dark);

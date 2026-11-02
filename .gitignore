@@ -7,3 +7,4 @@ app/dist/
 !.env.example
 .next/
 .next-pages/
+data/raw/school_src/
