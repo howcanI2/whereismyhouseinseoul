@@ -63,7 +63,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const [stageGroup, setStageGroup] = useState("all");
-  const [legendOpen, setLegendOpen] = useState(true);
+  const [legendOpen, setLegendOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 1024);  // folded on phones so the map shows
   const [ready, setReady] = useState(false);
   const [view, setView] = useState({ kz: 8, tick: 0 });
   const boxRef = useRef(null), mapRef = useRef(null), kRef = useRef(null);
@@ -305,7 +305,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const selApt = sel ? (data.apts || []).find((a) => a.id === sel) : null;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
       <aside className="order-2 flex min-w-0 flex-col gap-4 lg:order-1">
         <div className="rounded-large bg-content1 p-4 shadow-small">
           <div className="mb-2 flex items-center justify-between">
@@ -328,14 +328,14 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
           : <Overview data={data} ins={ins} period={period} level={regionLevel} m={m} scen={scen} onPick={(key) => pickRegion(regionLevel, key)} P={P} onApt={(id) => { const a = (data.apts || []).find((x) => x.id === id); if (a) pickApt(a); }} />}
       </aside>
 
-      <section className="order-1 flex flex-col gap-2 lg:order-2">
+      <section className="order-1 flex min-w-0 flex-col gap-2 lg:order-2">
         <SearchBox ins={ins} apts={data.apts} onRegion={pickRegion} onApt={pickApt} />
         <div className="flex flex-wrap items-center gap-2 rounded-large bg-content1 px-3 py-2 shadow-small">
           <ButtonGroup size="sm" radius="full" variant="flat">{S.levels.map(([k, l]) => <Button key={k} color={level === k ? "primary" : "default"} variant={level === k ? "solid" : "flat"} onPress={() => setLevel(k)}>{l}</Button>)}</ButtonGroup>
-          <Divider orientation="vertical" className="h-6" />
+          <Divider orientation="vertical" className="hidden h-6 sm:block" />
           <ButtonGroup size="sm" radius="full">{PERIODS.map(([k, l]) => <Button key={k} color={period === k ? "primary" : "default"} variant={period === k ? "solid" : "flat"} onPress={() => setPeriod(k)}>{l}</Button>)}</ButtonGroup>
-          <Divider orientation="vertical" className="h-6" />
-          <div className="flex flex-wrap gap-1">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
+          <Divider orientation="vertical" className="hidden h-6 sm:block" />
+          <div className="-mx-1 flex w-full gap-1 overflow-x-auto px-1 pb-0.5 lg:mx-0 lg:w-auto lg:flex-wrap lg:overflow-visible lg:px-0">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="shrink-0 cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
           {m.id === "future" && <GrowthPick growth={growth} setGrowth={setGrowth} />}
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>

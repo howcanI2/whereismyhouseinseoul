@@ -158,7 +158,7 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
             </Switch>
             <Input size="sm" type="number" label="대출 금리 (비우면 최신 평균)" placeholder={rate ? `최신 평균 ${rate}%` : ""} className="max-w-xs"
               value={draft.rate == null ? "" : String(draft.rate)} onValueChange={(v) => setDraft((d) => ({ ...d, rate: v === "" ? null : Number(v) }))}
-              endContent={<span className="text-tiny text-default-400">%</span>} description="스트레스 금리 3%p를 더해 DSR 40% 한도를 계산합니다." />
+              endContent={<span className="whitespace-nowrap text-tiny text-default-400">%</span>} description="스트레스 금리 3%p를 더해 DSR 40% 한도를 계산합니다." />
           </Step>
 
           <div className="rounded-medium border border-default-200 px-3 py-2">

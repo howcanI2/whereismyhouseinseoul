@@ -35,7 +35,7 @@ export const METRICS = [
 export const toneOf = (m, P) => (m.tone ? P[m.tone] : P.primary);
 // N년 뒤 controls, shown in the map toolbar while that metric is on
 export function GrowthPick({ growth, setGrowth }) {
-  return <ButtonGroup size="sm" radius="full">{GROWTH.map(([k, l]) => <Button key={k} color={growth === k ? "secondary" : "default"} variant={growth === k ? "solid" : "flat"} onPress={() => setGrowth(k)}>{l}</Button>)}</ButtonGroup>;
+  return <div className="flex flex-wrap gap-1">{GROWTH.map(([k, l]) => <Button key={k} size="sm" radius="full" className="h-7" color={growth === k ? "secondary" : "default"} variant={growth === k ? "solid" : "flat"} onPress={() => setGrowth(k)}>{l}</Button>)}</div>;
 }
 export const SIG = { high: ["▲", "신고가"], dip: ["▼", "급매"] };
 export const BAND = [["s", "소형 ~60㎡", "#7DD3C0"], ["m", "중형 60~85㎡", "#2E9F86"], ["l", "중대형 85㎡~", "#0B5D4B"]];
@@ -247,7 +247,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const ready = world && data.dong_geo && ins;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
       <aside className="order-2 flex min-w-0 flex-col gap-4 lg:order-1">
         <div className="rounded-large bg-content1 p-4 shadow-small">
           <div className="mb-2 flex items-center justify-between">
@@ -270,14 +270,14 @@ export default function Atlas({ data: base, scope = "seoul" }) {
           : <Overview data={data} ins={ins} period={period} level={regionLevel} m={m} scen={scen} onPick={(key) => pickRegion(regionLevel, key)} P={P} onApt={(id) => { const a = (data.apts || []).find((x) => x.id === id); if (a) pickApt(a); }} />}
       </aside>
 
-      <section className="order-1 flex flex-col gap-2 lg:order-2">
+      <section className="order-1 flex min-w-0 flex-col gap-2 lg:order-2">
         <SearchBox ins={ins} apts={data.apts} onRegion={pickRegion} onApt={pickApt} />
         <div className="flex flex-wrap items-center gap-2 rounded-large bg-content1 px-3 py-2 shadow-small">
           <ButtonGroup size="sm" radius="full" variant="flat">{DRAWN_LEVELS[scope].map(([k, l]) => <Button key={k} color={level === k ? "primary" : "default"} variant={level === k ? "solid" : "flat"} onPress={() => setLevel(k)}>{l}</Button>)}</ButtonGroup>
-          <Divider orientation="vertical" className="h-6" />
+          <Divider orientation="vertical" className="hidden h-6 sm:block" />
           <ButtonGroup size="sm" radius="full">{PERIODS.map(([k, l]) => <Button key={k} color={period === k ? "primary" : "default"} variant={period === k ? "solid" : "flat"} onPress={() => setPeriod(k)}>{l}</Button>)}</ButtonGroup>
-          <Divider orientation="vertical" className="h-6" />
-          <div className="flex flex-wrap gap-1">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
+          <Divider orientation="vertical" className="hidden h-6 sm:block" />
+          <div className="-mx-1 flex w-full gap-1 overflow-x-auto px-1 pb-0.5 lg:mx-0 lg:w-auto lg:flex-wrap lg:overflow-visible lg:px-0">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="shrink-0 cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
           {m.id === "future" && <GrowthPick growth={growth} setGrowth={setGrowth} />}
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>

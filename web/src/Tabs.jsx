@@ -1,16 +1,17 @@
 import { useMemo, useState } from "react";
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Input, Link, Select, SelectItem, Skeleton, Slider, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { GrowthPick } from "./Atlas.jsx";
 import { annuity, attachGrowth, DSR, estCommute, kmTo, fmt, GROWTH, growthMult, loanCap, LTV, palette, STRESS, dday, focusApply, useIsDark, useLazyFile, won, YEARS } from "./lib.js";
 
 const Box = ({ title, sub, children, className = "", right }) => (
   <Card shadow="sm" className={className}>
-    <CardHeader className="flex items-start justify-between gap-3">
+    <CardHeader className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex flex-col gap-1">
         <h3 className="text-medium font-semibold">{title}</h3>
         {sub && <p className="text-small text-default-500">{sub}</p>}
       </div>
-      {right}
+      {right && <div className="self-start sm:shrink-0">{right}</div>}
     </CardHeader>
     <CardBody className="pt-0">{children}</CardBody>
   </Card>
@@ -113,19 +114,19 @@ function ApplyhomeCard() {
           {items.slice(0, 12).map((r) => {
             const prices = r.types.map((t) => t.price_max).filter(Boolean), sp = r.types.reduce((s, t) => s + (t.special || 0), 0), small = r.types.filter((t) => t.area && t.area <= 85).length;
             return (
-              <li key={r.id} className="grid grid-cols-[4.2rem_minmax(0,1fr)_auto] items-start gap-3 border-b border-default-100 py-2 text-small num">
+              <li key={r.id} className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-1.5 border-b border-default-100 py-2.5 text-small num sm:grid-cols-[4.2rem_minmax(0,1fr)_auto]">
                 <Chip size="sm" variant="flat" color={dday(r.special_from || r.receipt_start) === "접수 중" ? "danger" : "primary"}>{dday(r.special_from || r.receipt_start) || "—"}</Chip>
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{r.name}</span>
                   <span className="block truncate text-tiny text-default-500">{r.addr}</span>
                   <span className="block text-tiny text-default-500">{r.special_from ? `특별공급 ${r.special_from} · 1순위 ${r.first_rank || r.receipt_start || "—"}` : `접수 ${r.receipt_start || "—"} ~ ${r.receipt_end || "—"}`} · 발표 {r.winner || "—"}</span>
                 </span>
-                <span className="text-right text-tiny">
-                  <b className="text-small">{r.households.toLocaleString()}세대</b>{sp ? <span className="block text-default-500">특공 {sp.toLocaleString()}</span> : null}
-                  {prices.length > 0 && <span className="block">{won(Math.min(...prices))}~{won(Math.max(...prices))}</span>}
-                  {small > 0 && <span className="block text-default-400">85㎡ 이하 {small}개 타입</span>}
+                <span className="col-start-2 flex flex-wrap gap-x-2 text-tiny sm:col-start-3 sm:row-start-1 sm:block sm:text-right">
+                  <b className="text-small">{r.households.toLocaleString()}세대</b>{sp ? <span className="text-default-500 sm:block">특공 {sp.toLocaleString()}</span> : null}
+                  {prices.length > 0 && <span className="sm:block">{won(Math.min(...prices))}~{won(Math.max(...prices))}</span>}
+                  {small > 0 && <span className="text-default-400 sm:block">85㎡ 이하 {small}개 타입</span>}
                 </span>
-                <span className="col-span-3 -mt-1 flex flex-wrap gap-1.5 sm:col-start-2 sm:col-span-2">
+                <span className="col-start-2 flex flex-wrap gap-1.5 sm:col-span-2">
                   {r.url && <Button as={Link} href={r.url} isExternal size="sm" variant="flat" color="primary" className="h-7">공고문 보기 ↗</Button>}
                   {r.lon != null && <Button size="sm" variant="flat" className="h-7" onPress={() => focusApply(r)}>지도에서 위치 보기{r.approx ? " (대략)" : ""}</Button>}
                 </span>
@@ -158,7 +159,7 @@ function FutureDongs({ data }) {
   if (!later) return null;
   return (
     <Box title={`${later.years || 3}년 뒤에도 84㎡가 닿는 동네`} sub={`${later.label} 예산 ${won(later.max_price_10k)} 기준. ${data.work?.name || "직장"}까지 약 45분 이내(거리 추정), 최근 6개월 거래 40건 이상, 예산의 70~100%에 드는 행정동을 거래 많은 순으로.`}
-      right={<ButtonGroup size="sm" radius="full">{GROWTH.map(([k, l]) => <Button key={k} color={mode === k ? "secondary" : "default"} variant={mode === k ? "solid" : "flat"} onPress={() => setMode(k)}>{l}</Button>)}</ButtonGroup>}>
+      right={<GrowthPick growth={mode} setGrowth={setMode} />}>
       {!rows ? <Loading h={200} /> : rows.length === 0 ? <p className="text-small text-default-500">이 조건에 맞는 동네가 없습니다. '내 조건'에서 예산이나 매수 시점을 바꿔 보세요.</p> : (
         <ul className="grid gap-x-6 gap-y-1.5 md:grid-cols-2">
           {rows.map((x) => (
@@ -201,9 +202,9 @@ export function LoanTab({ data }) {
             <div className="flex flex-col gap-5">
               <Slider label="집값" color="primary" step={1000} minValue={20000} maxValue={150000} value={price} onChange={set("price")} getValue={(v) => won(v)} classNames={{ value: "text-large font-semibold num" }} />
               <div className="grid grid-cols-2 gap-3">
-                <Input size="sm" type="number" label="쓸 수 있는 현금" endContent={<span className="text-tiny text-default-400">만원</span>} value={String(cash)} onValueChange={(v) => set("cash")(Number(v))} />
-                <Input size="sm" type="number" label="연소득 (세전)" endContent={<span className="text-tiny text-default-400">만원</span>} value={String(income)} onValueChange={(v) => set("income")(Number(v))} />
-                <Input size="sm" type="number" step="0.05" label="대출 금리" endContent={<span className="text-tiny text-default-400">%</span>} value={String(rate)} onValueChange={(v) => set("rate")(Number(v))} />
+                <Input size="sm" type="number" label="쓸 수 있는 현금" endContent={<span className="whitespace-nowrap text-tiny text-default-400">만원</span>} value={String(cash)} onValueChange={(v) => set("cash")(Number(v))} />
+                <Input size="sm" type="number" label="연소득 (세전)" endContent={<span className="whitespace-nowrap text-tiny text-default-400">만원</span>} value={String(income)} onValueChange={(v) => set("income")(Number(v))} />
+                <Input size="sm" type="number" step="0.05" label="대출 금리" endContent={<span className="whitespace-nowrap text-tiny text-default-400">%</span>} value={String(rate)} onValueChange={(v) => set("rate")(Number(v))} />
               </div>
               <p className="text-tiny text-default-400">금리 기본값은 {last.month} 주담대 신규 평균 {fmt.rate(last.mortgage_pct)} (한국은행). 30년 원리금균등 기준.</p>
             </div>

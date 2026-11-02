@@ -6,9 +6,9 @@ import { fmt, palette, useIsDark, useLazyFile, won } from "./lib.js";
 
 const Box = ({ title, sub, children, right }) => (
   <Card shadow="sm">
-    <CardHeader className="flex items-start justify-between gap-3">
+    <CardHeader className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex flex-col gap-1"><h3 className="text-medium font-semibold">{title}</h3>{sub && <p className="text-small text-default-500">{sub}</p>}</div>
-      {right}
+      {right && <div className="self-start sm:shrink-0">{right}</div>}
     </CardHeader>
     <CardBody className="pt-0">{children}</CardBody>
   </Card>
@@ -137,22 +137,23 @@ function Upcoming({ up, ins, mIns, metro }) {
   return (
     <Box title="입주 예정 단지" sub="입주 예정월 순. 분양가는 공고의 주택형별 최고가, 평당 분양가는 전용 3.3㎡ 기준 중위값으로 지역 평당 시세(최근 6개월 매매)와 비교합니다."
       right={<Select size="sm" aria-label="지역" className="w-36" selectedKeys={[region]} onSelectionChange={(k) => setRegion([...k][0] || "all")}>{[<SelectItem key="all">전체 지역</SelectItem>, ...regions.map((r) => <SelectItem key={r}>{r}</SelectItem>)]}</Select>}>
-      <div className="max-h-[420px] overflow-auto">
-        <table className="w-full text-tiny num">
-          <thead className="sticky top-0 bg-content1 text-default-500"><tr><th className="py-1 text-left font-medium">입주</th><th className="text-left font-medium">단지</th><th className="text-right font-medium">세대</th><th className="text-right font-medium">분양가</th><th className="text-right font-medium">평당 분양가 / 지역 시세</th></tr></thead>
-          <tbody>
-            {rows.slice(0, 200).map((n) => { const p = nowPpp(n), ratio = n.ppp && p ? n.ppp / p : null; return (
-              <tr key={n.id} className="border-t border-default-100 align-top">
-                <td className="py-1.5 font-semibold">{n.mvn?.replace("-", ".")}</td>
-                <td className="max-w-[18rem]"><div className="truncate font-medium">{n.url ? <Link href={n.url} isExternal size="sm" className="text-tiny">{n.name}</Link> : n.name}</div><div className="truncate text-[10px] text-default-400">{n.region} · {n.kind}{n.builder ? ` · ${n.builder}` : ""}</div></td>
-                <td className="text-right">{n.households.toLocaleString()}</td>
-                <td className="text-right">{n.price_min ? (n.price_min === n.price_max ? won(n.price_min) : `${won(n.price_min)}~${won(n.price_max)}`) : "—"}</td>
-                <td className="text-right">{n.ppp ? won(n.ppp) : "—"}{p ? <span className="text-default-400"> / {won(p)}</span> : null}{ratio && <span className="ml-1" style={{ color: ratio > 1.05 ? "#E5484D" : ratio < 0.95 ? "#3E7BFA" : undefined }}>{ratio >= 1 ? "+" : ""}{Math.round((ratio - 1) * 100)}%</span>}</td>
-              </tr>
-            ); })}
-          </tbody>
-        </table>
-      </div>
+      {/* a list rather than a table, so the figures stay visible on a phone */}
+      <ul className="max-h-[440px] overflow-y-auto">
+        {rows.slice(0, 200).map((n) => { const p = nowPpp(n), ratio = n.ppp && p ? n.ppp / p : null; return (
+          <li key={n.id} className="grid grid-cols-[3.6rem_minmax(0,1fr)] gap-x-2 border-t border-default-100 py-2 text-tiny num">
+            <span className="pt-0.5 font-semibold">{n.mvn?.replace("-", ".")}</span>
+            <span className="min-w-0">
+              <span className="block truncate text-small font-medium">{n.url ? <Link href={n.url} isExternal size="sm">{n.name}</Link> : n.name}</span>
+              <span className="block truncate text-[10px] text-default-400">{n.region} · {n.kind}{n.builder ? ` · ${n.builder}` : ""}</span>
+              <span className="mt-0.5 flex flex-wrap gap-x-2.5 gap-y-0.5">
+                <span><b>{n.households.toLocaleString()}</b>세대</span>
+                {n.price_min ? <span>분양가 {n.price_min === n.price_max ? won(n.price_min) : `${won(n.price_min)}~${won(n.price_max)}`}</span> : null}
+                {n.ppp ? <span>평당 {won(n.ppp)}{p ? <span className="text-default-400"> / 지역 {won(p)}</span> : null}{ratio && <b className="ml-1" style={{ color: ratio > 1.05 ? "#E5484D" : ratio < 0.95 ? "#3E7BFA" : undefined }}>{ratio >= 1 ? "+" : ""}{Math.round((ratio - 1) * 100)}%</b>}</span> : null}
+              </span>
+            </span>
+          </li>
+        ); })}
+      </ul>
       <p className="mt-1 text-[10px] text-default-400">분양 당시 가격이라 지금 시세와 시점이 다릅니다. 지역 시세는 구(서울) 또는 시 안 구들의 중위값(경기)으로, 단지 입지와는 차이가 납니다.</p>
     </Box>
   );
