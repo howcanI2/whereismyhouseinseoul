@@ -211,10 +211,9 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
           ? el(`<div style="padding:2px 8px;border-radius:8px;font-size:${quiet ? 11 : 12}px;font-weight:${quiet ? 500 : 700}">${esc(txt)}</div><div style="width:0;height:0;margin:0 auto;border:6px solid transparent;border-top-color:${quiet ? "#c3cbc8" : fill};border-bottom:0"></div>`,
             { color: quiet ? "#6b7773" : f === "over" ? "#16201D" : "#fff", cursor: "pointer", fontFamily: "Noto Sans KR, sans-serif", fontVariantNumeric: "tabular-nums", filter: "drop-shadow(0 1px 2px rgba(0,0,0,.2))" }, () => handlers.current.pickApt(a))
           : el("", { width: none ? "7px" : "9px", height: none ? "7px" : "9px", borderRadius: "50%", background: none ? "#ffffff" : quiet ? "#c3cbc8" : fitColor[f], border: none ? "1.5px solid #9aa5a1" : "1.5px solid #fff", cursor: "pointer", boxShadow: "0 0 2px rgba(0,0,0,.3)" }, () => handlers.current.pickApt(a));
-        if (label) { node.firstChild.style.background = fill; node.firstChild.style.border = on ? "2px solid #16201D" : quiet ? "1px dashed #b5c0bc" : f === "over" ? "1px solid #b5c0bc" : "none"; node.title = a.stale ? `${a.apt} · 최근 6개월 거래 없음 (마지막 ${a.last_trade})` : a.apt; }
+        if (label) { node.firstChild.style.background = fill; node.firstChild.style.border = on ? "3px solid #E5484D" : quiet ? "1px dashed #b5c0bc" : f === "over" ? "1px solid #b5c0bc" : "none"; node.title = a.stale ? `${a.apt} · 최근 6개월 거래 없음 (마지막 ${a.last_trade})` : a.apt; }
         if (!label) node.title = none ? `${a.apt} · 최근 2년 실거래 없음` : a.apt;
-        // with a complex selected, the other pins fade and the selected one grows
-        if (sel && !on) node.style.opacity = "0.3";
+        // the selected pin grows and gets a red outline; the other pins stay as they are
         if (on) { node.style.transform = "scale(1.3)"; node.style.transformOrigin = label ? "50% 100%" : "50% 50%"; }
         L.pins.push(new k.maps.CustomOverlay({ map, position: ll, content: node, yAnchor: label ? 1 : 0.5, xAnchor: 0.5, zIndex: on ? 10 : label ? 5 : 4 }));
       });
@@ -249,7 +248,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     L.selRing?.setMap(null); L.selRing = null;
     const a = sel ? apts.find((x) => x.id === sel) : null;
     if (!a) return;
-    const node = el(`<div class="hb-pulse" style="width:52px;height:52px;margin:0 auto;border-radius:50%;border:4px solid #E5484D;background:rgba(229,72,77,.18);box-shadow:0 0 0 9999px rgba(11,21,18,.28)"></div><div style="margin-top:2px;display:inline-block;padding:2px 8px;border-radius:999px;background:#E5484D;font-size:12px;font-weight:800;color:#fff;white-space:nowrap">${esc(a.apt)}</div>`,
+    const node = el(`<div class="hb-pulse" style="width:22px;height:22px;margin:0 auto;border-radius:50%;border:3px solid #E5484D;background:rgba(229,72,77,.15)"></div><div style="margin-top:2px;display:inline-block;padding:2px 8px;border-radius:999px;background:#E5484D;font-size:12px;font-weight:800;color:#fff;white-space:nowrap">${esc(a.apt)}</div>`,
       { textAlign: "center", pointerEvents: "none", fontFamily: "Noto Sans KR, sans-serif" });
     L.selRing = new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(a.lat, a.lon), content: node, yAnchor: 0.25, zIndex: 9 });
   }, [ready, sel, apts]);

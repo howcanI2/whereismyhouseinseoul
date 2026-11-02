@@ -339,8 +339,8 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                     </g>
                   );
                 })}
-                {showPins && pins.dots.map((a) => <circle key={a.id} cx={a.x} cy={a.y} r={a.median_price_10k == null ? 3 : 4} fill={a.median_price_10k == null ? "hsl(var(--heroui-content1))" : a.trades_6m ? fitColor[a.f] : P.muted} stroke={a.median_price_10k == null ? P.axis : "hsl(var(--heroui-content1))"} strokeWidth={a.median_price_10k == null ? 1.5 : 1} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}><title>{a.median_price_10k == null ? `${a.apt} · 최근 2년 실거래 없음` : a.apt}</title></circle>)}
-                {showPins && pins.labels.map((a) => {
+                {showPins && pins.dots.filter((a) => a.id !== sel).map((a) => <circle key={a.id} cx={a.x} cy={a.y} r={a.median_price_10k == null ? 3 : 4} fill={a.median_price_10k == null ? "hsl(var(--heroui-content1))" : a.trades_6m ? fitColor[a.f] : P.muted} stroke={a.median_price_10k == null ? P.axis : "hsl(var(--heroui-content1))"} strokeWidth={a.median_price_10k == null ? 1.5 : 1} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}><title>{a.median_price_10k == null ? `${a.apt} · 최근 2년 실거래 없음` : a.apt}</title></circle>)}
+                {showPins && pins.labels.filter((a) => a.id !== sel).map((a) => {
                   const quiet = !a.trades_6m, on = a.id === sel || a.id === hover, fill = quiet ? P.none : a.f === "over" ? "hsl(var(--heroui-content1))" : fitColor[a.f];
                   return (
                     <g key={a.id} transform={`translate(${a.x},${a.y})`} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}>
@@ -365,15 +365,17 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                   </g>
                 ))}
                 {selApt && selApt.lon != null && (() => {
-                  // the selected complex: the rest of the map is shaded, the complex sits in a lit circle with a ring and its name
-                  const x = sx(selApt.lon), y = sy(selApt.lat);
+                  // the selected complex: its price pin, larger and outlined in red, on top of everything; the rest of the map stays as is
+                  const x = sx(selApt.lon), y = sy(selApt.lat), none = selApt.median_price_10k == null, f = fitOf(selApt.median_price_10k);
+                  const txt = none ? "거래 없음" : (SIG[selApt.sig]?.[0] || "") + won(selApt.median_price_10k), w = txt.length * 7 + 14;
+                  const fill = none || !selApt.trades_6m ? "#ffffff" : f === "over" ? "#ffffff" : fitColor[f], dark = fill === "#ffffff";
                   return (
                     <g style={{ pointerEvents: "none" }}>
-                      <defs><mask id="hb-spot"><rect width={size.w} height={size.h} fill="#fff" /><circle cx={x} cy={y - 10} r={64} fill="#000" /></mask></defs>
-                      <rect width={size.w} height={size.h} fill="#0b1512" fillOpacity={0.38} mask="url(#hb-spot)" />
-                      <circle cx={x} cy={y} r={20} fill="#E5484D" fillOpacity={0.15} stroke="#E5484D" strokeWidth={3} className="hb-pulse" style={{ transformBox: "fill-box", transformOrigin: "center" }} />
-                      <circle cx={x} cy={y} r={5} fill="#E5484D" stroke="#fff" strokeWidth={2} />
-                      <text x={x} y={y + 38} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff" stroke="#E5484D" strokeWidth="7" strokeLinejoin="round" paintOrder="stroke">{selApt.apt}</text>
+                      <g transform={`translate(${x},${y}) scale(1.3)`}>
+                        <path d={`M${-w / 2},-26h${w}v18h${-w / 2 + 5}l-5,6l-5,-6h${-w / 2 + 5}z`} fill={fill} stroke="#E5484D" strokeWidth={3} strokeLinejoin="round" />
+                        <text y={-13} textAnchor="middle" fontSize="12" fontWeight="800" fill={dark ? "#16201D" : "#fff"} className="num">{txt}</text>
+                      </g>
+                      <text x={x} y={y + 18} textAnchor="middle" fontSize="12.5" fontWeight="800" fill="#E5484D" stroke="#fff" strokeWidth="4" strokeLinejoin="round" paintOrder="stroke">{selApt.apt}</text>
                     </g>
                   );
                 })()}
