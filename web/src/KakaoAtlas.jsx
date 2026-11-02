@@ -119,8 +119,10 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const flyTo = (lon, lat, kzTarget) => {
     const k = kRef.current, map = mapRef.current; if (!map) return;
     const ll = new k.maps.LatLng(lat, lon);
-    if (map.getLevel() > kzTarget) map.setLevel(kzTarget, { anchor: ll, animate: { duration: 350 } });
-    map.panTo(ll);
+    // zoom and centre in one step: an animated zoom with a pan on top can end without an idle event, leaving the map blank
+    if (map.getLevel() > kzTarget) map.setLevel(kzTarget);
+    map.setCenter(ll);
+    setView((v) => ({ kz: map.getLevel(), tick: v.tick + 1 }));
   };
   const pickApt = (a) => { setSel(a.id); setSelZone(null); if (a.lon != null) flyTo(a.lon, a.lat, 3); };
   const pickRegion = (lv, key) => {
@@ -237,6 +239,18 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     if (!L.lines.length && data.subway_lines) L.lines = data.subway_lines.map((s) => new k.maps.Polyline({ path: s.coords.map(([x, y]) => new k.maps.LatLng(y, x)), strokeWeight: 4, strokeColor: LINE_COLOR[s.line] || "#888", strokeOpacity: 0.85 }));
     L.lines.forEach((l) => l.setMap(showLines ? map : null));
   }, [ready, showLines, data.subway_lines]);
+  // ---- the selected complex: a ring and its name, shown whatever the pin filters ----
+  useEffect(() => {
+    if (!ready) return;
+    const k = kRef.current, map = mapRef.current, L = layers.current;
+    L.selRing?.setMap(null); L.selRing = null;
+    const a = sel ? apts.find((x) => x.id === sel) : null;
+    if (!a) return;
+    const node = el(`<div class="hb-pulse" style="width:34px;height:34px;margin:0 auto;border-radius:50%;border:3px solid #E5484D;background:rgba(229,72,77,.15)"></div><div style="margin-top:2px;font-size:12px;font-weight:800;color:#E5484D;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff">${esc(a.apt)}</div>`,
+      { textAlign: "center", pointerEvents: "none", fontFamily: "Noto Sans KR, sans-serif" });
+    L.selRing = new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(a.lat, a.lon), content: node, yAnchor: 0.25, zIndex: 9 });
+  }, [ready, sel, apts]);
+
   // ---- 학교 (초·중): icons from 동 level down; the selected complex's 배정 초등학교 is ringed and always named ----
   useEffect(() => {
     if (!ready) return;
@@ -263,7 +277,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     const go = () => {
       const r = pendingFocus.apply; if (!r || !ready || (r.sido !== "11" && !metro)) return;
       pendingFocus.apply = null; setShowApply(true); setFocusApplyId(r.id); setLegendOpen(false);
-      const k = kRef.current, map = mapRef.current, ll = new k.maps.LatLng(r.lat, r.lon); map.setLevel(4); map.setCenter(ll);
+      const k = kRef.current, map = mapRef.current, ll = new k.maps.LatLng(r.lat, r.lon); map.setLevel(4); map.setCenter(ll); setView((v) => ({ kz: map.getLevel(), tick: v.tick + 1 }));
     };
     go(); window.addEventListener("hb:focus-apply", go); return () => window.removeEventListener("hb:focus-apply", go);
   }, [ready, metro]);
