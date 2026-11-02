@@ -86,6 +86,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const tS = useLazyFile("trades", !!sel), tG = useLazyFile("trades_gg", !!sel && metro);
   const trades = useMemo(() => (tS || tG ? { ...(tS || {}), ...(tG || {}) } : null), [tS, tG]);
   const [showLines, setShowLines] = useState(true);
+  const [maxMin, setMaxMin] = useState(0);  // 통근시간으로 거르기: 0 = off
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
   const [showSchools, setShowSchools] = useState(true);
@@ -169,6 +170,11 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const fitColor = { ok: P.primary, near: P.amber, over: P.muted, none: P.muted };
   const fitText = { ok: "예산 안", near: "조금 넘음 (15% 이내)", over: "예산 초과" };
   const ins = data.insights;
+  // ODsay transit times exist only for 광화문; other workplaces use the distance estimate (same rule as the Kakao map)
+  const work = data.work || {}, commute = data.commute || {}, odsay = work.name === "광화문" && Object.keys(commute).length > 0;
+  const rideMin = (a) => (odsay ? commute[a.hcode]?.min : estCommute(kmTo(a, work)));
+  const tooFar = (a) => maxMin > 0 && (rideMin(a) ?? 999) > maxMin;
+  const regionTooFar = (r) => maxMin > 0 && (r?.commute == null || r.commute > maxMin);
 
   // colour scale for the current metric across the current level's regions
   const scale = useMemo(() => {
@@ -186,9 +192,10 @@ export default function Atlas({ data: base, scope = "seoul" }) {
     const tbl = ins[regionLevel] || {};
     return geoms[regionLevel].map((g) => {
       const r = tbl[g.key], v = r && (r[period]?.n || 0) >= 5 ? m.get(r, period, scen) : null;
+      if (regionTooFar(r)) return { k: g.key, d: g.d, fill: P.none, op: 0.35 };  // beyond the commute limit: greyed out
       return { k: g.key, d: g.d, fill: v == null ? P.none : scale.color(v), op: eff === "apt" ? 0.35 : 0.85 };
     });
-  }, [geoms, scale, regionLevel, period, metricId, scen, eff, dark, growth]);
+  }, [geoms, scale, regionLevel, period, metricId, scen, eff, dark, growth, maxMin, data.work]);
 
   // labelled region tags, busiest first, skipping overlaps
   const tags = useMemo(() => {
@@ -196,20 +203,20 @@ export default function Atlas({ data: base, scope = "seoul" }) {
     const tbl = ins[regionLevel] || {}, placed = [], out = [];
     Object.entries(tbl).filter(([, r]) => r.center && (r[period]?.n || 0) >= 3).sort((a, b) => (b[1][period]?.n || 0) - (a[1][period]?.n || 0)).forEach(([key, r]) => {
       const x = sx(r.center[0]), y = sy(r.center[1]);
-      if (!inView(x, y)) return;
+      if (!inView(x, y) || regionTooFar(r)) return;
       const v = m.get(r, period, scen), w = 78, h = 46, bx = { x0: x - w / 2, x1: x + w / 2, y0: y - h / 2, y1: y + h / 2 };
       const full = placed.every((p) => bx.x1 < p.x0 || bx.x0 > p.x1 || bx.y1 < p.y0 || bx.y0 > p.y1);
       if (full) placed.push(bx);
       out.push({ key, r, x, y, v, full, fill: v == null || !scale ? "#ffffff" : scale.color(v) });
     });
     return out;
-  }, [t, ins, regionLevel, period, metricId, scen, eff, scale, size, growth]);
+  }, [t, ins, regionLevel, period, metricId, scen, eff, scale, size, growth, maxMin]);
 
   const apts = useMemo(() => (data.apts || []).filter((a) => a.lon != null), [data.apts]);
   const visibleApts = useMemo(() => {
     if (!t || !world) return [];
-    return apts.filter((a) => areaOk(a.median_area_sqm, area) && ageOk(a.build_year, age)).map((a) => ({ ...a, x: sx(a.lon), y: sy(a.lat), f: fitOf(a.median_price_10k) })).filter((a) => inView(a.x, a.y, 0));
-  }, [apts, t, world, area, age, budget, size]);
+    return apts.filter((a) => areaOk(a.median_area_sqm, area) && ageOk(a.build_year, age)).map((a) => ({ ...a, x: sx(a.lon), y: sy(a.lat), f: fitOf(a.median_price_10k) })).filter((a) => inView(a.x, a.y, 0) && !tooFar(a));
+  }, [apts, t, world, area, age, budget, size, maxMin, data.work]);
   const pins = useMemo(() => {
     if (!showPins) return { labels: [], dots: [] };
     const placed = [], labels = [], dots = [];
@@ -372,6 +379,9 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                   {showPins && ["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: fitColor[f] }} />{fitText[f]}</span>)}
                   {showPins && <span className="text-default-500">가격 앞 ▲ 최근 3개월 신고가 · ▼ 급매</span>}
                   <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>{data.work?.name || "직장"} (직장)</span>
+                  <Switch size="sm" isSelected={maxMin > 0} onValueChange={(v) => setMaxMin(v ? 50 : 0)}>{work.name || "직장"} 통근시간으로 거르기{odsay ? "" : " (추정)"}</Switch>
+                  {maxMin > 0 && <Slider aria-label="최대 통근시간" size="sm" step={5} minValue={20} maxValue={120} value={maxMin} onChange={setMaxMin} label={`${maxMin}분 이내`} classNames={{ label: "text-tiny", value: "text-tiny" }} />}
+                  {maxMin > 0 && <span className="text-[10px] text-default-400">넘는 지역은 회색, 단지는 숨깁니다{odsay ? "" : " · 직선거리로 추정한 대중교통 시간"}</span>}
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
                   <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (초·중, 단지 단위로 확대하면)</Switch>

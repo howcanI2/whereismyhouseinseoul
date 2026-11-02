@@ -62,11 +62,22 @@ const Step = ({ n, title, sub, children, right }) => (
 );
 
 // 직장: a preset business district, or any place found with the Kakao map's place search (when the Kakao map is loaded)
-function WorkPicker({ work, onPick }) {
+function WorkPicker({ work, onPick, stations }) {
   const [q, setQ] = useState(""), [found, setFound] = useState(null), [busy, setBusy] = useState(false);
-  const canSearch = typeof window !== "undefined" && !!window.kakao?.maps?.services;
+  const kakao = typeof window !== "undefined" && !!window.kakao?.maps?.services;
+  const canSearch = kakao || !!stations?.length;
+  // without Kakao: match subway station names (the commute estimate is by distance, so the nearest station is close enough)
+  const searchStations = (text) => {
+    const key = text.trim().replace(/역$/, "").replace(/\s/g, ""), seen = new Map();
+    stations.filter((s) => s.station.replace(/\s/g, "").includes(key)).forEach((s) => {
+      const r = seen.get(s.station) || { name: s.station, addr: [], lon: s.lon, lat: s.lat };
+      if (!r.addr.includes(s.line)) r.addr.push(s.line); seen.set(s.station, r);
+    });
+    setFound([...seen.values()].sort((a, b) => a.name.length - b.name.length).slice(0, 8).map((r) => ({ ...r, addr: r.addr.join(" · ") })));
+  };
   const search = () => {
     if (!q.trim() || !canSearch) return;
+    if (!kakao) return searchStations(q);
     setBusy(true);
     new window.kakao.maps.services.Places().keywordSearch(q.trim(), (rows, status) => {
       setBusy(false);
@@ -82,7 +93,7 @@ function WorkPicker({ work, onPick }) {
       </div>
       {canSearch ? (
         <div className="mt-2 flex gap-2">
-          <Input size="sm" aria-label="회사 검색" placeholder="회사 이름이나 주소 (예: 삼성전자 서초사옥)" value={q} onValueChange={setQ} onKeyDown={(e) => e.key === "Enter" && search()} />
+          <Input size="sm" aria-label="회사 검색" placeholder={kakao ? "회사 이름이나 주소 (예: 삼성전자 서초사옥)" : "회사 근처 지하철역 (예: 삼성, 가산디지털단지)"} value={q} onValueChange={(v) => { setQ(v); if (!kakao) v.trim() ? searchStations(v) : setFound(null); }} onKeyDown={(e) => e.key === "Enter" && search()} />
           <Button size="sm" variant="flat" isLoading={busy} onPress={search}>검색</Button>
         </div>
       ) : <p className="mt-1.5 text-[10px] text-default-400">회사 검색은 카카오 지도가 켜진 화면(웹 사이트)에서 됩니다. 여기서는 위 업무지구 중에서 고를 수 있습니다.</p>}
@@ -101,7 +112,7 @@ function WorkPicker({ work, onPick }) {
 }
 
 // "내 조건" editor. Values stay in this browser (localStorage); nothing is sent anywhere or shared with the link.
-export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate }) {
+export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate, stations }) {
   const [draft, setDraft] = useState(profile);
   const phone = useIsPhone(), visH = useVisibleHeight(phone && open);
   useBackToClose(open, onClose);
@@ -142,7 +153,7 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
         </ModalHeader>
         <ModalBody className="gap-5">
           <Step n="1" title="직장">
-            <WorkPicker work={draft.work || DEFAULT_WORK} onPick={(w) => setDraft((d) => ({ ...d, work: w }))} />
+            <WorkPicker work={draft.work || DEFAULT_WORK} stations={stations} onPick={(w) => setDraft((d) => ({ ...d, work: w }))} />
           </Step>
 
           <Step n="2" title="가구 형태" sub={`${HH_TEXT[hh]} 예산을 계산합니다.`}>
