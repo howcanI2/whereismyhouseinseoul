@@ -18,10 +18,35 @@ function decode(code) {
   return { p, w };
 }
 
+// phones get a full-screen sheet: a centered dialog shrinks to a sliver once the keyboard opens
+function useIsPhone() {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)"), on = () => setPhone(mq.matches);
+    on(); mq.addEventListener("change", on); return () => mq.removeEventListener("change", on);
+  }, []);
+  return phone;
+}
+// height of the part of the screen the keyboard leaves visible, so the sheet's 저장 button stays above it
+function useVisibleHeight(on) {
+  const [h, setH] = useState(null);
+  useEffect(() => {
+    const vv = typeof window !== "undefined" && window.visualViewport;
+    if (!on || !vv) return setH(null);
+    // iOS may also pan the page when the keyboard opens; offsetTop follows that so the sheet stays in view
+    const upd = () => setH({ h: Math.round(vv.height), top: Math.round(vv.offsetTop) });
+    upd(); vv.addEventListener("resize", upd); vv.addEventListener("scroll", upd);
+    return () => { vv.removeEventListener("resize", upd); vv.removeEventListener("scroll", upd); };
+  }, [on]);
+  return h;
+}
+// keeps the field above the on-screen keyboard once it has opened
+const keepVisible = (e) => { const el = e.target; setTimeout(() => el.scrollIntoView?.({ block: "center", behavior: "smooth" }), 300); };
+
 // one money field in 만원, with the amount spelled out in 억/만 as you type
 function Money({ label, value, onChange, hint, isDisabled }) {
   return (
-    <Input size="sm" type="number" inputMode="numeric" label={label} isDisabled={isDisabled} value={value == null ? "" : String(value)}
+    <Input size="sm" type="number" inputMode="numeric" label={label} isDisabled={isDisabled} value={value == null ? "" : String(value)} onFocus={keepVisible}
       onValueChange={(v) => onChange(v === "" ? 0 : Number(v))} endContent={<span className="whitespace-nowrap text-tiny text-default-400">만원</span>}
       description={value ? `= ${won(value)}${hint ? ` · ${hint}` : ""}` : hint} />
   );
@@ -78,6 +103,7 @@ function WorkPicker({ work, onPick }) {
 // "내 조건" editor. Values stay in this browser (localStorage); nothing is sent anywhere or shared with the link.
 export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate }) {
   const [draft, setDraft] = useState(profile);
+  const phone = useIsPhone(), visH = useVisibleHeight(phone && open);
   useBackToClose(open, onClose);
   useEffect(() => { if (open) preloadInterstitial(); }, [open]);  // 전면 광고 is ready before the viewer saves
   const [watch, , setWatch] = useWatch();
@@ -100,16 +126,16 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
   const [moveOpen, setMoveOpen] = useState(false);
   const HH_TEXT = { single: "내 소득·저축만으로", plan: "지금은 혼자, 결혼하면 둘이 합쳐서", married: "지금부터 부부 합산으로" };
   return (
-    <Modal isOpen={open} onOpenChange={(o) => !o && onClose()} size="2xl" scrollBehavior="inside">
-      <ModalContent>
+    <Modal isOpen={open} onOpenChange={(o) => !o && onClose()} size={phone ? "full" : "2xl"} scrollBehavior="inside">
+      <ModalContent style={phone && visH ? { height: visH.h, maxHeight: visH.h, minHeight: 0, marginTop: visH.top } : undefined}>
         <ModalHeader className="flex flex-col gap-2 pb-2">
-          <div className="flex items-baseline justify-between gap-2">내 조건<span className="text-tiny font-normal text-default-500">이 브라우저에만 저장 · 링크를 공유해도 안 보입니다</span></div>
+          <div className="flex items-baseline justify-between gap-2 pr-6">내 조건<span className="hidden text-tiny font-normal text-default-500 sm:inline">이 브라우저에만 저장 · 링크를 공유해도 안 보입니다</span></div>
           <div className="grid grid-cols-2 gap-2">
             {live.map((b) => (
-              <div key={b.scenario} className={`rounded-medium px-3 py-2 ${b.scenario === "later" ? "bg-primary-50" : "bg-default-100"}`}>
+              <div key={b.scenario} className={`rounded-medium px-3 py-1.5 sm:py-2 ${b.scenario === "later" ? "bg-primary-50" : "bg-default-100"}`}>
                 <div className="text-tiny font-normal text-default-500">{b.label} 최대</div>
-                <div className={`text-xl font-bold num ${b.scenario === "later" ? "text-primary" : ""}`}>{won(b.max_price_10k)}</div>
-                <div className="text-[10px] font-normal text-default-400 num">대출 {won(b.loan_10k)} · {b.binding}</div>
+                <div className={`text-lg font-bold num sm:text-xl ${b.scenario === "later" ? "text-primary" : ""}`}>{won(b.max_price_10k)}</div>
+                <div className="hidden text-[10px] font-normal text-default-400 num sm:block">대출 {won(b.loan_10k)} · {b.binding}</div>
               </div>
             ))}
           </div>
@@ -160,7 +186,7 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
               <span className="text-small">생애최초 구입</span> <span className="text-tiny text-default-500">{draft.firstHome ? "LTV 70%" : "LTV 40%"}{hh !== "single" ? " · 부부 모두 집을 가진 적이 없어야 해당" : ""}</span>
             </Switch>
             <Input size="sm" type="number" label="대출 금리 (비우면 최신 평균)" placeholder={rate ? `최신 평균 ${rate}%` : ""} className="max-w-xs"
-              value={draft.rate == null ? "" : String(draft.rate)} onValueChange={(v) => setDraft((d) => ({ ...d, rate: v === "" ? null : Number(v) }))}
+              value={draft.rate == null ? "" : String(draft.rate)} onFocus={keepVisible} onValueChange={(v) => setDraft((d) => ({ ...d, rate: v === "" ? null : Number(v) }))}
               endContent={<span className="whitespace-nowrap text-tiny text-default-400">%</span>} description="스트레스 금리 3%p를 더해 DSR 40% 한도를 계산합니다." />
           </Step>
 
@@ -181,6 +207,7 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
               </>
             )}
           </div>
+          <p className="text-[10px] text-default-400 sm:hidden">이 브라우저에만 저장 · 링크를 공유해도 안 보입니다</p>
         </ModalBody>
         <ModalFooter>
           <Button variant="light" onPress={() => { onReset(); onClose(); }}>예시값으로 되돌리기</Button>
