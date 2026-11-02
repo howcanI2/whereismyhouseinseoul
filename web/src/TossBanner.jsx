@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { interstitialState } from "./TossInterstitial.js";
 
 // 앱인토스 배너 광고 (WebView). Only the Toss build (NEXT_PUBLIC_TOSS=1) loads the SDK; on the website this renders nothing.
 // One banner per screen, away from buttons, never before the content (토스 애즈 SSP 정책).
@@ -29,6 +30,8 @@ function initAds() {
 export default function TossBanner() {
   const ref = useRef(null);
   const [state, setState] = useState(IS_TOSS ? "loading" : "off");  // loading | shown | <reason it is not shown>
+  const [inter, setInter] = useState(interstitialState.text);
+  useEffect(() => { if (!DEBUG) return; interstitialState.listeners.add(setInter); return () => interstitialState.listeners.delete(setInter); }, []);
   useEffect(() => {
     if (!IS_TOSS) return;
     let banner, gone = false;
@@ -50,11 +53,13 @@ export default function TossBanner() {
   if (state === "off") return null;
   const failed = state !== "loading" && state !== "shown";
   if (failed && !DEBUG) return null;
+  const interLine = DEBUG && <p className="px-4 pb-2 text-tiny text-warning-700">[전면 광고 테스트] {inter} · 내 조건을 열었다가 저장하면 한 번 뜹니다</p>;
   // the container stays empty for the SDK; full width, 102px as the guide recommends (real height may vary)
   return (
     <div className="-mx-4 md:mx-0">
       <div ref={ref} style={{ width: "100%", minHeight: failed ? 0 : 102 }} />
       {DEBUG && state !== "shown" && <p className="px-4 py-2 text-tiny text-warning-700">[광고 테스트] {state === "loading" ? "불러오는 중…" : state}</p>}
+      {interLine}
     </div>
   );
 }

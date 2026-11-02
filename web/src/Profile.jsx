@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Slider, Switch, Textarea } from "@heroui/react";
+import { preloadInterstitial, showInterstitialOnce } from "./TossInterstitial.js";
 import { budgetsFrom, DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, useBackToClose, useWatch, WORKPLACES, won } from "./lib.js";
 
 // 다른 기기로 옮길 때 쓰는 코드: 내 조건 + 관심 단지를 한 줄로. 서버나 링크에는 남지 않고 복사한 사람만 가집니다.
@@ -78,6 +79,7 @@ function WorkPicker({ work, onPick }) {
 export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate }) {
   const [draft, setDraft] = useState(profile);
   useBackToClose(open, onClose);
+  useEffect(() => { if (open) preloadInterstitial(); }, [open]);  // 전면 광고 is ready before the viewer saves
   const [watch, , setWatch] = useWatch();
   const [move, setMove] = useState(null); // null | "out" | "in"
   const [code, setCode] = useState(""), [msg, setMsg] = useState("");
@@ -182,7 +184,7 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
         </ModalBody>
         <ModalFooter>
           <Button variant="light" onPress={() => { onReset(); onClose(); }}>예시값으로 되돌리기</Button>
-          <Button color="primary" onPress={() => { onSave(draft); onClose(); }}>저장</Button>
+          <Button color="primary" onPress={() => { onSave(draft); onClose(); setTimeout(showInterstitialOnce, 400); }}>저장</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
