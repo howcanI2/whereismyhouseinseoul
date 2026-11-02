@@ -106,6 +106,7 @@ export default function App() {
             {k === "money" && (
               <div className="flex flex-col gap-4">
                 <PlanTab data={data} dv={dv} part="budget" />
+                <TossBanner />
                 <LoanTab data={data} />
               </div>
             )}
@@ -113,6 +114,7 @@ export default function App() {
             {k === "todo" && (
               <div className="flex flex-col gap-4">
                 <PlanTab data={data} dv={dv} />
+                <TossBanner />
                 <h2 className="mt-2 text-large font-semibold">알아둘 정책</h2>
                 <PolicyTab data={data} />
               </div>
@@ -121,7 +123,6 @@ export default function App() {
         ))}
       </Tabs>
 
-      <TossBanner />
       <footer className="text-tiny leading-relaxed text-default-400">
         실거래가: 국토교통부 아파트 매매 실거래 (real-estate MCP, 2026-10-27 스냅샷). 금리: 한국은행 ECOS·은행연합회·언론 보도. 지도: 통계청·도로명주소 경계, 단지·역 위치는 카카오 로컬 검색.
         예산은 내 조건(이 브라우저에만 저장)과 최신 주담대 금리, 스트레스 금리 3%p, 30년 상환으로 계산한 추정이며 투자 조언이 아닙니다.

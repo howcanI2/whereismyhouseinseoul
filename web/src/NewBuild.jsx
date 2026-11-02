@@ -1,4 +1,5 @@
 "use client";
+import TossBanner from "./TossBanner.jsx";
 import { useMemo, useState } from "react";
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Link, Select, SelectItem, Skeleton } from "@heroui/react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -49,6 +50,7 @@ export default function NewBuildTab({ data }) {
           </div>
         ))}
       </div>
+      <TossBanner />
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <SupplyMap outline={metro ? mSgg : data.seoul_geo} up={up} recent={recent} selling={selling} P={P} />
         <SupplyChart supply={nb.supply} scope={scope} P={P} />
