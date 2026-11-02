@@ -56,7 +56,6 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const trades = useMemo(() => (tS || tG ? { ...(tS || {}), ...(tG || {}) } : null), [tS, tG]);
   const [showLines, setShowLines] = useState(false);
   const [showRedev, setShowRedev] = useState(false);
-  const [showDistrict, setShowDistrict] = useState(false);
   const [showApply, setShowApply] = useState(false);
   const [showSchools, setShowSchools] = useState(true);
   const school = useLazyFile("school", showSchools);
@@ -227,7 +226,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     L.zones.forEach(({ z, c }) => c.setMap(showRedev && stageOk(z.stage, stageGroup) ? map : null));
   }, [ready, showRedev, stageGroup, zones]);
 
-  // ---- subway lines, 지적편집도 overlay, 광화문 marker ----
+  // ---- subway lines, 광화문 marker ----
   useEffect(() => {
     if (!ready) return;
     const k = kRef.current, map = mapRef.current, L = layers.current;
@@ -277,11 +276,6 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
       L.apply.push(new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(r.lat, r.lon), content: node, yAnchor: 1, zIndex: on ? 8 : 6 }));
     });
   }, [ready, showApply, ah, metro, focusApplyId]);
-  useEffect(() => {
-    if (!ready) return;
-    const k = kRef.current, map = mapRef.current;
-    if (showDistrict) map.addOverlayMapTypeId(k.maps.MapTypeId.USE_DISTRICT); else map.removeOverlayMapTypeId(k.maps.MapTypeId.USE_DISTRICT);
-  }, [ready, showDistrict]);
   useEffect(() => {
     if (!ready || layers.current.refs.length) return;
     const k = kRef.current, map = mapRef.current;
@@ -350,7 +344,6 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                   {showApply && ah && !ah.items && <span className="text-[10px] text-default-400">청약 데이터가 아직 연결되지 않았습니다.</span>}
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}
                   {showRedev && STAGES.slice(0, 6).map((s) => <span key={s} className="inline-flex items-center gap-1.5 text-[10px]"><span className="h-2.5 w-2.5 rounded-full border" style={{ background: STAGE_COLOR[s] + "70", borderColor: STAGE_COLOR[s] }} />{s}</span>)}
-                  <Switch size="sm" isSelected={showDistrict} onValueChange={setShowDistrict}>지적편집도 (용도지역)</Switch>
                   <Divider className="my-0.5" />
                   <Switch size="sm" isSelected={maxMin > 0} onValueChange={(v) => setMaxMin(v ? 50 : 0)} isDisabled={!Object.keys(commute).length}>광화문 통근시간으로 거르기</Switch>
                   {maxMin > 0 && <Slider aria-label="최대 통근시간" size="sm" step={5} minValue={20} maxValue={120} value={maxMin} onChange={setMaxMin} label={`${maxMin}분 이내`} classNames={{ label: "text-tiny", value: "text-tiny" }} />}
