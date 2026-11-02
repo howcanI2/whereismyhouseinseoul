@@ -59,7 +59,6 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
   const [showSchools, setShowSchools] = useState(true);
-  const school = useLazyFile("school", showSchools);
   const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const [stageGroup, setStageGroup] = useState("all");
@@ -110,6 +109,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const tooFar = (a) => maxMin > 0 && (rideMin(a) ?? 999) > maxMin;
   const regionTooFar = (r) => maxMin > 0 && (r?.commute == null || r.commute > maxMin);
   const showPins = eff === "apt" || (level !== "auto" && kz <= 4);
+  const school = useLazyFile("school", showSchools && (showPins || !!sel));  // 1.2MB: only once zoomed to 단지 level or a complex is open
   const fitOf = (v) => (v == null ? "none" : v <= budget ? "ok" : v <= budget * 1.15 ? "near" : "over");
   const fitColor = { ok: P.primary, near: P.amber, over: "#9AA5A1", none: "#9AA5A1" };
   const fitText = { ok: "예산 안", near: "조금 넘음 (15% 이내)", over: "예산 초과" };

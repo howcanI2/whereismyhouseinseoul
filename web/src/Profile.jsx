@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Slider, Switch, Textarea } from "@heroui/react";
-import { budgetsFrom, DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, useWatch, WORKPLACES, won } from "./lib.js";
+import { budgetsFrom, DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, useBackToClose, useWatch, WORKPLACES, won } from "./lib.js";
 
 // 다른 기기로 옮길 때 쓰는 코드: 내 조건 + 관심 단지를 한 줄로. 서버나 링크에는 남지 않고 복사한 사람만 가집니다.
 const encode = (obj) => "HB1:" + btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
@@ -77,6 +77,7 @@ function WorkPicker({ work, onPick }) {
 // "내 조건" editor. Values stay in this browser (localStorage); nothing is sent anywhere or shared with the link.
 export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate }) {
   const [draft, setDraft] = useState(profile);
+  useBackToClose(open, onClose);
   const [watch, , setWatch] = useWatch();
   const [move, setMove] = useState(null); // null | "out" | "in"
   const [code, setCode] = useState(""), [msg, setMsg] = useState("");

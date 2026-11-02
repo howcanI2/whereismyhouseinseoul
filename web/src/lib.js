@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const FILES = ["strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region", "infra_region", "apt_cost", "bldg"];
+export const FILES = ["strategy", "gu_summary", "monthly", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region", "infra_region", "apt_cost", "bldg"];
 
 /* ---------- 직장: each viewer picks their own (saved with 내 조건) ---------- */
 export const WORKPLACES = [["광화문", 126.9769, 37.5759], ["시청·을지로", 126.9849, 37.5663], ["강남역", 127.0276, 37.4979], ["삼성·코엑스", 127.0592, 37.5121],
@@ -56,13 +56,45 @@ export function attachRegions(ins, files) {
   return ins;
 }
 
+// Where data files come from. The website serves its own data/ next to the page. The 앱인토스 bundle reads the
+// website's copy (refreshed every morning) so new data needs no app update, and falls back to the copy packed in the
+// bundle when the site is slow or unreachable.
+const REMOTE = typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS === "1" ? "https://howcani2.github.io/whereismyhouseinseoul/data/" : null;
+export function getData(name) {
+  const local = () => fetch(`data/${name}.json`).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); });
+  if (!REMOTE) return local();
+  const ctl = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer = setTimeout(() => ctl?.abort(), 6000);
+  return fetch(`${REMOTE}${name}.json`, { signal: ctl?.signal, cache: "no-cache" })
+    .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+    .catch(() => local())
+    .finally(() => clearTimeout(timer));
+}
+
+// Android back / swipe-back closes an open dialog instead of leaving the app: opening pushes a history entry,
+// back pops it and closes; closing from the dialog itself removes that entry again.
+export function useBackToClose(open, onClose) {
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return;
+    let poppedByBack = false;
+    history.pushState({ hbDialog: true }, "", location.href);
+    const onPop = () => { poppedByBack = true; onClose(); };
+    // capture phase: Next's router also listens to popstate on window and stops other bubble listeners
+    window.addEventListener("popstate", onPop, true);
+    return () => {
+      window.removeEventListener("popstate", onPop, true);
+      if (!poppedByBack && history.state?.hbDialog) history.back();
+    };
+  }, [open]);
+}
+
 // Large per-complex files load once, on first use, and are shared by every panel.
 const lazy = {};
 export function useLazyFile(name, when = true) {
   const [v, setV] = useState(lazy[name]?.value ?? null);
   useEffect(() => {
     if (!when || v) return;
-    lazy[name] ||= { p: fetch(`data/${name}.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})) };
+    lazy[name] ||= { p: getData(name).catch(() => ({})) };
     lazy[name].p.then((j) => { lazy[name].value = j; setV(j); });
   }, [name, when, v]);
   return v;
@@ -74,8 +106,7 @@ export function useData() {
   const [errors, setErrors] = useState({});
   useEffect(() => {
     FILES.forEach((f) => {
-      fetch(`data/${f}.json`)
-        .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      getData(f)
         .then((j) => setData((d) => ({ ...d, [f]: j })))
         .catch((e) => setErrors((x) => ({ ...x, [f]: String(e) })));
     });

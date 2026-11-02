@@ -6,10 +6,17 @@ export const metadata = {
   description: "광화문 출퇴근 기준으로 예산에 맞는 서울 아파트를 지도에서 찾고 대출·로드맵을 보는 앱",
 };
 
-export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
+// The 앱인토스 bundle is light-mode only and keeps the page from pinch-zooming (the map still zooms itself), per the
+// mini-app checklist; the website follows the system theme and allows zoom.
+const TOSS = process.env.NEXT_PUBLIC_TOSS === "1";
+export const viewport = TOSS
+  ? { width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false, viewportFit: "cover" }
+  : { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 // Applies the dark class before paint so the page does not flash light in dark mode.
-const themeScript = `(function(){try{var d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
+const themeScript = TOSS
+  ? `document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';`
+  : `(function(){try{var d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
 
 export default function RootLayout({ children }) {
   return (

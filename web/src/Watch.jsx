@@ -1,12 +1,13 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Button, Checkbox, Chip, Modal, ModalBody, ModalContent, ModalHeader, Skeleton } from "@heroui/react";
-import { attachGrowth, estCommute, fmt, growthMult, kmTo, useLazyFile, useWatch, won } from "./lib.js";
+import { attachGrowth, estCommute, useBackToClose, fmt, growthMult, kmTo, useLazyFile, useWatch, won } from "./lib.js";
 
 const PY = 3.3058;
 
 // 관심 단지: what each saved complex did since it was saved, and up to three side by side.
 export default function WatchModal({ open, onClose, data }) {
+  useBackToClose(open, onClose);
   const [watch, , setWatch] = useWatch();
   const ids = Object.keys(watch);
   const gg = ids.some((id) => watch[id].sido === "41");

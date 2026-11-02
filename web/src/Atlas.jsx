@@ -88,7 +88,6 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
   const [showSchools, setShowSchools] = useState(true);
-  const school = useLazyFile("school", showSchools);
   const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const applyPts = useMemo(() => { const td = new Date().toISOString().slice(0, 10); return (ah?.items || []).filter((r) => r.lon != null && (metro || r.sido === "11") && (r.receipt_end || r.notice) >= td); }, [ah, metro]);
@@ -162,6 +161,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const eff = level === "auto" ? (z < 2 ? (metro ? "sgg" : "gu") : z < 5 ? (metro ? "hdong" : "bdong") : "apt") : level;
   const regionLevel = eff === "apt" ? (metro ? "hdong" : "bdong") : eff;
   const showPins = eff === "apt" || (level !== "auto" && z >= 6);
+  const school = useLazyFile("school", showSchools && (showPins || !!sel));  // 1.2MB: only once zoomed to 단지 level or a complex is open
   const sx = (lon) => t.applyX(world.X(lon)), sy = (lat) => t.applyY(world.Y(lat));
   const inView = (x, y, mg = 30) => x > -mg && y > -mg && x < size.w + mg && y < size.h + mg;
   const fitOf = (v) => (v == null ? "none" : v <= budget ? "ok" : v <= budget * 1.15 ? "near" : "over");
