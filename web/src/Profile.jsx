@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Slider, Switch, Textarea } from "@heroui/react";
-import { preloadInterstitial, showInterstitialOnce } from "./TossInterstitial.js";
+import { interstitialPending, interstitialState, preloadInterstitial, showInterstitialOnce } from "./TossInterstitial.js";
 import { budgetsFrom, DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, useBackToClose, useWatch, WORKPLACES, won } from "./lib.js";
 
 // 다른 기기로 옮길 때 쓰는 코드: 내 조건 + 관심 단지를 한 줄로. 서버나 링크에는 남지 않고 복사한 사람만 가집니다.
@@ -116,7 +116,9 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
   const [draft, setDraft] = useState(profile);
   const phone = useIsPhone(), visH = useVisibleHeight(phone && open);
   useBackToClose(open, onClose);
-  useEffect(() => { if (open) preloadInterstitial(); }, [open]);  // 전면 광고 is ready before the viewer saves
+  useEffect(() => { if (open) preloadInterstitial(); }, [open]);
+  const [, setAdState] = useState("");  // re-render when the ad finishes loading, so the notice below appears
+  useEffect(() => { interstitialState.listeners.add(setAdState); return () => interstitialState.listeners.delete(setAdState); }, []);  // 전면 광고 is ready before the viewer saves
   const [watch, , setWatch] = useWatch();
   const [move, setMove] = useState(null); // null | "out" | "in"
   const [code, setCode] = useState(""), [msg, setMsg] = useState("");
@@ -220,7 +222,8 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
           </div>
           <p className="text-[10px] text-default-400 sm:hidden">이 브라우저에만 저장 · 링크를 공유해도 안 보입니다</p>
         </ModalBody>
-        <ModalFooter>
+        <ModalFooter className="flex-wrap items-center">
+          {interstitialPending() && <span className="w-full text-right text-[10px] text-default-400 sm:mr-auto sm:w-auto">저장하면 광고가 한 번 나온 뒤 결과로 돌아갑니다</span>}
           <Button variant="light" onPress={() => { onReset(); onClose(); }}>예시값으로 되돌리기</Button>
           <Button color="primary" onPress={() => { onSave(draft); onClose(); setTimeout(showInterstitialOnce, 400); }}>저장</Button>
         </ModalFooter>

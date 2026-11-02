@@ -8,6 +8,9 @@ const AD_GROUP_ID = (typeof process !== "undefined" && process.env.NEXT_PUBLIC_T
 export const interstitialState = { text: "대기", listeners: new Set() };
 const report = (text) => { interstitialState.text = text; interstitialState.listeners.forEach((f) => f(text)); };
 
+// true while a 전면 광고 is ready and has not been shown yet: the 내 조건 dialog then says one will follow 저장
+export const interstitialPending = () => IS_TOSS && loaded && !shownThisSession;
+
 let sdk = null, loaded = false, loading = false, shownThisSession = false;
 const getSdk = () => (sdk ||= import("@apps-in-toss/web-framework").catch(() => null));
 

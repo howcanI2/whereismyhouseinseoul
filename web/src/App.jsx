@@ -9,6 +9,7 @@ import ProfileModal from "./Profile.jsx";
 import WatchModal from "./Watch.jsx";
 import NewBuildTab from "./NewBuild.jsx";
 import TossBanner from "./TossBanner.jsx";
+import { installExternalLinks } from "./TossLinks.js";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
 import { budgetsFrom, DEFAULT_WORK, derive, fmt, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
 
@@ -47,6 +48,7 @@ export default function App() {
   // period labels ("7월~9월 vs 4월~6월") come from the daily refresh, so they move with the data
   if (data.insights?.meta?.notes) Object.assign(PERIOD_NOTE, data.insights.meta.notes);
   const [tab, setTab] = useState(() => (TABS.some(([k]) => k === location.hash.slice(1)) ? location.hash.slice(1) : "map"));
+  useEffect(() => { installExternalLinks(); }, []);
   useEffect(() => { try { history.replaceState(null, "", "#" + tab); } catch (e) { /* hash is cosmetic */ } }, [tab]);
   const b = (s) => data.budget?.find((x) => x.scenario === s);
   const failed = Object.keys(errors);
