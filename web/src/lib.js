@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const FILES = ["strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region"];
+export const FILES = ["strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region"];
 
 // Give every region a transit time to 광화문: exact for a 행정동, otherwise the trade-weighted median
 // of the 행정동 its traded complexes sit in. keyOf maps a complex to each level's region key.
@@ -23,14 +23,15 @@ export function attachCommute(ins, apts, commute) {
 }
 
 // Zoning mix of each region's apartment complexes (households-weighted), from landuse_region.json
-export function attachLanduse(ins, lr, sr) {
-  if (!ins || ((!lr || ins.__lu === lr) && (!sr || ins.__sch === sr))) return ins;
+export function attachLanduse(ins, lr, sr, er) {
+  if (!ins || ((!lr || ins.__lu === lr) && (!sr || ins.__sch === sr) && (!er || ins.__edu === er))) return ins;
   Object.entries(ins).forEach(([lv, tbl]) => {
     if (lv === "meta" || typeof tbl !== "object") return;
-    Object.entries(tbl).forEach(([k, r]) => { if (lr?.[lv]) r.lu = lr[lv][k] || null; if (sr?.[lv]) r.sch = sr[lv][k] || null; });
+    Object.entries(tbl).forEach(([k, r]) => { if (lr?.[lv]) r.lu = lr[lv][k] || null; if (sr?.[lv]) r.sch = sr[lv][k] || null; if (er?.[lv]) r.edu = er[lv][k] || null; });
   });
   if (lr) Object.defineProperty(ins, "__lu", { value: lr, configurable: true, writable: true });
   if (sr) Object.defineProperty(ins, "__sch", { value: sr, configurable: true, writable: true });
+  if (er) Object.defineProperty(ins, "__edu", { value: er, configurable: true, writable: true });
   return ins;
 }
 

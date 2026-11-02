@@ -97,8 +97,10 @@ def main():
     zones, groups = read_shp(paths["zone"]), read_shp(paths["mid"])
     link = read_csv(paths["link"]); schools_raw = read_csv(paths["school"])
     pos = {s["학교ID"]: s for s in schools_raw if s.get("위도") and s.get("경도")}
-    by_zone = defaultdict(list)
-    for r in link: by_zone[r["학구ID"]].append(r["학교ID"])
+    by_zone, sido_of = defaultdict(list), {}
+    for r in link:
+        by_zone[r["학구ID"]].append(r["학교ID"])
+        sido_of[r["학교ID"]] = "11" if (r.get("시도교육청명") or "").startswith("서울") else "41" if (r.get("시도교육청명") or "").startswith("경기") else ""
     gz, gm = Grid(zones), Grid(groups)
     to5186 = Transformer.from_crs("EPSG:4326", "EPSG:5186", always_xy=True)
 
@@ -125,7 +127,7 @@ def main():
             row[2] = gidx[g[0]]
         if row[0] or row[2] is not None: out[aid] = row
     schools = {s: [p["학교명"], "e" if p["학교급구분"] == "초등학교" else "m" if p["학교급구분"] == "중학교" else "h", round(float(p["경도"]), 6), round(float(p["위도"]), 6),
-                   p.get("설립형태"), (p.get("설립일자") or "")[:4]] for s, p in used.items()}
+                   p.get("설립형태"), (p.get("설립일자") or "")[:4], sido_of.get(s, "")] for s, p in used.items()}
     base = max((r.get("데이터기준일자") or "" for r in link), default="")
     json.dump({"as_of": dt.date.today().isoformat(), "base": base, "schools": schools, "mgroups": mgroups, "apts": out},
               open(os.path.join(OUT, "school.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))

@@ -22,6 +22,8 @@ export const METRICS = [
   { id: "future", get l() { return `${futureState.years || 3}년 뒤 내 예산 이하`; }, get: (r, p) => futureShare(r, p), f: fmt.share },
   { id: "high", l: "신고가 비율", get: (r, p) => r[p]?.high_share, f: fmt.share, tone: "rose" },
   { id: "dip", l: "급매 비율", get: (r, p) => r[p]?.dip_share, f: fmt.share, tone: "indigo" },
+  { id: "edu", l: "학군 지표", get: (r) => r.edu?.score, f: (v) => (v == null ? "—" : `${v}점`), tone: "indigo" },
+  { id: "acad", l: "학원 밀도", get: (r) => r.edu?.acad_per1k, f: (v) => (v == null ? "—" : `${v}곳`), tone: "indigo" },
   { id: "school", l: "초등학교 가까운 단지", get: (r) => r.sch?.near, f: fmt.share },
   { id: "zone", l: "3종·준주거 이상", get: (r) => r.lu?.high, f: fmt.share, tone: "amber" },
 ];
@@ -60,7 +62,7 @@ const DRAWN_LEVELS = { seoul: LEVELS, metro: [["auto", "자동"], ["sgg", "시�
 export default function Atlas({ data: base, scope = "seoul" }) {
   const metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
-  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region, base.school_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region, base.school_region), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region, base.school_region, base.edu_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region, base.school_region, base.edu_region), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region, base.edu_region]);
   const outlineGeo = metro ? mSgg : data.seoul_geo;
   const dark = useIsDark(), P = palette(dark);
   const later = data.budget?.find((b) => b.scenario === "later"), now = data.budget?.find((b) => b.scenario === "now");
@@ -377,6 +379,8 @@ export function MetricNote({ m }) {
     future: `${futureState.years}년 뒤 가격 = 지금 거래가 × 그 지역 최근 1년 상승률(같은 단지·평형)로 키운 값. 예산은 내 조건의 '${futureState.label || "나중에"}' 기준 ${won(futureState.budget)}.`,
     high: "같은 단지·평형의 최근 2년 최고가를 넘은 거래 비중.",
     dip: "같은 단지·평형 직전 6개월 중위가보다 10~30% 싸게 팔린 거래 비중. 1~2층·직거래 제외.",
+    edu: "학원 밀도·초등학교 가까운 단지 비율·배정 초등학교 순전입률을 각각 같은 단위 지역 안 백분위로 바꿔 평균 낸 상대 점수(0~100). 학업성취도는 공개되지 않아 들어 있지 않습니다.",
+    acad: "10대 인구 1,000명당 입시·보습·어학 학원·교습소 수 (나이스 학원교습소정보). 법정동은 인구가 없어 표시되지 않습니다.",
     school: "단지에서 배정 초등학교(통학구역 기준)까지 직선 400m(도보 5~6분) 이내인 단지 비율. 교육부 학구도 기준.",
     zone: "아파트 세대 중 제3종일반주거·준주거·상업지역 단지에 사는 비중. 높을수록 용적률 상한이 높아 재건축 때 더 지을 여지가 큽니다. 브이월드 토지이용계획, 단지 대표 필지 기준.",
   }[m.id];
@@ -661,14 +665,18 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
       </div>
       <FutureCard r={r} period={period} data={data} />
 
-      {r.sch && (
+      {(r.sch || r.edu) && (
         <div className="rounded-large bg-content1 p-4 shadow-small">
-          <div className="mb-1 text-small font-semibold">초등학교 거리</div>
+          <div className="mb-1 flex items-baseline justify-between"><span className="text-small font-semibold">학군</span>{r.edu?.score != null && <span className="text-tiny text-default-500">학군 지표 <b className="text-medium" style={{ color: "#4F63C9" }}>{r.edu.score}점</b> / 100</span>}</div>
           <div className="grid grid-cols-2 gap-2 text-tiny num">
-            <div className="rounded-medium bg-default-100 px-2.5 py-1.5"><div className="text-default-500">배정 초등학교 400m 이내 단지</div><div className="text-small font-semibold">{fmt.share(r.sch.near)}</div></div>
-            <div className="rounded-medium bg-default-100 px-2.5 py-1.5"><div className="text-default-500">단지→학교 거리 중위값</div><div className="text-small font-semibold">{r.sch.dist.toLocaleString()}m</div></div>
+            {[["입시·보습·어학 학원", r.edu ? `${r.edu.acad.toLocaleString()}곳` : "—", r.edu?.acad_per1k != null ? `10대 1천 명당 ${r.edu.acad_per1k}곳` : ""],
+              ["배정 초등학교 순전입률", r.edu?.net != null ? `${r.edu.net > 0 ? "+" : ""}${r.edu.net}%` : "—", "전입−전출, 학생 100명당"],
+              ["초등학교 400m 이내 단지", r.sch ? fmt.share(r.sch.near) : "—", r.sch ? `${r.sch.n.toLocaleString()}단지 기준` : ""],
+              ["단지→초등학교 거리", r.sch ? `${r.sch.dist.toLocaleString()}m` : "—", "중위값, 직선"]].map(([l, v, s]) => (
+              <div key={l} className="rounded-medium bg-default-100 px-2.5 py-1.5"><div className="text-default-500">{l}</div><div className="text-small font-semibold">{v}</div><div className="text-[10px] text-default-400">{s}</div></div>
+            ))}
           </div>
-          <p className="mt-1 text-[10px] text-default-400">아파트 {r.sch.n.toLocaleString()}단지, 교육부 학구도(통학구역) 기준 직선거리. 단지를 누르면 배정 학교가 보입니다.</p>
+          <p className="mt-1 text-[10px] text-default-400">학원: 나이스 학원교습소정보(개원 중). 학교: 교육부 학구도·학교알리미{r.edu?.year ? ` ${r.edu.year}` : ""} 공시. 순전입률이 높으면 학령기 가족이 들어오는 학교라는 신호입니다. 학업성취도는 공개되지 않습니다.</p>
         </div>
       )}
       <ZoningCard lu={r.lu} sido={lv === "sgg" ? rkey.slice(0, 2) : r.sido || "11"} />

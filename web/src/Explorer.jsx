@@ -401,7 +401,8 @@ export function ZoneDetail({ zone, apts, onClose, P, budget }) {
 
 // 배정 초등학교 (통학구역) and the 중학교 학교군, nearest schools first
 const walk = (m) => Math.max(1, Math.round((m * 1.3) / 67));  // straight line × 1.3 for streets, 67 m a minute
-function Schools({ sc, row, apt }) {
+const statLine = (st) => (st ? `학생 ${st[0]?.toLocaleString() ?? "—"}명 · 학급당 ${st[1] ?? "—"}명${st[2] != null ? ` · 순전입 ${st[2] > 0 ? "+" : ""}${st[2]}%` : ""}` : null);
+function Schools({ sc, row, apt, stats }) {
   const [e, ed, gi] = row, es = e ? sc.schools[e] : null, g = gi != null ? sc.mgroups[gi] : null;
   const ms = g ? g[1].map((id) => ({ id, s: sc.schools[id] })).filter((x) => x.s).map((x) => ({ ...x, d: dist(apt, { lon: x.s[2], lat: x.s[3] }) })).sort((a, b) => a.d - b.d) : [];
   return (
@@ -411,12 +412,13 @@ function Schools({ sc, row, apt }) {
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-tiny num">
           <span className="text-default-500">배정 초등학교</span><Chip size="sm" variant="flat" color={ed <= 400 ? "success" : ed <= 800 ? "default" : "warning"} className="h-6">{es[0]}</Chip>
           <span>직선 {ed.toLocaleString()}m · 도보 약 {walk(ed)}분</span>{es[4] && es[4] !== "공립" && <span className="text-default-400">({es[4]})</span>}
+          {stats?.[e] && <span className="w-full text-default-500">{statLine(stats[e])}</span>}
         </div>
       )}
       {g && (
         <div className="mt-1.5 text-tiny num">
           <span className="text-default-500">중학교 {g[0]}</span> <span className="text-default-400">({ms.length}개교 중 가까운 순)</span>
-          <div className="mt-0.5 flex flex-wrap gap-1">{ms.slice(0, 4).map((x) => <Chip key={x.id} size="sm" variant="flat" className="h-6">{x.s[0].replace(/중학교$/, "중")} {(x.d / 1000).toFixed(1)}km</Chip>)}</div>
+          <div className="mt-0.5 flex flex-col gap-0.5">{ms.slice(0, 4).map((x) => <span key={x.id} className="flex flex-wrap items-center gap-1.5"><Chip size="sm" variant="flat" className="h-6">{x.s[0].replace(/중학교$/, "중")} {(x.d / 1000).toFixed(1)}km</Chip>{stats?.[x.id] && <span className="text-[10px] text-default-500">{statLine(stats[x.id])}</span>}</span>)}</div>
         </div>
       )}
       <p className="mt-1 text-[10px] text-default-400">교육부 학구도({sc.base}) 기준. 서울 중학교는 학교군 안에서 지원·추첨으로 배정되고, 통학구역은 학기마다 바뀔 수 있으니 관할 교육지원청에서 확인하세요.</p>
@@ -474,7 +476,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const ride = data.commute?.[apt.hcode];
   const det = details?.[apt.id], info = basics?.[apt.id];
   const landuse = useLazyFile("landuse"), land = info?.kaptCode ? landuse?.items?.[info.kaptCode] : null;
-  const school = useLazyFile("school");
+  const school = useLazyFile("school"), sstats = useLazyFile("school_stats");
   const [watch, toggleWatch] = useWatch(), saved = watch[apt.id];
   // the size people trade most here, and its recent price, are what the watchlist tracks
   const main = det?.areas?.length ? [...det.areas].sort((a, b2) => b2.n6 - a.n6 || b2.n - a.n)[0] : null;
@@ -515,7 +517,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
           ))}
         </div>
       )}
-      {school?.apts?.[apt.id] && <Schools sc={school} row={school.apts[apt.id]} apt={apt} />}
+      {school?.apts?.[apt.id] && <Schools sc={school} row={school.apts[apt.id]} apt={apt} stats={sstats?.schools} />}
       {land && <LandUse land={land} apt={apt} />}
       <div>
         <div className="mb-1 flex items-baseline justify-between"><span className="text-small font-semibold">평형별 시세</span>{det?.high && <Chip size="sm" color="danger" variant="flat">최근 2년 최고가 경신</Chip>}</div>
