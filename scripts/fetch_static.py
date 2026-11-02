@@ -180,6 +180,48 @@ def run_kapt(keep):
         for f in (pb, pa): os.remove(f)
     return f"kapt: {len(res):,} complexes (서울 {c['11']:,}, 경기 {c['41']:,}), as_of {b_date}"
 
+def run_cost(keep):
+    """관리비: K-apt 자료실 관리비정보 (this year's and last year's files) → the latest 12 months per complex, per household,
+    as web/public/data/apt_cost.json, plus medians per 구 / 시군구 / 행정동."""
+    op = opener()
+    page, _ = fetch(op, KAPT + "/web/board/webReference/boardList.do", timeout=30)
+    tok = re.search(r'name="_csrf"\s+(?:value|content)="([^"]+)"', page.decode("utf-8", "replace")).group(1)
+    y = dt.date.today().year
+    months = collections.defaultdict(dict)  # kaptCode -> {YYYYMM: (total, public)}
+    os.makedirs(SRC, exist_ok=True)
+    for yr in (y, y - 1):
+        try: seq, fnum, date, title = kapt_latest(op, tok, "03", f"관리비정보({yr}년)")
+        except RuntimeError: continue
+        path = os.path.join(SRC, f"kapt_cost_{yr}.xlsx"); kapt_download(op, tok, seq, fnum, path)
+        for i, r in enumerate(xlsx_rows(path)):
+            if i < 2 or not r or r[0] not in SIDO: continue
+            r = r + [None] * (52 - len(r))
+            pub, use, fund = _float(r[7]) or 0, _float(r[27]) or 0, _float(r[45]) or 0
+            if pub <= 0: continue
+            months[r[4]][str(r[6])] = (pub + use + fund, pub)
+        if not keep: os.remove(path)
+    if not months: raise RuntimeError("K-apt: no 관리비정보 file for this year or last")
+    basic = {b["kaptCode"]: b for b in load(os.path.join(STATIC, "apt_basic.json"), []) or []}
+    geo = load(os.path.join(RAW, "geocode_kapt.json"), {}) or {}
+    out, reg = {}, collections.defaultdict(list)
+    for code, ms in months.items():
+        b = basic.get(code); hh = (b or {}).get("households")
+        if not hh: continue
+        last = sorted(ms)[-12:]
+        tot = [ms[m][0] / hh for m in last]; pub = [ms[m][1] / hh for m in last]
+        row = [round(sum(tot) / len(tot) / 10000, 1), round(sum(pub) / len(pub) / 10000, 1), round(max(tot) / 10000, 1), len(last), last[-1]]
+        out[code] = row
+        sgg = b.get("sgg") or ""; sgg = "41590" if sgg.startswith("4159") else sgg
+        keys = [("sgg", sgg), ("hdong", (geo.get(code) or {}).get("hcode"))] + ([("gu", b.get("gu"))] if b.get("sido", "11") == "11" else [])
+        for lv, k in keys:
+            if k: reg[(lv, k)].append(row[0])
+    region = {lv: {} for lv in ("gu", "sgg", "hdong")}
+    for (lv, k), v in reg.items():
+        if len(v) >= 3: region[lv][k] = {"n": len(v), "med": round(sorted(v)[len(v) // 2], 1)}
+    save(os.path.join(OUT, "apt_cost.json"), {"as_of": dt.date.today().isoformat(), "unit": "만원/세대/월",
+                                              "fields": ["월평균 관리비", "공용관리비", "최고 달", "개월 수", "마지막 달"], "items": out, "region": region})
+    return f"cost: {len(out):,} complexes with 관리비 (latest 12 months), up to {max(r[4] for r in out.values())}"
+
 def _float(v):
     try: return float(str(v).replace(",", ""))
     except (TypeError, ValueError): return None
@@ -388,7 +430,7 @@ def run_redev(keep):
             f"({looked} looked up now), latest update {as_of}")
 
 
-SOURCES = {"kapt": run_kapt, "pop": run_pop, "age": run_age, "redev": run_redev}
+SOURCES = {"kapt": run_kapt, "cost": run_cost, "pop": run_pop, "age": run_age, "redev": run_redev}
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--only", default=",".join(SOURCES), help="comma list of: " + ",".join(SOURCES))

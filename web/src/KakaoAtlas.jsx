@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ButtonGroup, Chip, Divider, Skeleton, Slider, Switch } from "@heroui/react";
-import { estCommute, kmTo, attachCommute, attachGrowth, attachLanduse, CAP_SVG, dday, fitState, SCHOOL_COLOR, shortSchool, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
+import { estCommute, kmTo, attachCommute, attachGrowth, attachRegions, regionFilesOf, CAP_SVG, dday, fitState, SCHOOL_COLOR, shortSchool, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
 import SearchBox from "./Search.jsx";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, refOf, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 import { DOWN, GrowthPick, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, SIG, UP } from "./Atlas.jsx";
@@ -37,7 +37,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const S = SCOPES[scope], metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
   // one data object per scope; the panels read insights/apts from it
-  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute, base.work)), base.landuse_region, base.school_region, base.edu_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute, base.work)), base.landuse_region, base.school_region, base.edu_region), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region, base.edu_region, base.work]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachRegions(attachGrowth(attachCommute(mIns, mApts, base.commute, base.work)), regionFilesOf(base)), apts: mApts, scope } : { ...base, insights: attachRegions(attachGrowth(attachCommute(base.insights, base.apts, base.commute, base.work)), regionFilesOf(base)), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region, base.edu_region, base.infra_region, base.apt_cost, base.work]);
   const [maxMin, setMaxMin] = useState(0);
   const [showQuiet, setShowQuiet] = useState(true);
   const dark = useIsDark(), P = palette(dark);

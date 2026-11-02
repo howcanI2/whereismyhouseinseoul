@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const FILES = ["strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region"];
+export const FILES = ["strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region", "infra_region", "apt_cost", "bldg"];
 
 /* ---------- 직장: each viewer picks their own (saved with 내 조건) ---------- */
 export const WORKPLACES = [["광화문", 126.9769, 37.5759], ["시청·을지로", 126.9849, 37.5663], ["강남역", 127.0276, 37.4979], ["삼성·코엑스", 127.0592, 37.5121],
@@ -40,15 +40,19 @@ export function attachCommute(ins, apts, commute, work = workState) {
 }
 
 // Zoning mix of each region's apartment complexes (households-weighted), from landuse_region.json
-export function attachLanduse(ins, lr, sr, er) {
-  if (!ins || ((!lr || ins.__lu === lr) && (!sr || ins.__sch === sr) && (!er || ins.__edu === er))) return ins;
+// Per-region extras from their own files, put on each region record under a short name:
+// lu = 용도지역 mix, sch = 초등학교 거리, edu = 학원·학군, cost = 관리비, infra = 생활 인프라
+export const regionFilesOf = (d) => ({ lu: d.landuse_region, sch: d.school_region, edu: d.edu_region, cost: d.apt_cost?.region, infra: d.infra_region, bldg: d.bldg?.region });
+export function attachRegions(ins, files) {
+  if (!ins) return ins;
+  const seen = ins.__files || {};
+  const fresh = Object.entries(files).filter(([n, f]) => f && seen[n] !== f);
+  if (!fresh.length) return ins;
   Object.entries(ins).forEach(([lv, tbl]) => {
     if (lv === "meta" || typeof tbl !== "object") return;
-    Object.entries(tbl).forEach(([k, r]) => { if (lr?.[lv]) r.lu = lr[lv][k] || null; if (sr?.[lv]) r.sch = sr[lv][k] || null; if (er?.[lv]) r.edu = er[lv][k] || null; });
+    Object.entries(tbl).forEach(([k, r]) => { fresh.forEach(([n, f]) => { if (f[lv]) r[n] = f[lv][k] || null; }); });
   });
-  if (lr) Object.defineProperty(ins, "__lu", { value: lr, configurable: true, writable: true });
-  if (sr) Object.defineProperty(ins, "__sch", { value: sr, configurable: true, writable: true });
-  if (er) Object.defineProperty(ins, "__edu", { value: er, configurable: true, writable: true });
+  Object.defineProperty(ins, "__files", { value: { ...seen, ...Object.fromEntries(fresh) }, configurable: true, writable: true });
   return ins;
 }
 

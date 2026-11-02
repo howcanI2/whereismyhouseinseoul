@@ -401,6 +401,31 @@ export function ZoneDetail({ zone, apts, onClose, P, budget }) {
   );
 }
 
+// 관리비 (K-apt, 세대당 최근 12개월 평균) and what is around the complex (Kakao 장소)
+const near = (m) => (m == null ? "—" : m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km`);
+function Living({ cost, inf }) {
+  return (
+    <div className="rounded-medium bg-default-50 px-3 py-2">
+      <div className="text-small font-semibold">관리비·생활</div>
+      {cost && (
+        <div className="mt-1 text-tiny num">
+          <span className="text-default-500">관리비 (세대당 월평균)</span> <b className="text-small">{cost[0]}만원</b>
+          <span className="text-default-500"> · 공용 {cost[1]}만 · 가장 많은 달 {cost[2]}만</span>
+          <div className="text-[10px] text-default-400">K-apt 최근 {cost[3]}개월(~{String(cost[4]).slice(0, 4)}.{String(cost[4]).slice(4)}) 단지 부과액 ÷ 세대수. 큰 평형일수록 더 나옵니다.</div>
+        </div>
+      )}
+      {inf && (
+        <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-tiny num">
+          <span><span className="text-default-500">마트</span> {inf[1] ? `${inf[1]} ${near(inf[0])}` : "3km 안 없음"}</span>
+          <span><span className="text-default-500">공원</span> {inf[5] ? `${inf[5]} ${near(inf[4])}` : "2km 안 없음"}</span>
+          <span><span className="text-default-500">병·의원 1km</span> {inf[2] ?? "—"}곳</span>
+          <span><span className="text-default-500">어린이집·유치원 500m</span> {inf[3] ?? "—"}곳</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // 배정 초등학교 (통학구역) and the 중학교 학교군, nearest schools first
 const walk = (m) => Math.max(1, Math.round((m * 1.3) / 67));  // straight line × 1.3 for streets, 67 m a minute
 const statLine = (st) => (st ? `학생 ${st[0]?.toLocaleString() ?? "—"}명 · 학급당 ${st[1] ?? "—"}명${st[2] != null ? ` · 순전입 ${st[2] > 0 ? "+" : ""}${st[2]}%` : ""}` : null);
@@ -432,7 +457,7 @@ function Schools({ sc, row, apt, stats }) {
 const FLAG_COLOR = { 토지거래허가구역: "warning", 정비구역: "primary", 재정비촉진지구: "primary", 지구단위계획구역: "secondary", 고도지구: "danger", 경관지구: "danger", 개발제한구역: "danger", 군사시설보호구역: "danger", 비행안전구역: "danger", "문화유산 주변": "danger" };
 const FLAG_NOTE = { 토지거래허가구역: "사면 2년 실거주 의무", 정비구역: "재개발·재건축 등 정비사업 구역", 재정비촉진지구: "뉴타운 등 광역 정비", 지구단위계획구역: "높이·용도를 따로 정한 계획구역",
   고도지구: "건물 높이 제한", 경관지구: "경관 보호로 높이·형태 제한", 개발제한구역: "그린벨트", 군사시설보호구역: "건축·증축 시 협의 필요", 비행안전구역: "높이 제한", "문화유산 주변": "주변 건축 시 심의" };
-function LandUse({ land, apt }) {
+function LandUse({ land, apt, bldg, hh }) {
   const [more, setMore] = useState(false);
   const old = apt.build_year && new Date().getFullYear() - apt.build_year >= 30;
   return (
@@ -446,9 +471,20 @@ function LandUse({ land, apt }) {
         {land.zones.slice(1).map((z) => <Chip key={z} size="sm" variant="flat" className="h-6">일부 {z}</Chip>)}
         {land.far_max && <span className="text-default-600">용적률 상한 <b>{land.far_max}%</b> <span className="text-default-400">({land.far_basis})</span></span>}
       </div>
+      {bldg?.[0] && (() => {
+        const room = land.far_max ? Math.round(land.far_max - bldg[0]) : null;
+        return (
+          <div className="mt-1.5 rounded-small bg-content1 px-2 py-1.5 text-tiny num">
+            <span className="text-default-500">지금 용적률</span> <b className="text-small">{Math.round(bldg[0])}%</b>{bldg[7] ? <span className="text-[10px] text-default-400"> (추정)</span> : null}
+            {room != null && <> <span className="text-default-500">· 상한 {land.far_max}% →</span> <Chip size="sm" variant="flat" color={room >= 50 ? "success" : room >= 0 ? "warning" : "danger"} className="h-5">{room >= 0 ? `여유 ${room}%p` : `상한보다 ${-room}%p 높음`}</Chip></>}
+            <div className="mt-0.5 text-[10px] text-default-500">{[bldg[1] && `건폐율 ${Math.round(bldg[1])}%`, bldg[4] && `주차 ${bldg[4].toLocaleString()}대${hh ? ` (세대당 ${(bldg[4] / hh).toFixed(2)})` : ""}`, bldg[5] && `승강기 ${bldg[5]}대`, bldg[6] && `최고 ${bldg[6]}층`].filter(Boolean).join(" · ")}</div>
+            {room != null && <div className="text-[10px] text-default-400">{room >= 50 ? "상한까지 여유가 커서 재건축 때 더 지을 수 있는 편입니다." : room >= 0 ? "여유가 크지 않아 재건축 사업성은 조건(종상향 등)에 따라 달라집니다." : "이미 상한을 넘어 지어져, 재건축하면 오히려 줄어들 수 있습니다."} 건축물대장 기준.</div>}
+          </div>
+        );
+      })()}
       {land.flags.length > 0 && <div className="mt-1.5 flex flex-wrap gap-1.5">{land.flags.map((f) => <Chip key={f} size="sm" variant="flat" color={FLAG_COLOR[f] || "default"} className="h-6" title={FLAG_NOTE[f]}>{f}</Chip>)}</div>}
       {land.flags.some((f) => FLAG_NOTE[f]) && <p className="mt-1 text-[10px] text-default-500">{land.flags.filter((f) => FLAG_NOTE[f]).map((f) => `${f}: ${FLAG_NOTE[f]}`).join(" · ")}</p>}
-      {old && land.far_max && <p className="mt-1 text-[10px] text-default-500">준공 30년+ 단지입니다. 지금 용적률이 상한({land.far_max}%)보다 많이 낮을수록 재건축 때 더 지을 여지가 큽니다. 현재 용적률은 건축물대장에서 확인하세요.</p>}
+      {old && land.far_max && !bldg?.[0] && <p className="mt-1 text-[10px] text-default-500">준공 30년+ 단지입니다. 지금 용적률이 상한({land.far_max}%)보다 많이 낮을수록 재건축 때 더 지을 여지가 큽니다. 현재 용적률은 건축물대장에서 확인하세요.</p>}
       <button type="button" className="mt-1 text-[10px] text-default-400 underline" onClick={() => setMore((v) => !v)}>{more ? "접기" : `걸린 지역·지구 전체 ${land.all.length}개`}</button>
       {more && <p className="text-[10px] leading-relaxed text-default-500">{land.all.join(" · ")}</p>}
       <p className="mt-1 text-[10px] text-default-400">브이월드 토지이용계획, 단지 대표 필지 기준. 단지가 여러 필지면 다를 수 있으니 계약 전에는 토지이용계획확인서로 확인하세요.</p>
@@ -479,7 +515,9 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const ride = odsay || (apt.lon != null && work.lon != null ? { min: estCommute(kmTo(apt, work)), est: true, km: kmTo(apt, work) } : null);
   const det = details?.[apt.id], info = basics?.[apt.id];
   const landuse = useLazyFile("landuse"), land = info?.kaptCode ? landuse?.items?.[info.kaptCode] : null;
-  const school = useLazyFile("school"), sstats = useLazyFile("school_stats");
+  const school = useLazyFile("school"), sstats = useLazyFile("school_stats"), infra = useLazyFile("infra");
+  const cost = info?.kaptCode ? data.apt_cost?.items?.[info.kaptCode] : null;
+  const bldg = info?.kaptCode ? data.bldg?.items?.[info.kaptCode] : null;  // 건축물대장 [용적률, 건폐율, 연면적, 대지, 주차, 승강기, 최고층]  // [월평균, 공용, 최고 달, 개월, 마지막 달] 만원/세대
   const [watch, toggleWatch] = useWatch(), saved = watch[apt.id];
   // the size people trade most here, and its recent price, are what the watchlist tracks
   const main = det?.areas?.length ? [...det.areas].sort((a, b2) => b2.n6 - a.n6 || b2.n - a.n)[0] : null;
@@ -520,8 +558,9 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
           ))}
         </div>
       )}
+      {(cost || infra?.apts?.[apt.id]) && <Living cost={cost} inf={infra?.apts?.[apt.id]} />}
       {school?.apts?.[apt.id] && <Schools sc={school} row={school.apts[apt.id]} apt={apt} stats={sstats?.schools} />}
-      {land && <LandUse land={land} apt={apt} />}
+      {land && <LandUse land={land} apt={apt} bldg={bldg} hh={info?.households} />}
       <div>
         <div className="mb-1 flex items-baseline justify-between"><span className="text-small font-semibold">평형별 시세</span>{det?.high && <Chip size="sm" color="danger" variant="flat">최근 2년 최고가 경신</Chip>}</div>
         {!details ? <Skeleton className="h-20 rounded-medium" /> : det?.rent_only && !det.areas.length ? (
@@ -557,6 +596,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
           <span className="text-default-500">필요 대출 {won(need)} · 최대 {won(maxLoan)} ({bind})</span>
         </div>
         <div className="mt-1 text-small">월 상환 약 <b className="num">{won(mon)}원</b> <span className="text-tiny text-default-400">(금리 {rate}%, 30년)</span></div>
+        {cost && <div className="text-small num">+ 관리비 약 {cost[0]}만원 = <b>월 주거비 약 {won(Math.round(mon + cost[0]))}원</b></div>}
       </div></>}
       <Divider />
       <div>
