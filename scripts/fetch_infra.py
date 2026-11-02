@@ -20,8 +20,9 @@ CACHE = os.path.join(RAW, "infra_cache.json")
 ASKS = [("mart", "category", "MT1", 3000), ("hosp", "category", "HP8", 1000), ("kids", "category", "PS3", 500), ("park", "keyword", "공원", 2000)]
 
 def is_park(d):
-    """a real park: Kakao's 공원 category, not a 어린이공원 playground or a facility named after a park (화장실, 주차장)"""
-    return "> 공원" in (d.get("category_name") or "") and "어린이공원" not in d["place_name"]
+    """a real park: Kakao's 공원 category and a name ending in 공원, so not a 어린이공원 playground or a facility inside a park (음수대, 화장실, 관리사무소)"""
+    n = d["place_name"].replace(" ", "")
+    return "> 공원" in (d.get("category_name") or "") and n.endswith("공원") and "어린이" not in n
 
 def kakao(kind, q, lon, lat, radius, key):
     params = {"x": lon, "y": lat, "radius": radius, "sort": "distance", "size": 15 if q == "공원" else 1}
