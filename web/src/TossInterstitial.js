@@ -2,7 +2,7 @@
 // on entry). The ad is loaded while the dialog is open, so nothing is fetched at the moment it shows (출시 체크리스트).
 // Only the Toss build loads the SDK; on the website every call is a no-op.
 const IS_TOSS = typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS === "1";
-const AD_GROUP_ID = (typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS_INTERSTITIAL_ID) || "ait-ad-test-interstitial-id";  // test id until the console issues one
+const AD_GROUP_ID = (typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS_INTERSTITIAL_ID) || "";  // set by build-toss.mjs; no test-id fallback
 
 // state for the --debug line (read by TossBanner)
 export const interstitialState = { text: "대기", listeners: new Set() };
@@ -16,7 +16,7 @@ const getSdk = () => (sdk ||= import("@apps-in-toss/web-framework").catch(() => 
 
 // call when the 내 조건 dialog opens
 export function preloadInterstitial() {
-  if (!IS_TOSS || shownThisSession || loaded || loading) return;
+  if (!IS_TOSS || !AD_GROUP_ID || shownThisSession || loaded || loading) return;
   loading = true; report("불러오는 중…");
   getSdk().then((m) => {
     try {

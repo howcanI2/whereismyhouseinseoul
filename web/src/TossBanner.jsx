@@ -7,7 +7,9 @@ import { interstitialState } from "./TossInterstitial.js";
 // NEXT_PUBLIC_TOSS_AD_DEBUG=1 (npm run build:toss -- --debug) prints the ad state in place of a missing banner, for QR testing.
 const IS_TOSS = typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS === "1";
 const DEBUG = typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS_AD_DEBUG === "1";
-const AD_GROUP_ID = (typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS_AD_GROUP_ID) || "ait-ad-test-banner-id";  // test id until the console issues one
+// set by scripts/build-toss.mjs: the live id for release, the 앱인토스 test id for --debug. No fallback here, so a
+// release bundle never carries a test id (검토에서 번들 안의 테스트 ID 문자열만으로도 반려됨).
+const AD_GROUP_ID = (typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS_AD_GROUP_ID) || "";
 
 let sdkReady = null;  // initialize once for the whole app; resolves to { ads } or { why }
 function initAds() {
@@ -29,11 +31,11 @@ function initAds() {
 
 export default function TossBanner() {
   const ref = useRef(null);
-  const [state, setState] = useState(IS_TOSS ? "loading" : "off");  // loading | shown | <reason it is not shown>
+  const [state, setState] = useState(IS_TOSS && AD_GROUP_ID ? "loading" : "off");  // loading | shown | <reason it is not shown>
   const [inter, setInter] = useState(interstitialState.text);
   useEffect(() => { if (!DEBUG) return; interstitialState.listeners.add(setInter); return () => interstitialState.listeners.delete(setInter); }, []);
   useEffect(() => {
-    if (!IS_TOSS) return;
+    if (!IS_TOSS || !AD_GROUP_ID) return;
     let banner, gone = false;
     initAds().then(({ ads, why }) => {
       if (gone || !ref.current) return;
