@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { SOURCE_LINKS } from "./TossLinks.js";
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Input, Link, Select, SelectItem, Skeleton, Slider, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { GrowthPick } from "./Atlas.jsx";
@@ -259,7 +260,7 @@ export function LoanTab({ data }) {
               {facts("금리").map((r) => (
                 <div key={r.id} className="flex flex-col gap-0.5 py-2.5">
                   <div className="flex items-baseline justify-between gap-3"><span className="text-small text-default-600">{r.label}</span><span className="text-medium font-semibold num">{r.value}</span></div>
-                  <div className="text-tiny text-default-400">{r.date} · {r.note} <Link isExternal href={r.source} size="sm" className="text-tiny">출처</Link></div>
+                  <div className="text-tiny text-default-400">{r.date} · {r.note} {SOURCE_LINKS && <Link isExternal href={r.source} size="sm" className="text-tiny">출처</Link>}</div>
                 </div>
               ))}
             </div>
@@ -274,7 +275,7 @@ export function LoanTab({ data }) {
                 <span className="text-small text-default-500">{r.label}</span>
                 <span className="text-2xl font-bold num">{r.value}</span>
                 <span className="text-tiny text-default-400">{r.date} · {r.note}</span>
-                <Link isExternal href={r.source} size="sm" className="text-tiny">출처</Link>
+                {SOURCE_LINKS && <Link isExternal href={r.source} size="sm" className="text-tiny">출처</Link>}
               </div>
             ))}
           </div>
@@ -397,7 +398,7 @@ export function PolicyTab({ data }) {
                 <div className="flex flex-col gap-1">
                   <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{r.item}</span><Chip size="sm" variant="flat" color={r.status === "확인" ? "success" : "warning"}>{r.status}</Chip></div>
                   <span className="text-small num">{r.value}</span>
-                  <span className="text-tiny text-default-400">{r.date} · <Link isExternal href={r.source} size="sm" className="text-tiny">원문</Link></span>
+                  <span className="text-tiny text-default-400">{r.date}{SOURCE_LINKS && <> · <Link isExternal href={r.source} size="sm" className="text-tiny">원문</Link></>}</span>
                 </div>
                 <div className="rounded-medium bg-primary-50 px-3 py-2 text-small text-primary-700 dark:text-primary-700"><span className="font-semibold">나에게: </span>{r.impact}</div>
               </div>

@@ -1,7 +1,11 @@
-// 앱인토스: links to outside pages (청약 공고문, 토지이음, 기사 출처) open through the Toss app's own browser.
+// 앱인토스: links to outside pages (청약 공고문, 청약홈) open through the Toss app's own browser.
 // A plain <a target="_blank"> may do nothing inside the mini-app WebView (출시 체크리스트: 외부 링크가 정상적으로 열려요).
 // On the website this does nothing.
 const IS_TOSS = typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS === "1";
+
+// In the mini-app only the 청약 공고문 / 청약홈 links stay (needed to check dates and eligibility in the original);
+// article sources, 토지이음 and 정비구역 pages show as plain text. The website keeps every link.
+export const SOURCE_LINKS = !IS_TOSS;
 
 let installed = false;
 export function installExternalLinks() {

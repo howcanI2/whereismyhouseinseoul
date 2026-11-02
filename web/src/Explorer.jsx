@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SOURCE_LINKS } from "./TossLinks.js";
 import { select } from "d3-selection";
 import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
@@ -394,7 +395,7 @@ export function ZoneDetail({ zone, apts, onClose, P, budget }) {
       </p>
       <div className="flex flex-wrap gap-3 text-tiny">
         <span className="text-default-400">{zone.address}</span>
-        {link && <a className="text-primary underline" href={link} target="_blank" rel="noopener noreferrer">구역 정보 열기</a>}
+        {link && SOURCE_LINKS && <a className="text-primary underline" href={link} target="_blank" rel="noopener noreferrer">구역 정보 열기</a>}
       </div>
       <p className="text-tiny text-default-400">출처: 서울 열린데이터광장 정비사업 현황 (OA-23112·23113), 2026-10-27 내려받음</p>
     </div>
@@ -464,7 +465,7 @@ function LandUse({ land, apt, bldg, hh }) {
     <div className="rounded-medium bg-default-50 px-3 py-2">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-small font-semibold">용도지역·규제</span>
-        {land.pnu && <a className="text-tiny text-primary underline" href={`https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?pnu=${land.pnu}&mode=search&isNoScr=script&selGbn=umd`} target="_blank" rel="noopener noreferrer">토지이음에서 확인 ↗</a>}
+        {land.pnu && SOURCE_LINKS && <a className="text-tiny text-primary underline" href={`https://www.eum.go.kr/web/ar/lu/luLandDet.jsp?pnu=${land.pnu}&mode=search&isNoScr=script&selGbn=umd`} target="_blank" rel="noopener noreferrer">토지이음에서 확인 ↗</a>}
       </div>
       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-tiny num">
         {land.zones[0] ? <Chip size="sm" variant="solid" color="default" className="h-6">{land.zones[0]}</Chip> : <span className="text-default-400">용도지역 정보 없음</span>}
