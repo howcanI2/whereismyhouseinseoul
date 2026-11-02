@@ -4,7 +4,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, attachCommute, attachGrowth, attachLanduse, dday, DSR, pendingFocus, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
+import { annuity, attachCommute, attachGrowth, attachLanduse, CAP_SVG, dday, DSR, pendingFocus, SCHOOL_COLOR, shortSchool, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, dist, LINE_COLOR, polysOf, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 
 export const LEVELS = [["auto", "자동"], ["gu", "구"], ["bdong", "법정동"], ["hdong", "행정동"]];
@@ -83,6 +83,8 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const [showLines, setShowLines] = useState(true);
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
+  const [showSchools, setShowSchools] = useState(true);
+  const school = useLazyFile("school", showSchools);
   const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const applyPts = useMemo(() => { const td = new Date().toISOString().slice(0, 10); return (ah?.items || []).filter((r) => r.lon != null && (metro || r.sido === "11") && (r.receipt_end || r.notice) >= td); }, [ah, metro]);
@@ -319,6 +321,20 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                     </g>
                   );
                 })}
+                {showSchools && showPins && school?.schools && Object.entries(school.schools).filter(([, s]) => s[1] === "e" || s[1] === "m").map(([id, s]) => {
+                  const x = sx(s[2]), y = sy(s[3]), on = sel && school.apts?.[sel]?.[0] === id;
+                  if (!on && !inView(x, y)) return null;
+                  const c = SCHOOL_COLOR[s[1]], d = on ? 13 : 10;
+                  return (
+                    <g key={id} transform={`translate(${x},${y})`} style={{ pointerEvents: "none" }}>
+                      {on && <rect x={-d - 4} y={-d - 4} width={(d + 4) * 2} height={(d + 4) * 2} rx={8} fill={c} fillOpacity={0.25} />}
+                      <rect x={-d} y={-d} width={d * 2} height={d * 2} rx={5} fill={c} stroke="#fff" strokeWidth="2" />
+                      <svg x={-d * 0.65} y={-d * 0.65} width={d * 1.3} height={d * 1.3} viewBox="0 0 24 24"><path fill="#fff" d="M12 3 1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.2V16c0 1.9 3.1 3.5 7 3.5s7-1.6 7-3.5v-3.8l-7 3.8-7-3.8z" /></svg>
+                      {(on || z >= 9) && <text y={d + 12} textAnchor="middle" className="map-label" style={{ fontSize: on ? 12 : 10.5, fontWeight: on ? 800 : 600, fill: c }}>{shortSchool(s[0])}{on ? " · 배정" : ""}</text>}
+                      <title>{s[0]}</title>
+                    </g>
+                  );
+                })}
                 {showApply && applyPts.map((r) => (
                   <g key={r.id} transform={`translate(${sx(r.lon)},${sy(r.lat)})`} className="cursor-pointer" onClick={() => r.url && window.open(r.url, "_blank", "noopener")}>
                     <rect x={-6} y={-6} width={12} height={12} rx={3} fill={P.indigo} stroke="hsl(var(--heroui-content1))" strokeWidth="2" />
@@ -351,6 +367,8 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                   <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>광화문</span>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
+                  <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (초·중, 단지 단위로 확대하면)</Switch>
+                  {showSchools && <span className="flex gap-3 text-[10px]">{[["e", "초등학교"], ["m", "중학교"]].map(([k, l]) => <span key={k} className="inline-flex items-center gap-1"><span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[4px]" style={{ background: SCHOOL_COLOR[k] }} dangerouslySetInnerHTML={{ __html: CAP_SVG(9) }} />{l}</span>)}</span>}
                   <Switch size="sm" isSelected={showApply} onValueChange={setShowApply}>청약 접수 예정 단지</Switch>
                   {showApply && ah && !ah.items && <span className="text-[10px] text-default-400">청약 데이터가 아직 연결되지 않았습니다.</span>}
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}

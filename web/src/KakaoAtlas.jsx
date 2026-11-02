@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ButtonGroup, Chip, Divider, Skeleton, Slider, Switch } from "@heroui/react";
-import { attachCommute, attachGrowth, attachLanduse, dday, fitState, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
+import { attachCommute, attachGrowth, attachLanduse, CAP_SVG, dday, fitState, SCHOOL_COLOR, shortSchool, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 import { DOWN, GrowthPick, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, SIG, UP } from "./Atlas.jsx";
 
@@ -58,6 +58,8 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [showRedev, setShowRedev] = useState(false);
   const [showDistrict, setShowDistrict] = useState(false);
   const [showApply, setShowApply] = useState(false);
+  const [showSchools, setShowSchools] = useState(true);
+  const school = useLazyFile("school", showSchools);
   const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const [stageGroup, setStageGroup] = useState("all");
@@ -65,7 +67,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [ready, setReady] = useState(false);
   const [view, setView] = useState({ kz: 8, tick: 0 });
   const boxRef = useRef(null), mapRef = useRef(null), kRef = useRef(null);
-  const layers = useRef({ polys: {}, outline: [], tags: [], pins: [], zones: [], lines: [], refs: [], apply: [] });
+  const layers = useRef({ polys: {}, outline: [], tags: [], pins: [], zones: [], lines: [], refs: [], apply: [], schools: [] });
   const handlers = useRef({});
   const m = METRICS.find((x) => x.id === metricId);
   fitState.budget = budget;
@@ -232,6 +234,26 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     if (!L.lines.length && data.subway_lines) L.lines = data.subway_lines.map((s) => new k.maps.Polyline({ path: s.coords.map(([x, y]) => new k.maps.LatLng(y, x)), strokeWeight: 4, strokeColor: LINE_COLOR[s.line] || "#888", strokeOpacity: 0.85 }));
     L.lines.forEach((l) => l.setMap(showLines ? map : null));
   }, [ready, showLines, data.subway_lines]);
+  // ---- 학교 (초·중): icons from 동 level down; the selected complex's 배정 초등학교 is ringed and always named ----
+  useEffect(() => {
+    if (!ready) return;
+    const k = kRef.current, map = mapRef.current, L = layers.current;
+    L.schools.forEach((o) => o.setMap(null)); L.schools = [];
+    if (!showSchools || !school?.schools || kz > 5) return;
+    const bounds = map.getBounds(), mine = sel ? school.apts?.[sel]?.[0] : null;
+    Object.entries(school.schools).forEach(([id, s]) => {
+      if (s[1] !== "e" && s[1] !== "m") return;
+      const ll = new k.maps.LatLng(s[3], s[2]), on = id === mine;
+      if (!on && !bounds.contain(ll)) return;
+      const c = SCHOOL_COLOR[s[1]], d = on ? 26 : 20, label = on || kz <= 3;
+      const node = el(`<div style="width:${d}px;height:${d}px;margin:0 auto;border-radius:6px;background:${c};display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 0 0 ${on ? 3 : 0}px ${c}66,0 1px 3px rgba(0,0,0,.35)">${CAP_SVG(on ? 15 : 12)}</div>`
+        + (label ? `<div style="margin-top:2px;font-size:${on ? 12 : 10.5}px;font-weight:${on ? 800 : 600};color:${c};white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff">${esc(shortSchool(s[0]))}${on ? " · 배정" : ""}</div>` : ""),
+        { textAlign: "center", fontFamily: "Noto Sans KR, sans-serif", pointerEvents: "none" });
+      node.title = s[0];
+      L.schools.push(new k.maps.CustomOverlay({ map, position: ll, content: node, yAnchor: label ? 0.3 : 0.5, zIndex: on ? 7 : 2 }));
+    });
+  }, [ready, view.tick, showSchools, school, sel, kz]);
+
   // ---- 청약 접수 예정 단지 ----
   // opened from a 청약 row: turn the layer on, zoom to the site and label it
   useEffect(() => {
@@ -322,6 +344,8 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                   <Switch size="sm" isSelected={showQuiet} onValueChange={setShowQuiet}>거래 없는 단지도 보기</Switch>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선 강조</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
+                  <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (초·중, 단지 단위로 확대하면)</Switch>
+                  {showSchools && <span className="flex gap-3 text-[10px]">{[["e", "초등학교"], ["m", "중학교"]].map(([k, l]) => <span key={k} className="inline-flex items-center gap-1"><span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[4px]" style={{ background: SCHOOL_COLOR[k] }} dangerouslySetInnerHTML={{ __html: CAP_SVG(9) }} />{l}</span>)}</span>}
                   <Switch size="sm" isSelected={showApply} onValueChange={setShowApply}>청약 접수 예정 단지</Switch>
                   {showApply && ah && !ah.items && <span className="text-[10px] text-default-400">청약 데이터가 아직 연결되지 않았습니다.</span>}
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}
