@@ -364,6 +364,19 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                     <text y={22} textAnchor="middle" className="map-label" style={{ fontWeight: 700 }}>{r.n}</text>
                   </g>
                 ))}
+                {selApt && selApt.lon != null && (() => {
+                  // the selected complex: the rest of the map is shaded, the complex sits in a lit circle with a ring and its name
+                  const x = sx(selApt.lon), y = sy(selApt.lat);
+                  return (
+                    <g style={{ pointerEvents: "none" }}>
+                      <defs><mask id="hb-spot"><rect width={size.w} height={size.h} fill="#fff" /><circle cx={x} cy={y - 10} r={64} fill="#000" /></mask></defs>
+                      <rect width={size.w} height={size.h} fill="#0b1512" fillOpacity={0.38} mask="url(#hb-spot)" />
+                      <circle cx={x} cy={y} r={20} fill="#E5484D" fillOpacity={0.15} stroke="#E5484D" strokeWidth={3} className="hb-pulse" style={{ transformBox: "fill-box", transformOrigin: "center" }} />
+                      <circle cx={x} cy={y} r={5} fill="#E5484D" stroke="#fff" strokeWidth={2} />
+                      <text x={x} y={y + 38} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff" stroke="#E5484D" strokeWidth="7" strokeLinejoin="round" paintOrder="stroke">{selApt.apt}</text>
+                    </g>
+                  );
+                })()}
               </>
             )}
           </svg>

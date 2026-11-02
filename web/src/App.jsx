@@ -101,7 +101,7 @@ export default function App() {
             )}
             {k === "map" && (KAKAO_KEY && !kakaoError ? <KakaoAtlas data={data} appKey={KAKAO_KEY} onFail={setKakaoError} scope={scope} /> : (
               <div className="flex flex-col gap-2">
-                {kakaoError && <p className="rounded-medium bg-warning-50 px-3 py-2 text-small text-warning-700">카카오맵을 불러오지 못해 기본 지도로 보여드립니다. 카카오 개발자 콘솔 &gt; 플랫폼 &gt; Web에 이 사이트 주소({typeof window !== "undefined" ? window.location.origin : ""})가 등록돼 있는지 확인하세요.</p>}
+                {kakaoError && (process.env.NEXT_PUBLIC_TOSS !== "1" || process.env.NEXT_PUBLIC_TOSS_AD_DEBUG === "1") && <p className="rounded-medium bg-warning-50 px-3 py-2 text-small text-warning-700">카카오맵을 불러오지 못해 기본 지도로 보여드립니다. 카카오 개발자 콘솔 &gt; 플랫폼 &gt; Web에 이 사이트 주소({typeof window !== "undefined" ? window.location.origin : ""})가 등록돼 있는지 확인하세요.</p>}
                 <Atlas data={data} scope={scope} />
               </div>
             ))}
