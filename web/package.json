@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start -p 3000"
+    "start": "next start -p 3000",
+    "build:toss": "node scripts/build-toss.mjs"
   },
   "dependencies": {
+    "@apps-in-toss/web-framework": "^3.9.0",
     "@heroui/react": "~2.6.14",
     "d3-selection": "^3.0.0",
     "d3-transition": "^3.0.1",

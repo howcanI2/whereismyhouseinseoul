@@ -10,3 +10,4 @@ app/dist/
 data/raw/school_src/
 data/raw/static_src/
 __pycache__/
+*.ait

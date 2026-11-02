@@ -1,5 +1,6 @@
-// PAGES_BASE_PATH set (e.g. "/whereismyhouseinseoul") = static export for GitHub Pages; unset = normal Next.js (dev / Vercel).
-const pages = process.env.PAGES_BASE_PATH;
+// PAGES_BASE_PATH set = static export: "/whereismyhouseinseoul" for GitHub Pages, "/" for the 앱인토스 bundle (root);
+// unset = normal Next.js (dev / Vercel).
+const pages = process.env.PAGES_BASE_PATH === "/" ? "" : process.env.PAGES_BASE_PATH;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
