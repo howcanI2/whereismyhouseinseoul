@@ -16,6 +16,9 @@ const env = {
   // --debug: show why the banner is missing, for QR testing (never ship this)
   NEXT_PUBLIC_TOSS_AD_DEBUG: process.argv.includes("--debug") ? "1" : "",
 };
+// release bundles use the console's 운영 광고 group ids (not secret; shown in the console's 인앱 광고 > 광고 그룹)
+env.NEXT_PUBLIC_TOSS_AD_GROUP_ID ||= "ait.v2.live.786d0d16998846aa";     // 배너 '내집마련 광고'
+env.NEXT_PUBLIC_TOSS_INTERSTITIAL_ID ||= "ait.v2.live.e4abd0447981478d";  // 전면형 광고
 // 운영 광고 ID로 테스트하면 제재 대상: a --debug bundle always uses the test ids
 if (env.NEXT_PUBLIC_TOSS_AD_DEBUG) { env.NEXT_PUBLIC_TOSS_AD_GROUP_ID = ""; env.NEXT_PUBLIC_TOSS_INTERSTITIAL_ID = ""; }
 const run = (cmd) => execSync(cmd, { stdio: "inherit", env });
