@@ -4,7 +4,7 @@ import { Button, ButtonGroup, Chip, Divider, Skeleton, Slider, Switch } from "@h
 import { estCommute, kmTo, attachCommute, attachGrowth, attachRegions, regionFilesOf, CAP_SVG, dday, fitState, SCHOOL_COLOR, shortSchool, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
 import SearchBox from "./Search.jsx";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, refOf, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
-import { DOWN, GrowthPick, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, SIG, UP } from "./Atlas.jsx";
+import { CommuteFilter, DOWN, GrowthPick, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, SIG, UP } from "./Atlas.jsx";
 
 // Load the Kakao Maps SDK once; resolves with window.kakao or rejects (bad key, unregistered domain, offline).
 let sdk;
@@ -337,6 +337,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
           <Divider orientation="vertical" className="hidden h-6 sm:block" />
           <div className="-mx-1 flex w-full gap-1 overflow-x-auto px-1 pb-0.5 lg:mx-0 lg:w-auto lg:flex-wrap lg:overflow-visible lg:px-0">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="shrink-0 cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
           {m.id === "future" && <GrowthPick growth={growth} setGrowth={setGrowth} />}
+          <CommuteFilter name={work.name} odsay={odsay} maxMin={maxMin} setMaxMin={setMaxMin} />
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>
         <div className="relative h-[62vh] min-h-[440px] overflow-hidden rounded-large shadow-small lg:h-[calc(100vh-230px)] lg:min-h-[560px]">
@@ -364,10 +365,6 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                   {showApply && ah && !ah.items && <span className="text-[10px] text-default-400">청약 데이터가 아직 연결되지 않았습니다.</span>}
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}
                   {showRedev && STAGES.slice(0, 6).map((s) => <span key={s} className="inline-flex items-center gap-1.5 text-[10px]"><span className="h-2.5 w-2.5 rounded-full border" style={{ background: STAGE_COLOR[s] + "70", borderColor: STAGE_COLOR[s] }} />{s}</span>)}
-                  <Divider className="my-0.5" />
-                  <Switch size="sm" isSelected={maxMin > 0} onValueChange={(v) => setMaxMin(v ? 50 : 0)} >{work.name || "직장"} 통근시간으로 거르기{odsay ? "" : " (추정)"}</Switch>
-                  {maxMin > 0 && <Slider aria-label="최대 통근시간" size="sm" step={5} minValue={20} maxValue={120} value={maxMin} onChange={setMaxMin} label={`${maxMin}분 이내`} classNames={{ label: "text-tiny", value: "text-tiny" }} />}
-                  {!Object.keys(commute).length && <span className="text-[10px] text-default-400">ODsay 키를 넣으면 대중교통 시간이 채워집니다</span>}
                 </div>
               )}
             </div>

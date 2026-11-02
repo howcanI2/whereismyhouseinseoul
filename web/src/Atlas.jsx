@@ -288,6 +288,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
           <Divider orientation="vertical" className="hidden h-6 sm:block" />
           <div className="-mx-1 flex w-full gap-1 overflow-x-auto px-1 pb-0.5 lg:mx-0 lg:w-auto lg:flex-wrap lg:overflow-visible lg:px-0">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="shrink-0 cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
           {m.id === "future" && <GrowthPick growth={growth} setGrowth={setGrowth} />}
+          <CommuteFilter name={work.name} odsay={odsay} maxMin={maxMin} setMaxMin={setMaxMin} />
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>
         <div ref={wrapRef} className="relative h-[62vh] min-h-[440px] overflow-hidden rounded-large bg-content1 shadow-small lg:h-[calc(100vh-230px)] lg:min-h-[560px]" style={{ touchAction: "none" }}>
@@ -324,6 +325,20 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                     </g>
                   );
                 })}
+                {showSchools && showPins && school?.schools && Object.entries(school.schools).filter(([, s]) => s[1] === "e" || s[1] === "m").map(([id, s]) => {
+                  const x = sx(s[2]), y = sy(s[3]), on = sel && school.apts?.[sel]?.[0] === id;
+                  if (!on && !inView(x, y)) return null;
+                  const c = SCHOOL_COLOR[s[1]], d = on ? 13 : 8;  // drawn under the price pins, a bit smaller so they stay readable
+                  return (
+                    <g key={id} transform={`translate(${x},${y})`} style={{ pointerEvents: "none" }} opacity={on ? 1 : 0.85}>
+                      {on && <rect x={-d - 4} y={-d - 4} width={(d + 4) * 2} height={(d + 4) * 2} rx={8} fill={c} fillOpacity={0.25} />}
+                      <rect x={-d} y={-d} width={d * 2} height={d * 2} rx={5} fill={c} stroke="#fff" strokeWidth="2" />
+                      <svg x={-d * 0.65} y={-d * 0.65} width={d * 1.3} height={d * 1.3} viewBox="0 0 24 24"><path fill="#fff" d="M12 3 1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.2V16c0 1.9 3.1 3.5 7 3.5s7-1.6 7-3.5v-3.8l-7 3.8-7-3.8z" /></svg>
+                      {(on || z >= 9) && <text y={d + 12} textAnchor="middle" className="map-label" style={{ fontSize: on ? 12 : 10.5, fontWeight: on ? 800 : 600, fill: c }}>{shortSchool(s[0])}{on ? " · 배정" : ""}</text>}
+                      <title>{s[0]}</title>
+                    </g>
+                  );
+                })}
                 {showPins && pins.dots.map((a) => <circle key={a.id} cx={a.x} cy={a.y} r={a.median_price_10k == null ? 3 : 4} fill={a.median_price_10k == null ? "hsl(var(--heroui-content1))" : a.trades_6m ? fitColor[a.f] : P.muted} stroke={a.median_price_10k == null ? P.axis : "hsl(var(--heroui-content1))"} strokeWidth={a.median_price_10k == null ? 1.5 : 1} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}><title>{a.median_price_10k == null ? `${a.apt} · 최근 2년 실거래 없음` : a.apt}</title></circle>)}
                 {showPins && pins.labels.map((a) => {
                   const quiet = !a.trades_6m, on = a.id === sel || a.id === hover, fill = quiet ? P.none : a.f === "over" ? "hsl(var(--heroui-content1))" : fitColor[a.f];
@@ -332,20 +347,6 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                       <path d={`M${-a.w / 2},-26h${a.w}v18h${-a.w / 2 + 5}l-5,6l-5,-6h${-a.w / 2 + 5}z`} fill={fill} stroke={on ? P.fg : quiet || a.f === "over" ? P.axis : "none"} strokeDasharray={quiet && !on ? "3 2" : undefined} strokeWidth={on ? 2 : 1} />
                       <text y={-13} textAnchor="middle" fontSize={quiet ? 11 : 12} fontWeight={quiet ? 500 : 700} fill={quiet ? P.text : a.f === "over" ? P.fg : "#fff"} className="num">{a.txt}</text>
                       {on && <text y={14} textAnchor="middle" className="map-label" style={{ fontWeight: 600 }}>{a.apt}</text>}
-                    </g>
-                  );
-                })}
-                {showSchools && showPins && school?.schools && Object.entries(school.schools).filter(([, s]) => s[1] === "e" || s[1] === "m").map(([id, s]) => {
-                  const x = sx(s[2]), y = sy(s[3]), on = sel && school.apts?.[sel]?.[0] === id;
-                  if (!on && !inView(x, y)) return null;
-                  const c = SCHOOL_COLOR[s[1]], d = on ? 13 : 10;
-                  return (
-                    <g key={id} transform={`translate(${x},${y})`} style={{ pointerEvents: "none" }}>
-                      {on && <rect x={-d - 4} y={-d - 4} width={(d + 4) * 2} height={(d + 4) * 2} rx={8} fill={c} fillOpacity={0.25} />}
-                      <rect x={-d} y={-d} width={d * 2} height={d * 2} rx={5} fill={c} stroke="#fff" strokeWidth="2" />
-                      <svg x={-d * 0.65} y={-d * 0.65} width={d * 1.3} height={d * 1.3} viewBox="0 0 24 24"><path fill="#fff" d="M12 3 1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.2V16c0 1.9 3.1 3.5 7 3.5s7-1.6 7-3.5v-3.8l-7 3.8-7-3.8z" /></svg>
-                      {(on || z >= 9) && <text y={d + 12} textAnchor="middle" className="map-label" style={{ fontSize: on ? 12 : 10.5, fontWeight: on ? 800 : 600, fill: c }}>{shortSchool(s[0])}{on ? " · 배정" : ""}</text>}
-                      <title>{s[0]}</title>
                     </g>
                   );
                 })}
@@ -379,9 +380,6 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                   {showPins && ["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: fitColor[f] }} />{fitText[f]}</span>)}
                   {showPins && <span className="text-default-500">가격 앞 ▲ 최근 3개월 신고가 · ▼ 급매</span>}
                   <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>{data.work?.name || "직장"} (직장)</span>
-                  <Switch size="sm" isSelected={maxMin > 0} onValueChange={(v) => setMaxMin(v ? 50 : 0)}>{work.name || "직장"} 통근시간으로 거르기{odsay ? "" : " (추정)"}</Switch>
-                  {maxMin > 0 && <Slider aria-label="최대 통근시간" size="sm" step={5} minValue={20} maxValue={120} value={maxMin} onChange={setMaxMin} label={`${maxMin}분 이내`} classNames={{ label: "text-tiny", value: "text-tiny" }} />}
-                  {maxMin > 0 && <span className="text-[10px] text-default-400">넘는 지역은 회색, 단지는 숨깁니다{odsay ? "" : " · 직선거리로 추정한 대중교통 시간"}</span>}
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
                   <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (초·중, 단지 단위로 확대하면)</Switch>
@@ -818,6 +816,20 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
         ); })}
       </div>
       <LoanMarket data={data} gu={gu} />
+    </div>
+  );
+}
+
+// 통근시간으로 거르기: a strong filter, so it sits in the top filter bar of both maps rather than in the legend
+export function CommuteFilter({ name, odsay, maxMin, setMaxMin }) {
+  const on = maxMin > 0;
+  return (
+    <div className={`flex items-center gap-2 ${on ? "w-full lg:w-auto lg:min-w-[300px]" : ""}`}>
+      <Chip size="sm" variant={on ? "solid" : "flat"} color={on ? "primary" : "default"} className="shrink-0 cursor-pointer" onClick={() => setMaxMin(on ? 0 : 50)}>
+        {on ? `${name || "직장"}까지 ${maxMin}분 이내 ✕` : `${name || "직장"} 통근으로 거르기`}
+      </Chip>
+      {on && <Slider aria-label="최대 통근시간" size="sm" step={5} minValue={20} maxValue={120} value={maxMin} onChange={(v) => setMaxMin(Number(v))} className="min-w-0 flex-1" />}
+      {on && !odsay && <span className="shrink-0 text-[10px] text-default-400">거리로 추정</span>}
     </div>
   );
 }
