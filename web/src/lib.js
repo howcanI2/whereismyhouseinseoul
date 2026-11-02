@@ -2,10 +2,28 @@ import { useEffect, useState } from "react";
 
 export const FILES = ["strategy", "gu_summary", "monthly", "complexes", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region"];
 
-// Give every region a transit time to 광화문: exact for a 행정동, otherwise the trade-weighted median
-// of the 행정동 its traded complexes sit in. keyOf maps a complex to each level's region key.
-export function attachCommute(ins, apts, commute) {
-  if (!ins || !apts || !commute || ins.__commute) return ins;
+/* ---------- 직장: each viewer picks their own (saved with 내 조건) ---------- */
+export const WORKPLACES = [["광화문", 126.9769, 37.5759], ["시청·을지로", 126.9849, 37.5663], ["강남역", 127.0276, 37.4979], ["삼성·코엑스", 127.0592, 37.5121],
+  ["여의도", 126.9244, 37.5216], ["판교", 127.1112, 37.3948], ["마곡", 126.8325, 37.5603], ["구로·가산디지털단지", 126.8973, 37.4815], ["성수", 127.0557, 37.5446],
+  ["용산", 126.9648, 37.5299], ["상암DMC", 126.8892, 37.5776], ["잠실", 127.1, 37.5133]].map(([name, lon, lat]) => ({ name, lon, lat }));
+export const DEFAULT_WORK = WORKPLACES[0];
+export const workState = { ...DEFAULT_WORK };  // the current viewer's workplace, set by App from 내 조건
+export const kmTo = (a, w = workState) => (a?.lon == null || w?.lon == null ? null : 6371 * Math.hypot(((a.lon - w.lon) * Math.PI / 180) * Math.cos(((a.lat + w.lat) / 2) * Math.PI / 180), ((a.lat - w.lat) * Math.PI / 180)));
+// rough door-to-door public-transit minutes from straight-line distance (walk + wait + ride); shown as 추정
+export const estCommute = (km) => (km == null ? null : Math.round(12 + km * 2.6));
+const isODsayWork = (w) => Math.abs(w.lon - DEFAULT_WORK.lon) < 1e-4 && Math.abs(w.lat - DEFAULT_WORK.lat) < 1e-4;
+
+// Give every region a commute time to the viewer's workplace. ODsay transit times exist only for 광화문 (exact per 행정동,
+// a trade-weighted median for larger areas); any other workplace, or no ODsay data, uses the distance estimate from the
+// region's centre. keyOf maps a complex to each level's region key.
+export function attachCommute(ins, apts, commute, work = workState) {
+  const tag = `${work.lon},${work.lat}`;
+  if (!ins || ins.__commute === tag) return ins;
+  Object.defineProperty(ins, "__commute", { value: tag, configurable: true, writable: true });
+  if (!apts || !commute || !Object.keys(commute).length || !isODsayWork(work)) {
+    Object.entries(ins).forEach(([lv, tbl]) => { if (lv !== "meta" && typeof tbl === "object") Object.values(tbl).forEach((r) => { r.commute = r.center ? estCommute(kmTo({ lon: r.center[0], lat: r.center[1] }, work)) : null; r.commuteEst = true; }); });
+    return ins;
+  }
   const keyOf = { gu: (a) => a.gu, sgg: (a) => a.sgg, bdong: (a) => `${a.gu} ${a.dong}` };
   Object.entries(ins).forEach(([lv, tbl]) => {
     if (lv === "meta" || typeof tbl !== "object") return;
@@ -18,7 +36,6 @@ export function attachCommute(ins, apts, commute) {
       r.commute = xs.length ? xs.find((x) => (half -= x[1]) <= 0)[0] : null;
     });
   });
-  Object.defineProperty(ins, "__commute", { value: true });
   return ins;
 }
 
@@ -117,7 +134,7 @@ export const LTV = 0.7, DSR = 0.4, STRESS = 3, YEARS = 30;
 
 /* ---------- 내 조건: each viewer's own numbers, kept only in their browser ---------- */
 // Example values a first-time visitor sees; nothing about the person who built the app.
-export const DEFAULT_PROFILE = { household: "plan", income: 5000, cash: 10000, saving: 200, marry: 3, partnerIncome: 5000, partnerCash: 8000, partnerSaving: 150, firstHome: true, rate: null, example: true };
+export const DEFAULT_PROFILE = { work: DEFAULT_WORK, household: "plan", income: 5000, cash: 10000, saving: 200, marry: 3, partnerIncome: 5000, partnerCash: 8000, partnerSaving: 150, firstHome: true, rate: null, example: true };
 const PKEY = "hb-profile-v1";
 export function useProfile() {
   const [p, setP] = useState(() => { try { return { ...DEFAULT_PROFILE, ...JSON.parse(localStorage.getItem(PKEY) || "{}") }; } catch (e) { return DEFAULT_PROFILE; } });

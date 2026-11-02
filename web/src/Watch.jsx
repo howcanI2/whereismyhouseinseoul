@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { Button, Checkbox, Chip, Modal, ModalBody, ModalContent, ModalHeader, Skeleton } from "@heroui/react";
-import { attachGrowth, fmt, growthMult, useLazyFile, useWatch, won } from "./lib.js";
+import { attachGrowth, estCommute, fmt, growthMult, kmTo, useLazyFile, useWatch, won } from "./lib.js";
 
 const PY = 3.3058;
 
@@ -15,7 +15,7 @@ export default function WatchModal({ open, onClose, data }) {
   const mApts = useLazyFile("metro_apts", open && gg), mIns = useLazyFile("metro_insights", open && gg);
   const [pick, setPick] = useState([]);
   const later = data.budget?.find((x) => x.scenario === "later"), yrs = later?.years || 3;
-  const commuteEst = useMemo(() => Object.fromEntries((data.gu_summary || []).map((g) => [g.gu, g.commute_min_est])), [data.gu_summary]);
+  const work = data.work || { name: "직장" };
 
   const rows = useMemo(() => {
     if (!dS || !iS || (gg && (!dG || !iG || !mApts))) return null;
@@ -29,11 +29,11 @@ export default function WatchModal({ open, onClose, data }) {
       const by = a.build_year || (info?.approval ? Number(info.approval.slice(0, 4)) : null);
       const reg = (isGG ? mi?.hdong : ins?.hdong)?.[a.hcode] || ins?.gu?.[w.gu] || mi?.sgg?.[a.sgg];
       const fut = now && reg?.g12 != null ? Math.round(now * growthMult(reg.g12, "half", yrs)) : null;
-      const ride = data.commute?.[a.hcode]?.min;
+      const ride = work.name === "광화문" ? data.commute?.[a.hcode]?.min : null;  // ODsay times exist for 광화문 only
       return { id, w, a, ar, info, now, by, fut, g12: reg?.g12, chg: now && w.price ? (now / w.price - 1) * 100 : null,
-        ride: ride ?? commuteEst[w.gu] ?? null, rideEst: ride == null };
+        ride: ride ?? (a.lon != null ? estCommute(kmTo(a, work)) : null), rideEst: ride == null };
     });
-  }, [watch, yrs, dS, iS, dG, iG, mApts, mIns, data.insights, data.apts, data.commute, commuteEst]);
+  }, [watch, yrs, dS, iS, dG, iG, mApts, mIns, data.insights, data.apts, data.commute, work]);
 
   const remove = (id) => { const n = { ...watch }; delete n[id]; setWatch(n); setPick((p) => p.filter((x) => x !== id)); };
   const toggle = (id) => setPick((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= 3 ? [...p.slice(1), id] : [...p, id]));
@@ -50,7 +50,7 @@ export default function WatchModal({ open, onClose, data }) {
     ["전세가율", (r) => (r.ar?.jeonse_ratio ? `${r.ar.jeonse_ratio}%` : "—")],
     ["준공 · 재건축 연한", (r) => (r.by ? `${r.by}년 · ${r.by + 30 <= new Date().getFullYear() ? "도래" : `${r.by + 30}년`}` : "—")],
     ["세대수", (r) => (r.info?.households ? `${Number(r.info.households).toLocaleString()}세대` : "—")],
-    ["광화문 통근", (r) => (r.ride == null ? "—" : `${r.ride}분${r.rideEst ? " (구 추정)" : ""}`)],
+    [`${work.name} 통근`, (r) => (r.ride == null ? "—" : `${r.ride}분${r.rideEst ? " (거리 추정)" : ""}`)],
     [`${yrs}년 뒤 (절반 속도)`, (r) => { const v = verdict(r.fut); return r.fut ? <span>{won(r.fut)} {v && <Chip size="sm" variant="flat" color={v[1]} className="h-5 text-[10px]">{v[0]}</Chip>}</span> : "—"; }],
   ];
 

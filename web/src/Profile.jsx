@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Button, ButtonGroup, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Switch, Textarea } from "@heroui/react";
-import { DEFAULT_PROFILE, HOUSEHOLDS, householdOf, useWatch, won } from "./lib.js";
+import { Button, ButtonGroup, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Switch, Textarea } from "@heroui/react";
+import { DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, useWatch, WORKPLACES, won } from "./lib.js";
 
 // 다른 기기로 옮길 때 쓰는 코드: 내 조건 + 관심 단지를 한 줄로. 서버나 링크에는 남지 않고 복사한 사람만 가집니다.
 const encode = (obj) => "HB1:" + btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
@@ -10,8 +10,10 @@ function decode(code) {
   if (!t.startsWith("HB1:")) throw new Error("형식이 맞지 않습니다");
   const o = JSON.parse(decodeURIComponent(escape(atob(t.slice(4)))));
   if (!o || typeof o.p !== "object") throw new Error("내용이 비어 있습니다");
-  const p = Object.fromEntries(Object.keys(DEFAULT_PROFILE).filter((k) => k !== "example" && k in o.p).map((k) => [k, k === "firstHome" ? !!o.p[k] : k === "household" ? (HOUSEHOLDS.some(([h]) => h === o.p[k]) ? o.p[k] : "plan") : o.p[k] == null ? null : Number(o.p[k])]));
+  const p = Object.fromEntries(Object.keys(DEFAULT_PROFILE).filter((k) => k !== "example" && k !== "work" && k in o.p).map((k) => [k, k === "firstHome" ? !!o.p[k] : k === "household" ? (HOUSEHOLDS.some(([h]) => h === o.p[k]) ? o.p[k] : "plan") : o.p[k] == null ? null : Number(o.p[k])]));
   const w = o.w && typeof o.w === "object" ? o.w : {};
+  const wk = o.p.work;
+  if (wk && Number.isFinite(Number(wk.lon)) && Number.isFinite(Number(wk.lat))) p.work = { name: String(wk.name || "직장").slice(0, 40), lon: Number(wk.lon), lat: Number(wk.lat) };
   return { p, w };
 }
 
@@ -25,6 +27,45 @@ const FIELDS = [
   ["partnerSaving", "배우자 월 저축액", "만원"],
   ["rate", "대출 금리 (비우면 최신 평균)", "%"],
 ];
+
+// 직장: a preset business district, or any place found with the Kakao map's place search (when the Kakao map is loaded)
+function WorkPicker({ work, onPick }) {
+  const [q, setQ] = useState(""), [found, setFound] = useState(null), [busy, setBusy] = useState(false);
+  const canSearch = typeof window !== "undefined" && !!window.kakao?.maps?.services;
+  const search = () => {
+    if (!q.trim() || !canSearch) return;
+    setBusy(true);
+    new window.kakao.maps.services.Places().keywordSearch(q.trim(), (rows, status) => {
+      setBusy(false);
+      setFound(status === window.kakao.maps.services.Status.OK ? rows.slice(0, 6).map((r) => ({ name: r.place_name, addr: r.road_address_name || r.address_name, lon: Number(r.x), lat: Number(r.y) })) : []);
+    }, { size: 6 });
+  };
+  const same = (w) => Math.abs(w.lon - work.lon) < 1e-5 && Math.abs(w.lat - work.lat) < 1e-5;
+  return (
+    <div className="rounded-medium border border-default-200 px-3 py-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-2"><span className="text-small font-medium">직장 위치</span><span className="text-tiny text-default-500">지금: <b>{work.name}</b></span></div>
+      <div className="mt-1.5 flex flex-wrap gap-1">
+        {WORKPLACES.map((w) => <Chip key={w.name} size="sm" variant={same(w) ? "solid" : "flat"} color={same(w) ? "primary" : "default"} className="cursor-pointer" onClick={() => onPick(w)}>{w.name}</Chip>)}
+      </div>
+      {canSearch ? (
+        <div className="mt-2 flex gap-2">
+          <Input size="sm" aria-label="회사 검색" placeholder="회사 이름이나 주소 (예: 삼성전자 서초사옥)" value={q} onValueChange={setQ} onKeyDown={(e) => e.key === "Enter" && search()} />
+          <Button size="sm" variant="flat" isLoading={busy} onPress={search}>검색</Button>
+        </div>
+      ) : <p className="mt-1.5 text-[10px] text-default-400">회사 검색은 카카오 지도가 켜진 화면(웹 사이트)에서 됩니다. 여기서는 위 업무지구 중에서 고를 수 있습니다.</p>}
+      {found && (found.length === 0 ? <p className="mt-1 text-tiny text-default-500">검색 결과가 없습니다.</p> : (
+        <ul className="mt-1 flex flex-col">
+          {found.map((r) => (
+            <li key={`${r.lon},${r.lat}`}><button type="button" className="w-full rounded-small px-1.5 py-1 text-left text-tiny hover:bg-default-100" onClick={() => { onPick({ name: r.name, lon: r.lon, lat: r.lat }); setFound(null); setQ(""); }}>
+              <b>{r.name}</b> <span className="text-default-400">{r.addr}</span>
+            </button></li>
+          ))}
+        </ul>
+      ))}
+      <p className="mt-1 text-[10px] text-default-400">통근 시간, 지도의 ◆ 표시, '통근시간으로 거르기'가 이 위치를 기준으로 바뀝니다. 이 브라우저에만 저장됩니다.</p>
+    </div>
+  );
+}
 
 // "내 조건" editor. Values stay in this browser (localStorage); nothing is sent anywhere or shared with the link.
 export default function ProfileModal({ open, onClose, profile, onSave, onReset, budgets }) {
@@ -54,6 +95,7 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
           <span className="text-tiny font-normal text-default-500">이 브라우저에만 저장됩니다. 링크를 공유해도 다른 사람에게 보이지 않습니다.</span>
         </ModalHeader>
         <ModalBody>
+          <WorkPicker work={draft.work || DEFAULT_WORK} onPick={(w) => setDraft((d) => ({ ...d, work: w }))} />
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-small font-medium">가구 형태</span>
             <ButtonGroup size="sm" radius="full">{HOUSEHOLDS.map(([k, l]) => <Button key={k} color={hh === k ? "primary" : "default"} variant={hh === k ? "solid" : "flat"} onPress={() => setDraft((d) => ({ ...d, household: k }))}>{l}</Button>)}</ButtonGroup>

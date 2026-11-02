@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, ButtonGroup, Chip, Divider, Skeleton, Slider, Switch } from "@heroui/react";
-import { attachCommute, attachGrowth, attachLanduse, CAP_SVG, dday, fitState, SCHOOL_COLOR, shortSchool, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
-import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, REF, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
+import { estCommute, kmTo, attachCommute, attachGrowth, attachLanduse, CAP_SVG, dday, fitState, SCHOOL_COLOR, shortSchool, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
+import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, refOf, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 import { DOWN, GrowthPick, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, SIG, UP } from "./Atlas.jsx";
 
 // Load the Kakao Maps SDK once; resolves with window.kakao or rejects (bad key, unregistered domain, offline).
@@ -12,7 +12,7 @@ function loadKakao(appKey) {
   sdk = new Promise((resolve, reject) => {
     if (window.kakao?.maps) return window.kakao.maps.load(() => resolve(window.kakao));
     const s = document.createElement("script");
-    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=services`;
     s.async = true;
     s.onload = () => (window.kakao?.maps ? window.kakao.maps.load(() => resolve(window.kakao)) : reject(new Error("Kakao SDK did not initialise")));
     s.onerror = () => reject(new Error("Kakao SDK failed to load"));
@@ -36,7 +36,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const S = SCOPES[scope], metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
   // one data object per scope; the panels read insights/apts from it
-  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute)), base.landuse_region, base.school_region, base.edu_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute)), base.landuse_region, base.school_region, base.edu_region), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region, base.edu_region]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachLanduse(attachGrowth(attachCommute(mIns, mApts, base.commute, base.work)), base.landuse_region, base.school_region, base.edu_region), apts: mApts, scope } : { ...base, insights: attachLanduse(attachGrowth(attachCommute(base.insights, base.apts, base.commute, base.work)), base.landuse_region, base.school_region, base.edu_region), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region, base.edu_region, base.work]);
   const [maxMin, setMaxMin] = useState(0);
   const [showQuiet, setShowQuiet] = useState(true);
   const dark = useIsDark(), P = palette(dark);
@@ -102,8 +102,11 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const kz = view.kz;
   const eff = level === "auto" ? S.levelFor(kz) : level;
   const regionLevel = eff === "apt" ? S.fine : eff;
-  const commute = base.commute || {};
-  const tooFar = (hcode) => maxMin > 0 && (commute[hcode]?.min ?? 999) > maxMin;
+  const commute = base.commute || {}, work = base.work || {};
+  // ODsay transit times exist only for 광화문; other workplaces use the distance estimate
+  const odsay = work.name === "광화문" && Object.keys(commute).length > 0;
+  const rideMin = (a) => (odsay ? commute[a.hcode]?.min : estCommute(kmTo(a, work)));
+  const tooFar = (a) => maxMin > 0 && (rideMin(a) ?? 999) > maxMin;
   const regionTooFar = (r) => maxMin > 0 && (r?.commute == null || r.commute > maxMin);
   const showPins = eff === "apt" || (level !== "auto" && kz <= 4);
   const fitOf = (v) => (v == null ? "none" : v <= budget ? "ok" : v <= budget * 1.15 ? "near" : "over");
@@ -192,7 +195,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     if (showPins) {
       // recent sales first, then older (stale) sales, then complexes with no sale in two years
       const rank = (a) => (a.trades_6m ? 2e6 + a.trades_6m : a.stale ? 1e6 + (a.trades_24m || 0) : 0);
-      const vis = apts.filter((a) => (showQuiet || a.trades_6m) && areaOk(a.median_area_sqm, area) && ageOk(a.build_year, age) && !tooFar(a.hcode)).map((a) => ({ a, ll: new k.maps.LatLng(a.lat, a.lon) })).filter((x) => bounds.contain(x.ll)).sort((x, y) => rank(y.a) - rank(x.a)).slice(0, 700);
+      const vis = apts.filter((a) => (showQuiet || a.trades_6m) && areaOk(a.median_area_sqm, area) && ageOk(a.build_year, age) && !tooFar(a)).map((a) => ({ a, ll: new k.maps.LatLng(a.lat, a.lon) })).filter((x) => bounds.contain(x.ll)).sort((x, y) => rank(y.a) - rank(x.a)).slice(0, 700);
       let labels = 0;
       vis.forEach(({ a, ll }) => {
         const quiet = !a.trades_6m, none = a.median_price_10k == null;
@@ -226,7 +229,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     L.zones.forEach(({ z, c }) => c.setMap(showRedev && stageOk(z.stage, stageGroup) ? map : null));
   }, [ready, showRedev, stageGroup, zones]);
 
-  // ---- subway lines, 광화문 marker ----
+  // ---- subway lines, workplace marker ----
   useEffect(() => {
     if (!ready) return;
     const k = kRef.current, map = mapRef.current, L = layers.current;
@@ -277,11 +280,12 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     });
   }, [ready, showApply, ah, metro, focusApplyId]);
   useEffect(() => {
-    if (!ready || layers.current.refs.length) return;
+    if (!ready) return;
     const k = kRef.current, map = mapRef.current;
-    layers.current.refs = REF.map((r) => new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(r.lat, r.lon), zIndex: 6, yAnchor: 0.5,
+    layers.current.refs.forEach((o) => o.setMap(null));
+    layers.current.refs = refOf(work).map((r) => new k.maps.CustomOverlay({ map, position: new k.maps.LatLng(r.lat, r.lon), zIndex: 6, yAnchor: 0.5,
       content: el(`<div style="width:14px;height:14px;background:#16201D;transform:rotate(45deg);border:2px solid #fff;margin:0 auto"></div><div style="margin-top:4px;font-size:11px;font-weight:700;color:#16201D;text-shadow:0 0 3px #fff,0 0 3px #fff">${esc(r.n)}</div>`, { textAlign: "center", pointerEvents: "none", fontFamily: "Noto Sans KR, sans-serif" }) }));
-  }, [ready]);
+  }, [ready, work.lon, work.lat, work.name]);
 
   const selApt = sel ? (data.apts || []).find((a) => a.id === sel) : null;
 
@@ -315,7 +319,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
           <Divider orientation="vertical" className="h-6" />
           <ButtonGroup size="sm" radius="full">{PERIODS.map(([k, l]) => <Button key={k} color={period === k ? "primary" : "default"} variant={period === k ? "solid" : "flat"} onPress={() => setPeriod(k)}>{l}</Button>)}</ButtonGroup>
           <Divider orientation="vertical" className="h-6" />
-          <div className="flex flex-wrap gap-1">{METRICS.filter((x) => x.id !== "commute" || Object.keys(data.commute || {}).length).map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
+          <div className="flex flex-wrap gap-1">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
           {m.id === "future" && <GrowthPick growth={growth} setGrowth={setGrowth} />}
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>
@@ -345,7 +349,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}
                   {showRedev && STAGES.slice(0, 6).map((s) => <span key={s} className="inline-flex items-center gap-1.5 text-[10px]"><span className="h-2.5 w-2.5 rounded-full border" style={{ background: STAGE_COLOR[s] + "70", borderColor: STAGE_COLOR[s] }} />{s}</span>)}
                   <Divider className="my-0.5" />
-                  <Switch size="sm" isSelected={maxMin > 0} onValueChange={(v) => setMaxMin(v ? 50 : 0)} isDisabled={!Object.keys(commute).length}>광화문 통근시간으로 거르기</Switch>
+                  <Switch size="sm" isSelected={maxMin > 0} onValueChange={(v) => setMaxMin(v ? 50 : 0)} >{work.name || "직장"} 통근시간으로 거르기{odsay ? "" : " (추정)"}</Switch>
                   {maxMin > 0 && <Slider aria-label="최대 통근시간" size="sm" step={5} minValue={20} maxValue={120} value={maxMin} onChange={setMaxMin} label={`${maxMin}분 이내`} classNames={{ label: "text-tiny", value: "text-tiny" }} />}
                   {!Object.keys(commute).length && <span className="text-[10px] text-default-400">ODsay 키를 넣으면 대중교통 시간이 채워집니다</span>}
                 </div>

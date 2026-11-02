@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Input, Link, Select, SelectItem, Skeleton, Slider, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, attachGrowth, DSR, fmt, GROWTH, growthMult, loanCap, LTV, palette, STRESS, dday, focusApply, useIsDark, useLazyFile, won, YEARS } from "./lib.js";
+import { annuity, attachGrowth, DSR, estCommute, kmTo, fmt, GROWTH, growthMult, loanCap, LTV, palette, STRESS, dday, focusApply, useIsDark, useLazyFile, won, YEARS } from "./lib.js";
 
 const Box = ({ title, sub, children, className = "", right }) => (
   <Card shadow="sm" className={className}>
@@ -146,17 +146,18 @@ function FutureDongs({ data }) {
   const rows = useMemo(() => {
     const ins = attachGrowth(data.insights);
     if (!ins?.hdong || !later || !data.gu_summary) return null;
-    const cm = Object.fromEntries(data.gu_summary.map((g) => [g.gu, g.commute_min_est]));
+    const work = data.work || {};
     const yrs = later.years || 3, B = later.max_price_10k;
-    return Object.entries(ins.hdong).map(([k, r]) => ({ k, r, p: r.p6?.p84, c: cm[r.gu] ?? 99 }))
+    // commute: the 행정동's own centre to my workplace (distance estimate)
+    return Object.entries(ins.hdong).map(([k, r]) => ({ k, r, p: r.p6?.p84, c: r.center ? estCommute(kmTo({ lon: r.center[0], lat: r.center[1] }, work)) : 99 }))
       .filter((x) => x.p && (x.r.p6?.n || 0) >= 40 && x.c <= 45)
       .map((x) => ({ ...x, f: Math.round(x.p * growthMult(x.r.g12, mode, yrs)) }))
       .filter((x) => x.f <= B && x.f >= B * 0.7)
       .sort((a, b) => b.r.p6.n - a.r.p6.n).slice(0, 12);
-  }, [data.insights, data.gu_summary, later, mode]);
+  }, [data.insights, data.gu_summary, data.work, later, mode]);
   if (!later) return null;
   return (
-    <Box title={`${later.years || 3}년 뒤에도 84㎡가 닿는 동네`} sub={`${later.label} 예산 ${won(later.max_price_10k)} 기준. 광화문 45분 이내(구 단위 추정), 최근 6개월 거래 40건 이상, 예산의 70~100%에 드는 행정동을 거래 많은 순으로.`}
+    <Box title={`${later.years || 3}년 뒤에도 84㎡가 닿는 동네`} sub={`${later.label} 예산 ${won(later.max_price_10k)} 기준. ${data.work?.name || "직장"}까지 약 45분 이내(거리 추정), 최근 6개월 거래 40건 이상, 예산의 70~100%에 드는 행정동을 거래 많은 순으로.`}
       right={<ButtonGroup size="sm" radius="full">{GROWTH.map(([k, l]) => <Button key={k} color={mode === k ? "secondary" : "default"} variant={mode === k ? "solid" : "flat"} onPress={() => setMode(k)}>{l}</Button>)}</ButtonGroup>}>
       {!rows ? <Loading h={200} /> : rows.length === 0 ? <p className="text-small text-default-500">이 조건에 맞는 동네가 없습니다. '내 조건'에서 예산이나 매수 시점을 바꿔 보세요.</p> : (
         <ul className="grid gap-x-6 gap-y-1.5 md:grid-cols-2">

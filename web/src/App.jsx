@@ -9,7 +9,7 @@ import ProfileModal from "./Profile.jsx";
 import WatchModal from "./Watch.jsx";
 import NewBuildTab from "./NewBuild.jsx";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
-import { budgetsFrom, derive, fmt, HOUSEHOLDS, householdOf, pendingFocus, useData, useProfile, useWatch, won } from "./lib.js";
+import { budgetsFrom, DEFAULT_WORK, derive, fmt, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
 
 // Next.js inlines this at build time; the claude.ai build has no Kakao key and uses the drawn map.
 const KAKAO_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_KAKAO_JS_KEY : undefined;
@@ -39,7 +39,9 @@ export default function App() {
   const [watchOpen, setWatchOpen] = useState(false);
   const [watch] = useWatch(), nWatch = Object.keys(watch).length;
   // budgets come from the viewer's own 내 조건, never from a shared file
-  const data = useMemo(() => ({ ...loaded, budget: budgetsFrom(profile, loaded.rates?.at(-1)?.mortgage_pct) }), [loaded, profile]);
+  const work = profile.work?.lon != null ? profile.work : DEFAULT_WORK;
+  Object.assign(workState, work);  // read by commute estimates and labels everywhere
+  const data = useMemo(() => ({ ...loaded, work, budget: budgetsFrom(profile, loaded.rates?.at(-1)?.mortgage_pct) }), [loaded, profile]);
   const dv = useMemo(() => derive(data), [data]);
   // period labels ("7월~9월 vs 4월~6월") come from the daily refresh, so they move with the data
   if (data.insights?.meta?.notes) Object.assign(PERIOD_NOTE, data.insights.meta.notes);
@@ -61,7 +63,7 @@ export default function App() {
         <div className="flex flex-col gap-1">
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => setProfileOpen(true)} className="flex w-fit items-center gap-2 rounded-full bg-primary-50 px-3 py-1 text-tiny font-medium text-primary hover:bg-primary-100">
-              {profile.example ? "예시 조건으로 보는 중 · 내 조건 입력하기" : `내 조건: ${HOUSEHOLDS.find(([k]) => k === householdOf(profile))[1]} · 연소득 ${won(profile.income)} · 모은 돈 ${won(profile.cash)}${Number(profile.marry) ? ` · ${profile.marry}년 뒤 매수` : ""} · 수정`}
+              {profile.example ? "예시 조건으로 보는 중 · 내 조건 입력하기" : `내 조건: 직장 ${work.name} · ${HOUSEHOLDS.find(([k]) => k === householdOf(profile))[1]} · 연소득 ${won(profile.income)} · 모은 돈 ${won(profile.cash)}${Number(profile.marry) ? ` · ${profile.marry}년 뒤 매수` : ""} · 수정`}
             </button>
             <button type="button" onClick={() => setWatchOpen(true)} className="flex w-fit items-center gap-1 rounded-full bg-warning-50 px-3 py-1 text-tiny font-medium text-warning-700 hover:bg-warning-100">
               {nWatch ? `★ 관심 단지 ${nWatch}` : "☆ 관심 단지"}
@@ -91,7 +93,7 @@ export default function App() {
                   <Button color={scope === "seoul" ? "primary" : "default"} variant={scope === "seoul" ? "solid" : "flat"} onPress={() => setScope("seoul")}>서울</Button>
                   <Button color={scope === "metro" ? "primary" : "default"} variant={scope === "metro" ? "solid" : "flat"} onPress={() => setScope("metro")}>서울+경기 (출퇴근권)</Button>
                 </ButtonGroup>
-                <span className="text-tiny text-default-500">{scope === "metro" ? "서울 25개 구와 경기 시군구를 함께 봅니다. 통근시간으로 거르면 광화문 출퇴근이 가능한 곳만 남습니다." : "서울 구 · 법정동 · 행정동 단위로 봅니다."}</span>
+                <span className="text-tiny text-default-500">{scope === "metro" ? `서울 25개 구와 경기 시군구를 함께 봅니다. 통근시간으로 거르면 ${work.name} 출퇴근이 가능한 곳만 남습니다.` : "서울 구 · 법정동 · 행정동 단위로 봅니다."}</span>
               </div>
             )}
             {k === "map" && (KAKAO_KEY && !kakaoError ? <KakaoAtlas data={data} appKey={KAKAO_KEY} onFail={setKakaoError} scope={scope} /> : (

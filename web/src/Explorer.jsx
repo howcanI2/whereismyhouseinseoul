@@ -4,9 +4,11 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
-import { annuity, DSR, fmt, loanCap, LTV, palette, STRESS, useIsDark, useLazyFile, useWatch, won } from "./lib.js";
+import { annuity, DSR, estCommute, fmt, kmTo, loanCap, LTV, palette, STRESS, useIsDark, useLazyFile, useWatch, won } from "./lib.js";
 
-export const REF = [{ n: "광화문", lon: 126.9769, lat: 37.5759 }];
+// the map's ◆ marker: the viewer's workplace
+export const refOf = (w) => [{ n: w?.name || "직장", lon: w?.lon, lat: w?.lat }].filter((r) => r.lon != null);
+export const REF = refOf({ name: "광화문", lon: 126.9769, lat: 37.5759 });
 export const LINE_COLOR = { "1호선": "#0052A4", "2호선": "#00A84D", "3호선": "#EF7C1C", "4호선": "#00A5DE", "5호선": "#996CAC", "6호선": "#CD7C2F", "7호선": "#747F00", "8호선": "#E6186C", "9호선": "#BDB092", "신분당선": "#D4003B", "경의중앙선": "#77C4A3", "공항철도": "#0090D2", "수인분당선": "#F5A200", "우이신설선": "#B0CE18", "신림선": "#6789CA", "서해선": "#8FC31F", "GTX-A": "#9A6292", "경춘선": "#0C8E72" };
 export const AREAS = [["all", "전체 면적"], ["s", "40~60㎡"], ["m", "60~85㎡"], ["l", "85㎡~"]];
 export const STAGES = ["후보지·선정", "정비구역 지정", "추진위·조합설립", "사업시행인가", "관리처분인가", "이주·철거·착공", "준공"];
@@ -473,7 +475,8 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const pts = (rows || []).map(([d, a, fl, p]) => ({ t: Date.parse(d), p: p / 10000, a, d, fl }));
   const dong = data.dong_summary?.find((r) => r.id === `${apt.gu} ${apt.dong}`);
   const details = useLazyFile(apt.sido === "41" ? "apt_detail_gg" : "apt_detail"), basics = useLazyFile(apt.sido === "41" ? "apt_info_gg" : "apt_info");
-  const ride = data.commute?.[apt.hcode];
+  const work = data.work || { name: "광화문" }, odsay = work.name === "광화문" ? data.commute?.[apt.hcode] : null;
+  const ride = odsay || (apt.lon != null && work.lon != null ? { min: estCommute(kmTo(apt, work)), est: true, km: kmTo(apt, work) } : null);
   const det = details?.[apt.id], info = basics?.[apt.id];
   const landuse = useLazyFile("landuse"), land = info?.kaptCode ? landuse?.items?.[info.kaptCode] : null;
   const school = useLazyFile("school"), sstats = useLazyFile("school_stats");
@@ -499,7 +502,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         {dong && <Chip size="sm" variant="flat">{dong.apt_zone}</Chip>}
         {apt.build_year && apt.build_year <= 1996 && <Chip size="sm" variant="flat" color="warning">재건축 연한 (30년+)</Chip>}
         {near?.[0] && <Chip size="sm" variant="flat">{near[0].station} {near[0].lines.join("·")} · 도보 약 {Math.max(1, Math.round(near[0].d / 75))}분</Chip>}
-        {ride && <Chip size="sm" variant="flat" color="primary">광화문까지 대중교통 약 {ride.min}분{ride.route ? ` · ${ride.route}` : ""}</Chip>}
+        {ride && <Chip size="sm" variant="flat" color="primary">{work.name}까지 {ride.est ? `직선 ${ride.km.toFixed(1)}km · 대중교통 약 ${ride.min}분(추정)` : `대중교통 약 ${ride.min}분${ride.route ? ` · ${ride.route}` : ""}`}</Chip>}
       </div>
       {apt.no_trade && <p className="rounded-medium bg-default-100 px-3 py-2 text-small text-default-600">{apt.build_year && apt.build_year >= new Date().getFullYear() - 1
         ? "최근 입주한 신축이라 아직 아파트 매매 신고가 없습니다. 입주 전 거래는 분양권 전매로 따로 신고됩니다."
