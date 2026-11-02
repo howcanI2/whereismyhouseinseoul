@@ -53,7 +53,7 @@ export default function TossBanner() {
   if (state === "off") return null;
   const failed = state !== "loading" && state !== "shown";
   if (failed && !DEBUG) return null;
-  const interLine = DEBUG && <p className="px-4 pb-2 text-tiny text-warning-700">[전면 광고 테스트] {inter} · 내 조건을 열었다가 저장하면 한 번 뜹니다</p>;
+  const interLine = DEBUG && <p className="px-4 pb-2 text-tiny text-warning-700">[전면 광고 테스트] {inter} · 내 조건을 열었다가 저장하면 한 번 뜹니다<br />[주소] {typeof location !== "undefined" ? location.origin : ""} (카카오 지도 도메인 등록 확인용)</p>;
   // the container stays empty for the SDK; full width, 102px as the guide recommends (real height may vary)
   return (
     <div className="-mx-4 md:mx-0">
