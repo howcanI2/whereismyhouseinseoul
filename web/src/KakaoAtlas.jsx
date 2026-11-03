@@ -5,7 +5,7 @@ import { Button, ButtonGroup, Chip, Divider, Skeleton, Slider, Switch } from "@h
 import { estCommute, kmTo, attachCommute, attachGrowth, attachRegions, regionFilesOf, CAP_SVG, dday, fitState, SCHOOL_COLOR, shortSchool, pendingFocus, futureState, palette, shareBelow, useIsDark, useLazyFile, won } from "./lib.js";
 import SearchBox from "./Search.jsx";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, LINE_COLOR, refOf, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
-import { AptVerdict, CommuteFilter, DOWN, GrowthPick, HIT, HitLegend, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, RoomAgePick, roomState, SIG, UP, useAptJudge } from "./Atlas.jsx";
+import { AptVerdict, CommuteFilter, DOWN, GrowthPick, HIT, HitLegend, LEVEL_NAME, LEVELS, lum, MetricNote, METRICS, mixc, Overview, PERIOD_NOTE, PERIODS, RegionPanel, RoomAgePick, roomState, SchoolKindPick, SIG, UP, useAptJudge } from "./Atlas.jsx";
 
 // Load the Kakao Maps SDK once; resolves with window.kakao or rejects (bad key, unregistered domain, offline).
 let sdk;
@@ -62,6 +62,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
   const [showSchools, setShowSchools] = useState(true);
+  const [schoolKinds, setSchoolKinds] = useState({ e: true, m: true });  // 초등학교 / 중학교 each on or off
   const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const [stageGroup, setStageGroup] = useState("all");
@@ -268,7 +269,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
     if (!showSchools || !school?.schools || kz > 5) return;
     const bounds = map.getBounds(), mine = sel ? school.apts?.[sel]?.[0] : null;
     Object.entries(school.schools).forEach(([id, s]) => {
-      if (s[1] !== "e" && s[1] !== "m") return;
+      if (!schoolKinds[s[1]] && id !== mine) return;  // the open complex's 배정 초등학교 stays
       const ll = new k.maps.LatLng(s[3], s[2]), on = id === mine;
       if (!on && !bounds.contain(ll)) return;
       const c = SCHOOL_COLOR[s[1]], d = on ? 26 : 20, label = on || kz <= 3;
@@ -278,7 +279,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
       node.title = s[0];
       L.schools.push(new k.maps.CustomOverlay({ map, position: ll, content: node, yAnchor: label ? 0.3 : 0.5, zIndex: on ? 7 : 2 }));
     });
-  }, [ready, view.tick, showSchools, school, sel, kz]);
+  }, [ready, view.tick, showSchools, school, sel, kz, schoolKinds]);
 
   // ---- 청약 접수 예정 단지 ----
   // opened from a 청약 row: turn the layer on, zoom to the site and label it
@@ -372,8 +373,8 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                   <Switch size="sm" isSelected={showQuiet} onValueChange={setShowQuiet}>거래 없는 단지도 보기</Switch>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선 강조</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
-                  <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (초·중, 단지 단위로 확대하면)</Switch>
-                  {showSchools && <span className="flex gap-3 text-[10px]">{[["e", "초등학교"], ["m", "중학교"]].map(([k, l]) => <span key={k} className="inline-flex items-center gap-1"><span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[4px]" style={{ background: SCHOOL_COLOR[k] }} dangerouslySetInnerHTML={{ __html: CAP_SVG(9) }} />{l}</span>)}</span>}
+                  <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (단지 단위로 확대하면)</Switch>
+                  {showSchools && <SchoolKindPick kinds={schoolKinds} setKinds={setSchoolKinds} />}
                   <Switch size="sm" isSelected={showApply} onValueChange={setShowApply}>청약 접수 예정 단지</Switch>
                   {showApply && ah && !ah.items && <span className="text-[10px] text-default-400">청약 데이터가 아직 연결되지 않았습니다.</span>}
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}

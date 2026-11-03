@@ -64,7 +64,9 @@ def deal_flags(rows):
     """rows: [(unit, date, price, floor, deal)] with unit = complex|size. Each row gets ("high", earlier max) when it beats every
     earlier sale of that unit (needs 2+), ("dip", 6-month median) when it is 10%+ under the unit's median of the previous
     6 months (needs 3+; 1~2층 and 직거래 left out, both are routinely cheaper), else None.
-    Gaps beyond ±30% are almost always share sales or family deals, not market moves, so they get no flag."""
+    Gaps beyond ±30% are almost always share sales or family deals, not market moves, so they get no flag.
+    Family deals (부모→자녀 저가 양도) cluster just inside the tax line where the discount stops counting as a gift
+    (시가의 30% 또는 3억 중 적은 금액): a discount at 80~100% of that line gets no "dip" flag either."""
     by, out = defaultdict(list), [None] * len(rows)
     for i, r in enumerate(rows): by[r[0]].append(i)
     for idx in by.values():
@@ -75,7 +77,9 @@ def deal_flags(rows):
                 if p <= 1.3 * mx: out[i] = ("high", mx)
                 continue
             d6 = (dt.date.fromisoformat(d) - dt.timedelta(days=183)).isoformat(); ref = [r[2] for r in prev if r[1] >= d6]
-            if len(ref) >= 3 and 0.7 * (m := st.median(ref)) <= p <= 0.9 * m and (fl or 99) > 2 and deal != "직거래": out[i] = ("dip", round(m))
+            if len(ref) >= 3 and 0.7 * (m := st.median(ref)) <= p <= 0.9 * m and (fl or 99) > 2 and deal != "직거래":
+                line = min(0.3 * m, 30000)  # 만원: 특수관계인 저가 양도가 증여로 보지 않는 한도
+                if m - p < 0.8 * line: out[i] = ("dip", round(m))
     return out
 def sig_shares(c):
     """share of a window's trades that set a record / sold well under the recent price (rows carry the flag at [4])"""
@@ -414,7 +418,7 @@ def build(raw, W, kakao_key):
     dips = [t for t, f in zip(trades, flags) if f and f[0] == "dip" and t[3] in rec]
     if dips:
         sh = round(len(dips) / max(1, sum(1 for t in trades if t[3] in rec)) * 100, 1)
-        b.append(("급매", f"{rs} 같은 단지·평형의 직전 6개월 중위가보다 10% 이상 싸게 팔린 거래는 {len(dips):,}건({sh}%)입니다. 1~2층·직거래는 뺐고, 급매가 아니라 사정이 있는 거래일 수도 있습니다."))
+        b.append(("급매", f"{rs} 같은 단지·평형의 직전 6개월 중위가보다 10% 이상 싸게 팔린 거래는 {len(dips):,}건({sh}%)입니다. 1~2층·직거래와 가족 간 거래가 몰리는 할인폭(시가 30% 또는 3억 기준선 바로 안쪽)은 뺐고, 급매가 아니라 사정이 있는 거래일 수도 있습니다."))
     if js: b.append(("전세", f"전세가율이 가장 높은 구는 {js[0][0]} {js[0][1]}%, 가장 낮은 구는 {js[-1][0]} {js[-1][1]}%입니다. 높을수록 매매가 대비 전세가 비쌉니다."))
     if len(rates) >= 2: b.append(("금리", f"주담대 평균 금리는 {rates[-1]['month']} {rates[-1]['mortgage_pct']:.2f}%로 전월보다 {rates[-1]['mortgage_pct']-rates[-2]['mortgage_pct']:+.2f}%p, 기준금리는 {rates[-1]['base_pct']:.2f}%입니다."))
     b.append(("정비사업", f"올해 사업시행인가 이후 단계로 넘어간 재개발·정비구역은 {len(staged)}곳입니다."))

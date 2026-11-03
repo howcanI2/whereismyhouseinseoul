@@ -96,6 +96,19 @@ export const toneOf = (m, P) => (m.tone ? P[m.tone] : P.primary);
 export function GrowthPick({ growth, setGrowth }) {
   return <div className="flex flex-wrap gap-1">{GROWTH.map(([k, l]) => <Button key={k} size="sm" radius="full" className="h-7" color={growth === k ? "secondary" : "default"} variant={growth === k ? "solid" : "flat"} onPress={() => setGrowth(k)}>{l}</Button>)}</div>;
 }
+// 학교 layer: 초등학교 and 중학교 toggle separately (tap a chip)
+export function SchoolKindPick({ kinds, setKinds }) {
+  return (
+    <span className="flex gap-1.5 text-[10px]">
+      {[["e", "초등학교"], ["m", "중학교"]].map(([k, l]) => (
+        <button key={k} type="button" aria-pressed={kinds[k]} onClick={() => setKinds((o) => ({ ...o, [k]: !o[k] }))}
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${kinds[k] ? "border-default-300 bg-content1" : "border-dashed border-default-200 opacity-45"}`}>
+          <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[4px]" style={{ background: SCHOOL_COLOR[k] }} dangerouslySetInnerHTML={{ __html: CAP_SVG(9) }} />{l}{kinds[k] ? "" : " 끔"}
+        </button>
+      ))}
+    </span>
+  );
+}
 export const SIG = { high: ["▲", "신고가"], dip: ["▼", "급매"] };
 export const BAND = [["s", "소형 ~60㎡", "#7DD3C0"], ["m", "중형 60~85㎡", "#2E9F86"], ["l", "중대형 85㎡~", "#0B5D4B"]];
 export const UP = "#E5484D", DOWN = "#3E7BFA";
@@ -150,6 +163,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
   const [showSchools, setShowSchools] = useState(true);
+  const [schoolKinds, setSchoolKinds] = useState({ e: true, m: true });  // 초등학교 / 중학교 each on or off
   const [focusApplyId, setFocusApplyId] = useState(null);
   const ah = useLazyFile("applyhome", showApply);
   const applyPts = useMemo(() => { const td = new Date().toISOString().slice(0, 10); return (ah?.items || []).filter((r) => r.lon != null && (metro || r.sido === "11") && (r.receipt_end || r.notice) >= td); }, [ah, metro]);
@@ -390,7 +404,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                     </g>
                   );
                 })}
-                {showSchools && showPins && school?.schools && Object.entries(school.schools).filter(([, s]) => s[1] === "e" || s[1] === "m").map(([id, s]) => {
+                {showSchools && showPins && school?.schools && Object.entries(school.schools).filter(([id, s]) => schoolKinds[s[1]] || (sel && school.apts?.[sel]?.[0] === id)).map(([id, s]) => {
                   const x = sx(s[2]), y = sy(s[3]), on = sel && school.apts?.[sel]?.[0] === id;
                   if (!on && !inView(x, y)) return null;
                   const c = SCHOOL_COLOR[s[1]], d = on ? 13 : 8;  // drawn under the price pins, a bit smaller so they stay readable
@@ -463,8 +477,8 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                   <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>{data.work?.name || "직장"} (직장)</span>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
-                  <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (초·중, 단지 단위로 확대하면)</Switch>
-                  {showSchools && <span className="flex gap-3 text-[10px]">{[["e", "초등학교"], ["m", "중학교"]].map(([k, l]) => <span key={k} className="inline-flex items-center gap-1"><span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[4px]" style={{ background: SCHOOL_COLOR[k] }} dangerouslySetInnerHTML={{ __html: CAP_SVG(9) }} />{l}</span>)}</span>}
+                  <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (단지 단위로 확대하면)</Switch>
+                  {showSchools && <SchoolKindPick kinds={schoolKinds} setKinds={setSchoolKinds} />}
                   <Switch size="sm" isSelected={showApply} onValueChange={setShowApply}>청약 접수 예정 단지</Switch>
                   {showApply && ah && !ah.items && <span className="text-[10px] text-default-400">청약 데이터가 아직 연결되지 않았습니다.</span>}
                   {showRedev && <div className="flex flex-wrap gap-1">{STAGE_GROUPS.map(([k, l]) => <Chip key={k} size="sm" variant={stageGroup === k ? "solid" : "flat"} className="cursor-pointer" onClick={() => setStageGroup(k)}>{l}</Chip>)}</div>}
@@ -501,7 +515,7 @@ export function MetricNote({ m }) {
   const t = {
     future: `${futureState.years}년 뒤 가격 = 지금 거래가 × 그 지역 최근 1년 상승률(같은 단지·평형)로 키운 값. 예산은 내 조건의 '${futureState.label || "나중에"}' 기준 ${won(futureState.budget)}.`,
     high: "같은 단지·평형의 최근 2년 최고가를 넘은 거래 비중.",
-    dip: "같은 단지·평형 직전 6개월 중위가보다 10~30% 싸게 팔린 거래 비중. 1~2층·직거래 제외.",
+    dip: "같은 단지·평형 직전 6개월 중위가보다 10~30% 싸게 팔린 거래 비중. 1~2층·직거래, 그리고 가족 간 저가 양도가 몰리는 할인폭(증여로 보지 않는 한도인 시가 30% 또는 3억의 80~100%)은 뺍니다.",
     edu: "학원 밀도·초등학교 가까운 단지 비율·배정 초등학교 순전입률을 각각 같은 단위 지역 안 백분위로 바꿔 평균 낸 상대 점수(0~100). 학업성취도는 공개되지 않아 들어 있지 않습니다.",
     acad: "10대 인구 1,000명당 입시·보습·어학 학원·교습소 수 (나이스 학원교습소정보). 법정동은 인구가 없어 표시되지 않습니다.",
     cost: "단지별 세대당 월평균 관리비(K-apt, 최근 12개월)의 중위값. 연한 색일수록 관리비가 적습니다. 법정동은 표시되지 않습니다.",
@@ -529,7 +543,7 @@ export function DealsCard({ scope, budget, onApt }) {
           <Button variant={kind === "highs" ? "solid" : "flat"} color={kind === "highs" ? "danger" : "default"} onPress={() => setKind("highs")}>신고가 {cnt("high").toLocaleString()}</Button>
         </ButtonGroup>
       </div>
-      <p className="mb-1 mt-1 text-[10px] text-default-400">{deals.since.slice(2, 7).replace("-", ".")} 이후 신고분{kind === "dips" ? ` · 내 예산(${won(budget)}) 근처 이하만 · 1~2층·직거래 제외. 급매가 아니라 사정이 있는 거래일 수 있습니다.` : " · 같은 단지·평형 2년 최고가 대비"}</p>
+      <p className="mb-1 mt-1 text-[10px] text-default-400">{deals.since.slice(2, 7).replace("-", ".")} 이후 신고분{kind === "dips" ? ` · 내 예산(${won(budget)}) 근처 이하만 · 왼쪽 가격은 같은 단지·평형 직전 6개월 중위가 · 1~2층·직거래, 가족 간 저가 양도가 몰리는 할인폭(시가 30% 또는 3억 바로 안쪽) 제외. 급매가 아니라 사정이 있는 거래일 수 있습니다.` : " · 같은 단지·평형 2년 최고가 대비"}</p>
       {rows.length === 0 ? <p className="text-tiny text-default-400">해당하는 거래가 없습니다.</p> : rows.map((r) => (
         <button key={r.id + r.area + r.date} type="button" onClick={() => onApt(r.id)} className="flex w-full items-center justify-between gap-2 rounded-small px-1.5 py-1 text-left text-tiny num hover:bg-default-100">
           <span className="min-w-0 truncate">{r.gu} {r.apt} {Math.round(r.area)}㎡ · {r.floor}층 · {r.date.slice(5).replace("-", ".")}</span>
