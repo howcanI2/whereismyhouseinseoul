@@ -1,328 +1,328 @@
 {
-"as_of": "2026-09",
+"as_of": "2026-10",
 "source": "https://jumin.mois.go.kr/statMonth.do (행정안전부 주민등록 인구 및 세대현황, 월간, 전체읍면동현황 CSV)",
 "gu": {
 "종로구": {
-"population": 135842,
-"households": 72446
+"population": 135648,
+"households": 72345
 },
 "중구": {
-"population": 117205,
-"households": 63743
+"population": 116958,
+"households": 63639
 },
 "용산구": {
-"population": 199192,
-"households": 101845
+"population": 198989,
+"households": 101813
 },
 "성동구": {
-"population": 274047,
-"households": 133689
+"population": 273820,
+"households": 133573
 },
 "광진구": {
-"population": 330589,
-"households": 172211
+"population": 330485,
+"households": 172238
 },
 "동대문구": {
-"population": 353511,
-"households": 181376
+"population": 353356,
+"households": 181236
 },
 "중랑구": {
-"population": 376951,
-"households": 191057
+"population": 377019,
+"households": 191268
 },
 "성북구": {
-"population": 420993,
-"households": 199708
+"population": 420806,
+"households": 199653
 },
 "강북구": {
-"population": 277307,
-"households": 142689
+"population": 277146,
+"households": 142701
 },
 "도봉구": {
-"population": 297772,
-"households": 139228
+"population": 297464,
+"households": 139151
 },
 "노원구": {
-"population": 479643,
-"households": 217306
+"population": 478638,
+"households": 216873
 },
 "은평구": {
-"population": 452390,
-"households": 214972
+"population": 452274,
+"households": 214985
 },
 "서대문구": {
-"population": 299254,
-"households": 147139
+"population": 298803,
+"households": 146931
 },
 "마포구": {
-"population": 355806,
-"households": 180484
+"population": 355770,
+"households": 180488
 },
 "양천구": {
-"population": 419688,
-"households": 178694
+"population": 419589,
+"households": 178683
 },
 "강서구": {
-"population": 547960,
-"households": 274904
+"population": 547816,
+"households": 274996
 },
 "구로구": {
-"population": 382163,
-"households": 185390
+"population": 381880,
+"households": 185428
 },
 "금천구": {
-"population": 222430,
-"households": 122345
+"population": 222044,
+"households": 122243
 },
 "영등포구": {
-"population": 371156,
-"households": 193476
+"population": 370516,
+"households": 193191
 },
 "동작구": {
-"population": 370341,
-"households": 187291
+"population": 369344,
+"households": 186874
 },
 "관악구": {
-"population": 477073,
-"households": 291409
+"population": 476535,
+"households": 291280
 },
 "서초구": {
-"population": 420794,
-"households": 176375
+"population": 424318,
+"households": 177620
 },
 "강남구": {
-"population": 551907,
-"households": 244802
+"population": 551245,
+"households": 244614
 },
 "송파구": {
-"population": 648138,
-"households": 289024
+"population": 646517,
+"households": 288530
 },
 "강동구": {
-"population": 497709,
-"households": 223302
+"population": 497412,
+"households": 223294
 }
 },
 "sgg": {
 "11110": {
 "name": "종로구",
-"population": 135842,
-"households": 72446
+"population": 135648,
+"households": 72345
 },
 "11140": {
 "name": "중구",
-"population": 117205,
-"households": 63743
+"population": 116958,
+"households": 63639
 },
 "11170": {
 "name": "용산구",
-"population": 199192,
-"households": 101845
+"population": 198989,
+"households": 101813
 },
 "11200": {
 "name": "성동구",
-"population": 274047,
-"households": 133689
+"population": 273820,
+"households": 133573
 },
 "11215": {
 "name": "광진구",
-"population": 330589,
-"households": 172211
+"population": 330485,
+"households": 172238
 },
 "11230": {
 "name": "동대문구",
-"population": 353511,
-"households": 181376
+"population": 353356,
+"households": 181236
 },
 "11260": {
 "name": "중랑구",
-"population": 376951,
-"households": 191057
+"population": 377019,
+"households": 191268
 },
 "11290": {
 "name": "성북구",
-"population": 420993,
-"households": 199708
+"population": 420806,
+"households": 199653
 },
 "11305": {
 "name": "강북구",
-"population": 277307,
-"households": 142689
+"population": 277146,
+"households": 142701
 },
 "11320": {
 "name": "도봉구",
-"population": 297772,
-"households": 139228
+"population": 297464,
+"households": 139151
 },
 "11350": {
 "name": "노원구",
-"population": 479643,
-"households": 217306
+"population": 478638,
+"households": 216873
 },
 "11380": {
 "name": "은평구",
-"population": 452390,
-"households": 214972
+"population": 452274,
+"households": 214985
 },
 "11410": {
 "name": "서대문구",
-"population": 299254,
-"households": 147139
+"population": 298803,
+"households": 146931
 },
 "11440": {
 "name": "마포구",
-"population": 355806,
-"households": 180484
+"population": 355770,
+"households": 180488
 },
 "11470": {
 "name": "양천구",
-"population": 419688,
-"households": 178694
+"population": 419589,
+"households": 178683
 },
 "11500": {
 "name": "강서구",
-"population": 547960,
-"households": 274904
+"population": 547816,
+"households": 274996
 },
 "11530": {
 "name": "구로구",
-"population": 382163,
-"households": 185390
+"population": 381880,
+"households": 185428
 },
 "11545": {
 "name": "금천구",
-"population": 222430,
-"households": 122345
+"population": 222044,
+"households": 122243
 },
 "11560": {
 "name": "영등포구",
-"population": 371156,
-"households": 193476
+"population": 370516,
+"households": 193191
 },
 "11590": {
 "name": "동작구",
-"population": 370341,
-"households": 187291
+"population": 369344,
+"households": 186874
 },
 "11620": {
 "name": "관악구",
-"population": 477073,
-"households": 291409
+"population": 476535,
+"households": 291280
 },
 "11650": {
 "name": "서초구",
-"population": 420794,
-"households": 176375
+"population": 424318,
+"households": 177620
 },
 "11680": {
 "name": "강남구",
-"population": 551907,
-"households": 244802
+"population": 551245,
+"households": 244614
 },
 "11710": {
 "name": "송파구",
-"population": 648138,
-"households": 289024
+"population": 646517,
+"households": 288530
 },
 "11740": {
 "name": "강동구",
-"population": 497709,
-"households": 223302
+"population": 497412,
+"households": 223294
 },
 "41110": {
 "name": "수원시",
-"population": 1186308,
-"households": 546855
+"population": 1186417,
+"households": 547367
 },
 "41111": {
 "name": "수원시 장안구",
-"population": 269649,
-"households": 123215
+"population": 269622,
+"households": 123360
 },
 "41113": {
 "name": "수원시 권선구",
-"population": 362344,
-"households": 167733
+"population": 363510,
+"households": 168366
 },
 "41115": {
 "name": "수원시 팔달구",
-"population": 193050,
-"households": 99053
+"population": 192867,
+"households": 99058
 },
 "41117": {
 "name": "수원시 영통구",
-"population": 361265,
-"households": 156854
+"population": 360418,
+"households": 156583
 },
 "41130": {
 "name": "성남시",
-"population": 899160,
-"households": 407918
+"population": 898243,
+"households": 407472
 },
 "41131": {
 "name": "성남시 수정구",
-"population": 234884,
-"households": 117604
+"population": 234804,
+"households": 117545
 },
 "41133": {
 "name": "성남시 중원구",
-"population": 197688,
-"households": 97711
+"population": 196979,
+"households": 97377
 },
 "41135": {
 "name": "성남시 분당구",
-"population": 466588,
-"households": 192603
+"population": 466460,
+"households": 192550
 },
 "41150": {
 "name": "의정부시",
-"population": 462008,
-"households": 214269
+"population": 462238,
+"households": 214521
 },
 "41170": {
 "name": "안양시",
-"population": 562140,
-"households": 241372
+"population": 562168,
+"households": 241539
 },
 "41171": {
 "name": "안양시 만안구",
-"population": 234173,
-"households": 106721
+"population": 234117,
+"households": 106802
 },
 "41173": {
 "name": "안양시 동안구",
-"population": 327967,
-"households": 134651
+"population": 328051,
+"households": 134737
 },
 "41190": {
 "name": "부천시",
-"population": 753731,
-"households": 344196
+"population": 753528,
+"households": 344349
 },
 "41192": {
 "name": "부천시 원미구",
-"population": 381347,
-"households": 174915
+"population": 380945,
+"households": 174823
 },
 "41194": {
 "name": "부천시 소사구",
-"population": 224006,
-"households": 99086
+"population": 224412,
+"households": 99382
 },
 "41196": {
 "name": "부천시 오정구",
-"population": 148378,
-"households": 70195
+"population": 148171,
+"households": 70144
 },
 "41210": {
 "name": "광명시",
-"population": 303707,
-"households": 128063
+"population": 303602,
+"households": 128051
 },
 "41220": {
 "name": "평택시",
-"population": 624536,
-"households": 302078
+"population": 626294,
+"households": 303132
 },
 "41222": {
 "name": "송탄출장소",
@@ -336,58 +336,58 @@
 },
 "41250": {
 "name": "동두천시",
-"population": 86135,
-"households": 43885
+"population": 86031,
+"households": 43920
 },
 "41270": {
 "name": "안산시",
-"population": 608343,
-"households": 289639
+"population": 608330,
+"households": 289907
 },
 "41271": {
 "name": "안산시 상록구",
-"population": 320133,
-"households": 152488
+"population": 319938,
+"households": 152529
 },
 "41273": {
 "name": "안산시 단원구",
-"population": 288210,
-"households": 137151
+"population": 288392,
+"households": 137378
 },
 "41280": {
 "name": "고양시",
-"population": 1056532,
-"households": 468585
+"population": 1055960,
+"households": 468615
 },
 "41281": {
 "name": "고양시 덕양구",
-"population": 482296,
-"households": 219218
+"population": 481974,
+"households": 219198
 },
 "41285": {
 "name": "고양시 일산동구",
-"population": 298247,
-"households": 134667
+"population": 298236,
+"households": 134753
 },
 "41287": {
 "name": "고양시 일산서구",
-"population": 275989,
-"households": 114700
+"population": 275750,
+"households": 114664
 },
 "41290": {
 "name": "과천시",
-"population": 81031,
-"households": 29776
+"population": 81187,
+"households": 29839
 },
 "41310": {
 "name": "구리시",
-"population": 188155,
-"households": 83530
+"population": 188123,
+"households": 83545
 },
 "41360": {
 "name": "남양주시",
-"population": 727066,
-"households": 309610
+"population": 727195,
+"households": 309814
 },
 "41362": {
 "name": "풍양출장소",
@@ -396,6331 +396,6338 @@
 },
 "41370": {
 "name": "오산시",
-"population": 255729,
-"households": 119131
+"population": 256088,
+"households": 119338
 },
 "41390": {
 "name": "시흥시",
-"population": 515633,
-"households": 232501
+"population": 515859,
+"households": 232767
 },
 "41410": {
 "name": "군포시",
-"population": 248959,
-"households": 111814
+"population": 248760,
+"households": 111850
 },
 "41430": {
 "name": "의왕시",
-"population": 167093,
-"households": 69261
+"population": 167505,
+"households": 69499
 },
 "41450": {
 "name": "하남시",
-"population": 327373,
-"households": 141015
+"population": 327157,
+"households": 140927
 },
 "41460": {
 "name": "용인시",
-"population": 1090103,
-"households": 450991
+"population": 1089320,
+"households": 450814
 },
 "41461": {
 "name": "용인시 처인구",
-"population": 287389,
-"households": 132171
+"population": 286909,
+"households": 132005
 },
 "41463": {
 "name": "용인시 기흥구",
-"population": 434239,
-"households": 178101
+"population": 434200,
+"households": 178151
 },
 "41465": {
 "name": "용인시 수지구",
-"population": 368475,
-"households": 140719
+"population": 368211,
+"households": 140658
 },
 "41480": {
 "name": "파주시",
-"population": 536640,
-"households": 239161
+"population": 537635,
+"households": 239756
 },
 "41500": {
 "name": "이천시",
-"population": 227007,
-"households": 110966
+"population": 227315,
+"households": 111103
 },
 "41550": {
 "name": "안성시",
-"population": 199288,
-"households": 99345
+"population": 199484,
+"households": 99619
 },
 "41570": {
 "name": "김포시",
-"population": 483599,
-"households": 208158
+"population": 483646,
+"households": 208265
 },
 "41590": {
 "name": "화성시",
-"population": 1001559,
-"households": 434633
+"population": 1002137,
+"households": 434930
 },
 "41591": {
 "name": "화성시 만세구",
-"population": 234224,
-"households": 116669
+"population": 234126,
+"households": 116684
 },
 "41593": {
 "name": "화성시 효행구",
-"population": 161176,
-"households": 72035
+"population": 161297,
+"households": 72049
 },
 "41595": {
 "name": "화성시 병점구",
-"population": 175331,
-"households": 75991
+"population": 175545,
+"households": 76151
 },
 "41597": {
 "name": "화성시 동탄구",
-"population": 430828,
-"households": 169938
+"population": 431169,
+"households": 170046
 },
 "41610": {
 "name": "광주시",
-"population": 401476,
-"households": 178872
+"population": 401778,
+"households": 179106
 },
 "41630": {
 "name": "양주시",
-"population": 298139,
-"households": 133931
+"population": 299122,
+"households": 134596
 },
 "41650": {
 "name": "포천시",
-"population": 140366,
-"households": 74532
+"population": 140231,
+"households": 74529
 },
 "41670": {
 "name": "여주시",
-"population": 113202,
-"households": 57199
+"population": 113147,
+"households": 57202
 },
 "41800": {
 "name": "연천군",
-"population": 43195,
-"households": 23016
+"population": 43242,
+"households": 23044
 },
 "41820": {
 "name": "가평군",
-"population": 61954,
-"households": 33326
+"population": 61893,
+"households": 33313
 },
 "41830": {
 "name": "양평군",
-"population": 127019,
-"households": 64101
+"population": 127100,
+"households": 64205
 }
 },
 "hdong": {
 "1111051500": {
 "gu": "종로구",
 "hdong": "청운효자동",
-"population": 10601,
-"households": 4827,
+"population": 10589,
+"households": 4824,
 "sido": "11"
 },
 "1111053000": {
 "gu": "종로구",
 "hdong": "사직동",
-"population": 8823,
-"households": 4540,
+"population": 8813,
+"households": 4532,
 "sido": "11"
 },
 "1111054000": {
 "gu": "종로구",
 "hdong": "삼청동",
-"population": 2012,
-"households": 1032,
+"population": 1996,
+"households": 1026,
 "sido": "11"
 },
 "1111055000": {
 "gu": "종로구",
 "hdong": "부암동",
-"population": 8832,
-"households": 4120,
+"population": 8821,
+"households": 4116,
 "sido": "11"
 },
 "1111056000": {
 "gu": "종로구",
 "hdong": "평창동",
-"population": 16944,
-"households": 7113,
+"population": 16927,
+"households": 7119,
 "sido": "11"
 },
 "1111057000": {
 "gu": "종로구",
 "hdong": "무악동",
-"population": 7686,
-"households": 2976,
+"population": 7689,
+"households": 2977,
 "sido": "11"
 },
 "1111058000": {
 "gu": "종로구",
 "hdong": "교남동",
-"population": 9459,
-"households": 4334,
+"population": 9432,
+"households": 4330,
 "sido": "11"
 },
 "1111060000": {
 "gu": "종로구",
 "hdong": "가회동",
-"population": 3495,
-"households": 1787,
+"population": 3491,
+"households": 1782,
 "sido": "11"
 },
 "1111061500": {
 "gu": "종로구",
 "hdong": "종로1.2.3.4가동",
-"population": 6553,
-"households": 4842,
+"population": 6545,
+"households": 4825,
 "sido": "11"
 },
 "1111063000": {
 "gu": "종로구",
 "hdong": "종로5.6가동",
-"population": 5388,
-"households": 3710,
+"population": 5379,
+"households": 3691,
 "sido": "11"
 },
 "1111064000": {
 "gu": "종로구",
 "hdong": "이화동",
-"population": 7051,
-"households": 4487,
+"population": 7026,
+"households": 4475,
 "sido": "11"
 },
 "1111065000": {
 "gu": "종로구",
 "hdong": "혜화동",
-"population": 15762,
-"households": 9374,
+"population": 15740,
+"households": 9349,
 "sido": "11"
 },
 "1111067000": {
 "gu": "종로구",
 "hdong": "창신제1동",
-"population": 4315,
-"households": 2622,
+"population": 4307,
+"households": 2615,
 "sido": "11"
 },
 "1111068000": {
 "gu": "종로구",
 "hdong": "창신제2동",
-"population": 7033,
-"households": 3867,
+"population": 7015,
+"households": 3870,
 "sido": "11"
 },
 "1111069000": {
 "gu": "종로구",
 "hdong": "창신제3동",
-"population": 5991,
-"households": 2717,
+"population": 5986,
+"households": 2709,
 "sido": "11"
 },
 "1111070000": {
 "gu": "종로구",
 "hdong": "숭인제1동",
-"population": 5642,
-"households": 3013,
+"population": 5623,
+"households": 3014,
 "sido": "11"
 },
 "1111071000": {
 "gu": "종로구",
 "hdong": "숭인제2동",
-"population": 10255,
-"households": 7085,
+"population": 10269,
+"households": 7091,
 "sido": "11"
 },
 "1114052000": {
 "gu": "중구",
 "hdong": "소공동",
-"population": 2205,
-"households": 1245,
+"population": 2198,
+"households": 1237,
 "sido": "11"
 },
 "1114054000": {
 "gu": "중구",
 "hdong": "회현동",
 "population": 4020,
-"households": 2268,
+"households": 2267,
 "sido": "11"
 },
 "1114055000": {
 "gu": "중구",
 "hdong": "명동",
-"population": 2465,
-"households": 1297,
+"population": 2457,
+"households": 1292,
 "sido": "11"
 },
 "1114057000": {
 "gu": "중구",
 "hdong": "필동",
-"population": 4319,
-"households": 2830,
+"population": 4323,
+"households": 2832,
 "sido": "11"
 },
 "1114058000": {
 "gu": "중구",
 "hdong": "장충동",
-"population": 4537,
-"households": 2945,
+"population": 4522,
+"households": 2937,
 "sido": "11"
 },
 "1114059000": {
 "gu": "중구",
 "hdong": "광희동",
-"population": 5727,
-"households": 3971,
+"population": 5710,
+"households": 3947,
 "sido": "11"
 },
 "1114060500": {
 "gu": "중구",
 "hdong": "을지로동",
-"population": 3041,
-"households": 2067,
+"population": 3057,
+"households": 2075,
 "sido": "11"
 },
 "1114061500": {
 "gu": "중구",
 "hdong": "신당동",
-"population": 7219,
-"households": 4642,
+"population": 7176,
+"households": 4629,
 "sido": "11"
 },
 "1114062500": {
 "gu": "중구",
 "hdong": "다산동",
-"population": 12820,
-"households": 6700,
+"population": 12798,
+"households": 6697,
 "sido": "11"
 },
 "1114063500": {
 "gu": "중구",
 "hdong": "약수동",
-"population": 15565,
-"households": 7684,
+"population": 15527,
+"households": 7678,
 "sido": "11"
 },
 "1114064500": {
 "gu": "중구",
 "hdong": "청구동",
-"population": 10592,
-"households": 5024,
+"population": 10577,
+"households": 5017,
 "sido": "11"
 },
 "1114065000": {
 "gu": "중구",
 "hdong": "신당제5동",
-"population": 9960,
-"households": 5413,
+"population": 9927,
+"households": 5409,
 "sido": "11"
 },
 "1114066500": {
 "gu": "중구",
 "hdong": "동화동",
-"population": 9696,
-"households": 3948,
+"population": 9685,
+"households": 3942,
 "sido": "11"
 },
 "1114067000": {
 "gu": "중구",
 "hdong": "황학동",
-"population": 13097,
-"households": 7818,
+"population": 13074,
+"households": 7803,
 "sido": "11"
 },
 "1114068000": {
 "gu": "중구",
 "hdong": "중림동",
-"population": 11942,
-"households": 5891,
+"population": 11907,
+"households": 5877,
 "sido": "11"
 },
 "1117051000": {
 "gu": "용산구",
 "hdong": "후암동",
-"population": 15540,
-"households": 8274,
+"population": 15542,
+"households": 8287,
 "sido": "11"
 },
 "1117052000": {
 "gu": "용산구",
 "hdong": "용산2가동",
-"population": 8338,
-"households": 4948,
+"population": 8329,
+"households": 4955,
 "sido": "11"
 },
 "1117053000": {
 "gu": "용산구",
 "hdong": "남영동",
-"population": 7034,
-"households": 5002,
+"population": 6991,
+"households": 4969,
 "sido": "11"
 },
 "1117055500": {
 "gu": "용산구",
 "hdong": "청파동",
-"population": 18755,
-"households": 11547,
+"population": 18744,
+"households": 11546,
 "sido": "11"
 },
 "1117056000": {
 "gu": "용산구",
 "hdong": "원효로제1동",
-"population": 17060,
-"households": 9400,
+"population": 17078,
+"households": 9422,
 "sido": "11"
 },
 "1117057000": {
 "gu": "용산구",
 "hdong": "원효로제2동",
-"population": 13286,
-"households": 6321,
+"population": 13251,
+"households": 6319,
 "sido": "11"
 },
 "1117058000": {
 "gu": "용산구",
 "hdong": "효창동",
-"population": 10354,
+"population": 10343,
 "households": 4726,
 "sido": "11"
 },
 "1117059000": {
 "gu": "용산구",
 "hdong": "용문동",
-"population": 11005,
-"households": 5344,
+"population": 10980,
+"households": 5331,
 "sido": "11"
 },
 "1117062500": {
 "gu": "용산구",
 "hdong": "한강로동",
-"population": 20811,
+"population": 20822,
 "households": 11152,
 "sido": "11"
 },
 "1117063000": {
 "gu": "용산구",
 "hdong": "이촌제1동",
-"population": 24925,
-"households": 9134,
+"population": 24897,
+"households": 9122,
 "sido": "11"
 },
 "1117064000": {
 "gu": "용산구",
 "hdong": "이촌제2동",
-"population": 7680,
-"households": 3546,
+"population": 7685,
+"households": 3544,
 "sido": "11"
 },
 "1117065000": {
 "gu": "용산구",
 "hdong": "이태원제1동",
-"population": 5353,
-"households": 3067,
+"population": 5348,
+"households": 3070,
 "sido": "11"
 },
 "1117066000": {
 "gu": "용산구",
 "hdong": "이태원제2동",
-"population": 8337,
-"households": 4671,
+"population": 8320,
+"households": 4674,
 "sido": "11"
 },
 "1117068500": {
 "gu": "용산구",
 "hdong": "한남동",
-"population": 13619,
-"households": 6904,
+"population": 13586,
+"households": 6895,
 "sido": "11"
 },
 "1117069000": {
 "gu": "용산구",
 "hdong": "서빙고동",
-"population": 12135,
-"households": 5052,
+"population": 12141,
+"households": 5062,
 "sido": "11"
 },
 "1117070000": {
 "gu": "용산구",
 "hdong": "보광동",
-"population": 4960,
-"households": 2757,
+"population": 4932,
+"households": 2739,
 "sido": "11"
 },
 "1120052000": {
 "gu": "성동구",
 "hdong": "왕십리제2동",
-"population": 15586,
-"households": 7331,
+"population": 15573,
+"households": 7314,
 "sido": "11"
 },
 "1120053500": {
 "gu": "성동구",
 "hdong": "왕십리도선동",
-"population": 25556,
-"households": 12109,
+"population": 25562,
+"households": 12107,
 "sido": "11"
 },
 "1120054000": {
 "gu": "성동구",
 "hdong": "마장동",
-"population": 21423,
-"households": 11165,
+"population": 21398,
+"households": 11173,
 "sido": "11"
 },
 "1120055000": {
 "gu": "성동구",
 "hdong": "사근동",
-"population": 12112,
-"households": 8481,
+"population": 12103,
+"households": 8494,
 "sido": "11"
 },
 "1120056000": {
 "gu": "성동구",
 "hdong": "행당제1동",
-"population": 15717,
-"households": 7354,
+"population": 15756,
+"households": 7364,
 "sido": "11"
 },
 "1120057000": {
 "gu": "성동구",
 "hdong": "행당제2동",
-"population": 22132,
-"households": 9079,
+"population": 22139,
+"households": 9081,
 "sido": "11"
 },
 "1120058000": {
 "gu": "성동구",
 "hdong": "응봉동",
-"population": 14357,
-"households": 5824,
+"population": 14315,
+"households": 5789,
 "sido": "11"
 },
 "1120059000": {
 "gu": "성동구",
 "hdong": "금호1가동",
-"population": 14234,
-"households": 6351,
+"population": 14218,
+"households": 6356,
 "sido": "11"
 },
 "1120061500": {
 "gu": "성동구",
 "hdong": "금호2.3가동",
-"population": 20516,
-"households": 9351,
+"population": 20484,
+"households": 9334,
 "sido": "11"
 },
 "1120062000": {
 "gu": "성동구",
 "hdong": "금호4가동",
-"population": 13657,
-"households": 6232,
+"population": 13668,
+"households": 6233,
 "sido": "11"
 },
 "1120064500": {
 "gu": "성동구",
 "hdong": "옥수동",
-"population": 25098,
-"households": 10716,
+"population": 25013,
+"households": 10675,
 "sido": "11"
 },
 "1120065000": {
 "gu": "성동구",
 "hdong": "성수1가제1동",
-"population": 14694,
-"households": 7239,
+"population": 14687,
+"households": 7238,
 "sido": "11"
 },
 "1120066000": {
 "gu": "성동구",
 "hdong": "성수1가제2동",
-"population": 14264,
-"households": 7084,
+"population": 14265,
+"households": 7075,
 "sido": "11"
 },
 "1120067000": {
 "gu": "성동구",
 "hdong": "성수2가제1동",
-"population": 13217,
-"households": 7044,
+"population": 13193,
+"households": 7039,
 "sido": "11"
 },
 "1120069000": {
 "gu": "성동구",
 "hdong": "성수2가제3동",
-"population": 9284,
-"households": 4837,
+"population": 9246,
+"households": 4814,
 "sido": "11"
 },
 "1120072000": {
 "gu": "성동구",
 "hdong": "송정동",
-"population": 8958,
-"households": 5082,
+"population": 8924,
+"households": 5058,
 "sido": "11"
 },
 "1120079000": {
 "gu": "성동구",
 "hdong": "용답동",
-"population": 13242,
-"households": 8410,
+"population": 13276,
+"households": 8429,
 "sido": "11"
 },
 "1121571000": {
 "gu": "광진구",
 "hdong": "화양동",
-"population": 22933,
-"households": 18211,
+"population": 22848,
+"households": 18150,
 "sido": "11"
 },
 "1121573000": {
 "gu": "광진구",
 "hdong": "군자동",
-"population": 18475,
-"households": 11284,
+"population": 18453,
+"households": 11270,
 "sido": "11"
 },
 "1121574000": {
 "gu": "광진구",
 "hdong": "중곡제1동",
-"population": 14783,
-"households": 8608,
+"population": 14770,
+"households": 8599,
 "sido": "11"
 },
 "1121575000": {
 "gu": "광진구",
 "hdong": "중곡제2동",
-"population": 19596,
-"households": 10508,
+"population": 19586,
+"households": 10510,
 "sido": "11"
 },
 "1121576000": {
 "gu": "광진구",
 "hdong": "중곡제3동",
-"population": 15147,
-"households": 8429,
+"population": 15167,
+"households": 8445,
 "sido": "11"
 },
 "1121577000": {
 "gu": "광진구",
 "hdong": "중곡제4동",
-"population": 26771,
-"households": 13217,
+"population": 26752,
+"households": 13213,
 "sido": "11"
 },
 "1121578000": {
 "gu": "광진구",
 "hdong": "능동",
-"population": 10609,
-"households": 6343,
+"population": 10578,
+"households": 6326,
 "sido": "11"
 },
 "1121581000": {
 "gu": "광진구",
 "hdong": "광장동",
-"population": 32826,
-"households": 11748,
+"population": 32850,
+"households": 11764,
 "sido": "11"
 },
 "1121582000": {
 "gu": "광진구",
 "hdong": "자양제1동",
-"population": 21338,
-"households": 12112,
+"population": 21307,
+"households": 12116,
 "sido": "11"
 },
 "1121583000": {
 "gu": "광진구",
 "hdong": "자양제2동",
-"population": 26247,
-"households": 12202,
+"population": 26195,
+"households": 12194,
 "sido": "11"
 },
 "1121584000": {
 "gu": "광진구",
 "hdong": "자양제3동",
-"population": 26535,
-"households": 10962,
+"population": 26474,
+"households": 10944,
 "sido": "11"
 },
 "1121584700": {
 "gu": "광진구",
 "hdong": "자양제4동",
-"population": 19913,
-"households": 11404,
+"population": 19896,
+"households": 11402,
 "sido": "11"
 },
 "1121585000": {
 "gu": "광진구",
 "hdong": "구의제1동",
-"population": 23204,
-"households": 13593,
+"population": 23260,
+"households": 13649,
 "sido": "11"
 },
 "1121586000": {
 "gu": "광진구",
 "hdong": "구의제2동",
-"population": 24722,
+"population": 24704,
 "households": 11544,
 "sido": "11"
 },
 "1121587000": {
 "gu": "광진구",
 "hdong": "구의제3동",
-"population": 27490,
-"households": 12046,
+"population": 27645,
+"households": 12112,
 "sido": "11"
 },
 "1123051500": {
 "gu": "동대문구",
 "hdong": "신설동",
-"population": 16443,
-"households": 9647,
+"population": 16438,
+"households": 9634,
 "sido": "11"
 },
 "1123053300": {
 "gu": "동대문구",
 "hdong": "용두동",
-"population": 22675,
-"households": 12880,
+"population": 22646,
+"households": 12901,
 "sido": "11"
 },
 "1123054500": {
 "gu": "동대문구",
 "hdong": "제기동",
-"population": 22032,
+"population": 22037,
 "households": 12825,
 "sido": "11"
 },
 "1123056000": {
 "gu": "동대문구",
 "hdong": "전농제1동",
-"population": 32538,
-"households": 16584,
+"population": 32427,
+"households": 16511,
 "sido": "11"
 },
 "1123057000": {
 "gu": "동대문구",
 "hdong": "전농제2동",
-"population": 17119,
-"households": 7349,
+"population": 17123,
+"households": 7355,
 "sido": "11"
 },
 "1123060000": {
 "gu": "동대문구",
 "hdong": "답십리제1동",
-"population": 27597,
-"households": 13030,
+"population": 27561,
+"households": 13007,
 "sido": "11"
 },
 "1123061000": {
 "gu": "동대문구",
 "hdong": "답십리제2동",
-"population": 27097,
-"households": 12680,
+"population": 27123,
+"households": 12685,
 "sido": "11"
 },
 "1123065000": {
 "gu": "동대문구",
 "hdong": "장안제1동",
-"population": 37018,
-"households": 18673,
+"population": 36998,
+"households": 18672,
 "sido": "11"
 },
 "1123066000": {
 "gu": "동대문구",
 "hdong": "장안제2동",
-"population": 33047,
-"households": 15150,
+"population": 33037,
+"households": 15145,
 "sido": "11"
 },
 "1123070500": {
 "gu": "동대문구",
 "hdong": "청량리동",
-"population": 18406,
-"households": 9962,
+"population": 18413,
+"households": 9960,
 "sido": "11"
 },
 "1123071000": {
 "gu": "동대문구",
 "hdong": "회기동",
-"population": 10242,
-"households": 6702,
+"population": 10204,
+"households": 6668,
 "sido": "11"
 },
 "1123072000": {
 "gu": "동대문구",
 "hdong": "휘경제1동",
-"population": 16770,
-"households": 9028,
+"population": 16750,
+"households": 9004,
 "sido": "11"
 },
 "1123073000": {
 "gu": "동대문구",
 "hdong": "휘경제2동",
-"population": 23496,
-"households": 12698,
+"population": 23468,
+"households": 12679,
 "sido": "11"
 },
 "1123074000": {
 "gu": "동대문구",
 "hdong": "이문제1동",
-"population": 31204,
-"households": 16037,
+"population": 31333,
+"households": 16059,
 "sido": "11"
 },
 "1123075000": {
 "gu": "동대문구",
 "hdong": "이문제2동",
-"population": 17827,
+"population": 17798,
 "households": 8131,
 "sido": "11"
 },
 "1126052000": {
 "gu": "중랑구",
 "hdong": "면목제2동",
-"population": 22858,
-"households": 12068,
+"population": 22792,
+"households": 12058,
 "sido": "11"
 },
 "1126054000": {
 "gu": "중랑구",
 "hdong": "면목제4동",
-"population": 17441,
-"households": 8915,
+"population": 17443,
+"households": 8912,
 "sido": "11"
 },
 "1126055000": {
 "gu": "중랑구",
 "hdong": "면목제5동",
-"population": 13753,
-"households": 6183,
+"population": 13762,
+"households": 6192,
 "sido": "11"
 },
 "1126056500": {
 "gu": "중랑구",
 "hdong": "면목본동",
-"population": 31544,
-"households": 17763,
+"population": 31486,
+"households": 17741,
 "sido": "11"
 },
 "1126057000": {
 "gu": "중랑구",
 "hdong": "면목제7동",
-"population": 20473,
-"households": 10542,
+"population": 20452,
+"households": 10529,
 "sido": "11"
 },
 "1126057500": {
 "gu": "중랑구",
 "hdong": "면목제3.8동",
-"population": 23331,
-"households": 12693,
+"population": 23328,
+"households": 12687,
 "sido": "11"
 },
 "1126058000": {
 "gu": "중랑구",
 "hdong": "상봉제1동",
-"population": 22766,
-"households": 10390,
+"population": 22861,
+"households": 10445,
 "sido": "11"
 },
 "1126059000": {
 "gu": "중랑구",
 "hdong": "상봉제2동",
-"population": 21998,
-"households": 14104,
+"population": 21962,
+"households": 14096,
 "sido": "11"
 },
 "1126060000": {
 "gu": "중랑구",
 "hdong": "중화제1동",
-"population": 17842,
-"households": 8771,
+"population": 17826,
+"households": 8765,
 "sido": "11"
 },
 "1126061000": {
 "gu": "중랑구",
 "hdong": "중화제2동",
-"population": 25578,
-"households": 14395,
+"population": 25549,
+"households": 14376,
 "sido": "11"
 },
 "1126062000": {
 "gu": "중랑구",
 "hdong": "묵제1동",
-"population": 33382,
-"households": 15327,
+"population": 33684,
+"households": 15586,
 "sido": "11"
 },
 "1126063000": {
 "gu": "중랑구",
 "hdong": "묵제2동",
-"population": 17462,
-"households": 9175,
+"population": 17443,
+"households": 9169,
 "sido": "11"
 },
 "1126065500": {
 "gu": "중랑구",
 "hdong": "망우본동",
-"population": 37971,
-"households": 18836,
+"population": 37980,
+"households": 18849,
 "sido": "11"
 },
 "1126066000": {
 "gu": "중랑구",
 "hdong": "망우제3동",
-"population": 15145,
-"households": 8275,
+"population": 15107,
+"households": 8259,
 "sido": "11"
 },
 "1126068000": {
 "gu": "중랑구",
 "hdong": "신내1동",
-"population": 36560,
-"households": 14773,
+"population": 36544,
+"households": 14761,
 "sido": "11"
 },
 "1126069000": {
 "gu": "중랑구",
 "hdong": "신내2동",
-"population": 18847,
-"households": 8847,
+"population": 18800,
+"households": 8843,
 "sido": "11"
 },
 "1129052500": {
 "gu": "성북구",
 "hdong": "성북동",
-"population": 15458,
-"households": 8041,
+"population": 15452,
+"households": 8054,
 "sido": "11"
 },
 "1129055500": {
 "gu": "성북구",
 "hdong": "삼선동",
-"population": 21522,
-"households": 11480,
+"population": 21493,
+"households": 11482,
 "sido": "11"
 },
 "1129057500": {
 "gu": "성북구",
 "hdong": "동선동",
-"population": 14938,
-"households": 9946,
+"population": 14905,
+"households": 9908,
 "sido": "11"
 },
 "1129058000": {
 "gu": "성북구",
 "hdong": "돈암제1동",
-"population": 13617,
-"households": 5977,
+"population": 13578,
+"households": 5968,
 "sido": "11"
 },
 "1129059000": {
 "gu": "성북구",
 "hdong": "돈암제2동",
-"population": 22722,
-"households": 8507,
+"population": 22680,
+"households": 8501,
 "sido": "11"
 },
 "1129060000": {
 "gu": "성북구",
 "hdong": "안암동",
-"population": 15557,
-"households": 10498,
+"population": 15489,
+"households": 10456,
 "sido": "11"
 },
 "1129061000": {
 "gu": "성북구",
 "hdong": "보문동",
-"population": 15616,
-"households": 8069,
+"population": 15816,
+"households": 8129,
 "sido": "11"
 },
 "1129062000": {
 "gu": "성북구",
 "hdong": "정릉제1동",
-"population": 17438,
-"households": 7343,
+"population": 17414,
+"households": 7333,
 "sido": "11"
 },
 "1129063000": {
 "gu": "성북구",
 "hdong": "정릉제2동",
-"population": 21348,
-"households": 9489,
+"population": 21284,
+"households": 9488,
 "sido": "11"
 },
 "1129064000": {
 "gu": "성북구",
 "hdong": "정릉제3동",
-"population": 13842,
-"households": 7965,
+"population": 13810,
+"households": 7944,
 "sido": "11"
 },
 "1129065000": {
 "gu": "성북구",
 "hdong": "정릉제4동",
-"population": 23350,
-"households": 10768,
+"population": 23343,
+"households": 10770,
 "sido": "11"
 },
 "1129066000": {
 "gu": "성북구",
 "hdong": "길음제1동",
-"population": 35332,
-"households": 12789,
+"population": 35226,
+"households": 12764,
 "sido": "11"
 },
 "1129068500": {
 "gu": "성북구",
 "hdong": "길음제2동",
-"population": 21390,
-"households": 8635,
+"population": 21415,
+"households": 8634,
 "sido": "11"
 },
 "1129070500": {
 "gu": "성북구",
 "hdong": "종암동",
-"population": 36568,
-"households": 17194,
+"population": 36559,
+"households": 17189,
 "sido": "11"
 },
 "1129071500": {
 "gu": "성북구",
 "hdong": "월곡제1동",
-"population": 24374,
-"households": 10606,
+"population": 24394,
+"households": 10629,
 "sido": "11"
 },
 "1129072500": {
 "gu": "성북구",
 "hdong": "월곡제2동",
-"population": 18341,
-"households": 9629,
+"population": 18348,
+"households": 9624,
 "sido": "11"
 },
 "1129076000": {
 "gu": "성북구",
 "hdong": "장위제1동",
-"population": 22460,
-"households": 10598,
+"population": 22475,
+"households": 10595,
 "sido": "11"
 },
 "1129077000": {
 "gu": "성북구",
 "hdong": "장위제2동",
-"population": 15666,
-"households": 7830,
+"population": 15681,
+"households": 7838,
 "sido": "11"
 },
 "1129078000": {
 "gu": "성북구",
 "hdong": "장위제3동",
-"population": 18727,
-"households": 7681,
+"population": 18716,
+"households": 7674,
 "sido": "11"
 },
 "1129081000": {
 "gu": "성북구",
 "hdong": "석관동",
-"population": 32727,
-"households": 16663,
+"population": 32728,
+"households": 16673,
 "sido": "11"
 },
 "1130553400": {
 "gu": "강북구",
 "hdong": "삼양동",
-"population": 24198,
-"households": 11726,
+"population": 24153,
+"households": 11717,
 "sido": "11"
 },
 "1130553500": {
 "gu": "강북구",
 "hdong": "미아동",
-"population": 20203,
-"households": 11859,
+"population": 20310,
+"households": 11919,
 "sido": "11"
 },
 "1130554500": {
 "gu": "강북구",
 "hdong": "송중동",
-"population": 27107,
-"households": 13535,
+"population": 27068,
+"households": 13540,
 "sido": "11"
 },
 "1130555500": {
 "gu": "강북구",
 "hdong": "송천동",
-"population": 22652,
-"households": 12122,
+"population": 22648,
+"households": 12126,
 "sido": "11"
 },
 "1130557500": {
 "gu": "강북구",
 "hdong": "삼각산동",
-"population": 29810,
-"households": 11528,
+"population": 29784,
+"households": 11514,
 "sido": "11"
 },
 "1130559500": {
 "gu": "강북구",
 "hdong": "번1동",
-"population": 15825,
-"households": 9618,
+"population": 15826,
+"households": 9613,
 "sido": "11"
 },
 "1130560300": {
 "gu": "강북구",
 "hdong": "번2동",
-"population": 14073,
-"households": 7349,
+"population": 14051,
+"households": 7355,
 "sido": "11"
 },
 "1130560800": {
 "gu": "강북구",
 "hdong": "번3동",
-"population": 15254,
-"households": 7493,
+"population": 15219,
+"households": 7487,
 "sido": "11"
 },
 "1130561500": {
 "gu": "강북구",
 "hdong": "수유1동",
-"population": 19210,
-"households": 10485,
+"population": 19169,
+"households": 10477,
 "sido": "11"
 },
 "1130562500": {
 "gu": "강북구",
 "hdong": "수유2동",
-"population": 19687,
-"households": 9655,
+"population": 19691,
+"households": 9664,
 "sido": "11"
 },
 "1130563500": {
 "gu": "강북구",
 "hdong": "수유3동",
-"population": 22175,
-"households": 13577,
+"population": 22150,
+"households": 13538,
 "sido": "11"
 },
 "1130564500": {
 "gu": "강북구",
 "hdong": "우이동",
-"population": 19331,
-"households": 9669,
+"population": 19317,
+"households": 9659,
 "sido": "11"
 },
 "1130566000": {
 "gu": "강북구",
 "hdong": "인수동",
-"population": 27782,
-"households": 14073,
+"population": 27760,
+"households": 14092,
 "sido": "11"
 },
 "1132051100": {
 "gu": "도봉구",
 "hdong": "창제1동",
-"population": 22525,
-"households": 10538,
+"population": 22457,
+"households": 10512,
 "sido": "11"
 },
 "1132051200": {
 "gu": "도봉구",
 "hdong": "창제2동",
-"population": 27413,
-"households": 12760,
+"population": 27381,
+"households": 12755,
 "sido": "11"
 },
 "1132051300": {
 "gu": "도봉구",
 "hdong": "창제3동",
-"population": 12498,
-"households": 6325,
+"population": 12473,
+"households": 6310,
 "sido": "11"
 },
 "1132051400": {
 "gu": "도봉구",
 "hdong": "창제4동",
-"population": 25791,
-"households": 11305,
+"population": 25783,
+"households": 11311,
 "sido": "11"
 },
 "1132051500": {
 "gu": "도봉구",
 "hdong": "창제5동",
-"population": 23268,
-"households": 10363,
+"population": 23249,
+"households": 10365,
 "sido": "11"
 },
 "1132052100": {
 "gu": "도봉구",
 "hdong": "도봉제1동",
-"population": 19261,
-"households": 10252,
+"population": 19241,
+"households": 10256,
 "sido": "11"
 },
 "1132052200": {
 "gu": "도봉구",
 "hdong": "도봉제2동",
-"population": 25729,
+"population": 25743,
 "households": 11928,
 "sido": "11"
 },
 "1132066000": {
 "gu": "도봉구",
 "hdong": "쌍문제1동",
-"population": 20442,
-"households": 9783,
+"population": 20433,
+"households": 9793,
 "sido": "11"
 },
 "1132067000": {
 "gu": "도봉구",
 "hdong": "쌍문제2동",
-"population": 17227,
+"population": 17208,
 "households": 8435,
 "sido": "11"
 },
 "1132068000": {
 "gu": "도봉구",
 "hdong": "쌍문제3동",
-"population": 15842,
-"households": 8212,
+"population": 15769,
+"households": 8177,
 "sido": "11"
 },
 "1132068100": {
 "gu": "도봉구",
 "hdong": "쌍문제4동",
-"population": 17521,
-"households": 7092,
+"population": 17517,
+"households": 7090,
 "sido": "11"
 },
 "1132069000": {
 "gu": "도봉구",
 "hdong": "방학제1동",
-"population": 27710,
-"households": 13267,
+"population": 27705,
+"households": 13263,
 "sido": "11"
 },
 "1132070000": {
 "gu": "도봉구",
 "hdong": "방학제2동",
-"population": 17337,
-"households": 9038,
+"population": 17303,
+"households": 9034,
 "sido": "11"
 },
 "1132071000": {
 "gu": "도봉구",
 "hdong": "방학제3동",
-"population": 25208,
-"households": 9930,
+"population": 25202,
+"households": 9922,
 "sido": "11"
 },
 "1135056000": {
 "gu": "노원구",
 "hdong": "월계1동",
-"population": 19982,
-"households": 10253,
+"population": 19512,
+"households": 10070,
 "sido": "11"
 },
 "1135057000": {
 "gu": "노원구",
 "hdong": "월계2동",
-"population": 24494,
-"households": 11590,
+"population": 24436,
+"households": 11574,
 "sido": "11"
 },
 "1135058000": {
 "gu": "노원구",
 "hdong": "월계3동",
-"population": 27579,
-"households": 12824,
+"population": 27547,
+"households": 12815,
 "sido": "11"
 },
 "1135059500": {
 "gu": "노원구",
 "hdong": "공릉1동",
-"population": 35079,
-"households": 18947,
+"population": 35100,
+"households": 18973,
 "sido": "11"
 },
 "1135060000": {
 "gu": "노원구",
 "hdong": "공릉2동",
-"population": 40662,
-"households": 18058,
+"population": 40681,
+"households": 18053,
 "sido": "11"
 },
 "1135061100": {
 "gu": "노원구",
 "hdong": "하계1동",
-"population": 25174,
-"households": 12176,
+"population": 25157,
+"households": 12151,
 "sido": "11"
 },
 "1135061200": {
 "gu": "노원구",
 "hdong": "하계2동",
-"population": 19396,
-"households": 7571,
+"population": 19377,
+"households": 7557,
 "sido": "11"
 },
 "1135061900": {
 "gu": "노원구",
 "hdong": "중계본동",
-"population": 22009,
-"households": 7830,
+"population": 21982,
+"households": 7818,
 "sido": "11"
 },
 "1135062100": {
 "gu": "노원구",
 "hdong": "중계1동",
-"population": 25733,
-"households": 8943,
+"population": 25749,
+"households": 8933,
 "sido": "11"
 },
 "1135062400": {
 "gu": "노원구",
 "hdong": "중계4동",
-"population": 18455,
-"households": 8088,
+"population": 18449,
+"households": 8087,
 "sido": "11"
 },
 "1135062500": {
 "gu": "노원구",
 "hdong": "중계2.3동",
-"population": 30951,
-"households": 14901,
+"population": 30904,
+"households": 14889,
 "sido": "11"
 },
 "1135063000": {
 "gu": "노원구",
 "hdong": "상계1동",
-"population": 35838,
-"households": 15680,
+"population": 35829,
+"households": 15666,
 "sido": "11"
 },
 "1135064000": {
 "gu": "노원구",
 "hdong": "상계2동",
-"population": 18471,
-"households": 8534,
+"population": 18463,
+"households": 8538,
 "sido": "11"
 },
 "1135066500": {
 "gu": "노원구",
 "hdong": "상계3.4동",
-"population": 26002,
-"households": 12134,
+"population": 25704,
+"households": 11982,
 "sido": "11"
 },
 "1135067000": {
 "gu": "노원구",
 "hdong": "상계5동",
-"population": 21945,
-"households": 10865,
+"population": 21920,
+"households": 10862,
 "sido": "11"
 },
 "1135069500": {
 "gu": "노원구",
 "hdong": "상계6.7동",
-"population": 30032,
-"households": 13738,
+"population": 30011,
+"households": 13723,
 "sido": "11"
 },
 "1135070000": {
 "gu": "노원구",
 "hdong": "상계8동",
-"population": 21197,
-"households": 9102,
+"population": 21192,
+"households": 9090,
 "sido": "11"
 },
 "1135071000": {
 "gu": "노원구",
 "hdong": "상계9동",
-"population": 18802,
-"households": 8319,
+"population": 18790,
+"households": 8317,
 "sido": "11"
 },
 "1135072000": {
 "gu": "노원구",
 "hdong": "상계10동",
-"population": 17842,
-"households": 7753,
+"population": 17835,
+"households": 7775,
 "sido": "11"
 },
 "1138051000": {
 "gu": "은평구",
 "hdong": "녹번동",
-"population": 34977,
-"households": 17551,
+"population": 34946,
+"households": 17544,
 "sido": "11"
 },
 "1138052000": {
 "gu": "은평구",
 "hdong": "불광제1동",
-"population": 33450,
-"households": 16248,
+"population": 33427,
+"households": 16229,
 "sido": "11"
 },
 "1138053000": {
 "gu": "은평구",
 "hdong": "불광제2동",
-"population": 26048,
-"households": 14169,
+"population": 26051,
+"households": 14177,
 "sido": "11"
 },
 "1138055100": {
 "gu": "은평구",
 "hdong": "갈현제1동",
-"population": 13917,
+"population": 13911,
 "households": 7195,
 "sido": "11"
 },
 "1138055200": {
 "gu": "은평구",
 "hdong": "갈현제2동",
-"population": 26548,
-"households": 12762,
+"population": 26527,
+"households": 12742,
 "sido": "11"
 },
 "1138056000": {
 "gu": "은평구",
 "hdong": "구산동",
-"population": 30440,
-"households": 13537,
+"population": 30430,
+"households": 13545,
 "sido": "11"
 },
 "1138057000": {
 "gu": "은평구",
 "hdong": "대조동",
-"population": 26819,
-"households": 15542,
+"population": 26816,
+"households": 15555,
 "sido": "11"
 },
 "1138058000": {
 "gu": "은평구",
 "hdong": "응암제1동",
-"population": 31897,
-"households": 15160,
+"population": 31951,
+"households": 15197,
 "sido": "11"
 },
 "1138059000": {
 "gu": "은평구",
 "hdong": "응암제2동",
-"population": 26658,
-"households": 10928,
+"population": 26656,
+"households": 10932,
 "sido": "11"
 },
 "1138060000": {
 "gu": "은평구",
 "hdong": "응암제3동",
-"population": 22638,
-"households": 12522,
+"population": 22589,
+"households": 12496,
 "sido": "11"
 },
 "1138062500": {
 "gu": "은평구",
 "hdong": "역촌동",
-"population": 44223,
-"households": 21353,
+"population": 44205,
+"households": 21355,
 "sido": "11"
 },
 "1138063100": {
 "gu": "은평구",
 "hdong": "신사제1동",
-"population": 25792,
-"households": 12171,
+"population": 25776,
+"households": 12184,
 "sido": "11"
 },
 "1138063200": {
 "gu": "은평구",
 "hdong": "신사제2동",
-"population": 19272,
-"households": 9045,
+"population": 19276,
+"households": 9050,
 "sido": "11"
 },
 "1138064000": {
 "gu": "은평구",
 "hdong": "증산동",
-"population": 15095,
-"households": 6568,
+"population": 15089,
+"households": 6569,
 "sido": "11"
 },
 "1138065000": {
 "gu": "은평구",
 "hdong": "수색동",
-"population": 21063,
-"households": 8613,
+"population": 21072,
+"households": 8609,
 "sido": "11"
 },
 "1138069000": {
 "gu": "은평구",
 "hdong": "진관동",
-"population": 53553,
-"households": 21608,
+"population": 53552,
+"households": 21606,
 "sido": "11"
 },
 "1141052000": {
 "gu": "서대문구",
 "hdong": "천연동",
-"population": 16535,
-"households": 7765,
+"population": 16584,
+"households": 7792,
 "sido": "11"
 },
 "1141055500": {
 "gu": "서대문구",
 "hdong": "북아현동",
-"population": 14881,
-"households": 6940,
+"population": 14766,
+"households": 6874,
 "sido": "11"
 },
 "1141056500": {
 "gu": "서대문구",
 "hdong": "충현동",
-"population": 19066,
-"households": 9930,
+"population": 19095,
+"households": 9949,
 "sido": "11"
 },
 "1141058500": {
 "gu": "서대문구",
 "hdong": "신촌동",
-"population": 20615,
-"households": 15512,
+"population": 20444,
+"households": 15378,
 "sido": "11"
 },
 "1141061500": {
 "gu": "서대문구",
 "hdong": "연희동",
-"population": 32902,
-"households": 18636,
+"population": 32807,
+"households": 18606,
 "sido": "11"
 },
 "1141062000": {
 "gu": "서대문구",
 "hdong": "홍제제1동",
-"population": 24200,
-"households": 11222,
+"population": 24157,
+"households": 11204,
 "sido": "11"
 },
 "1141064000": {
 "gu": "서대문구",
 "hdong": "홍제제3동",
-"population": 17097,
-"households": 7926,
+"population": 17093,
+"households": 7938,
 "sido": "11"
 },
 "1141065500": {
 "gu": "서대문구",
 "hdong": "홍제제2동",
-"population": 11754,
-"households": 5223,
+"population": 11640,
+"households": 5173,
 "sido": "11"
 },
 "1141066000": {
 "gu": "서대문구",
 "hdong": "홍은제1동",
-"population": 23326,
-"households": 10422,
+"population": 23356,
+"households": 10423,
 "sido": "11"
 },
 "1141068500": {
 "gu": "서대문구",
 "hdong": "홍은제2동",
-"population": 26945,
-"households": 12734,
+"population": 26935,
+"households": 12730,
 "sido": "11"
 },
 "1141069000": {
 "gu": "서대문구",
 "hdong": "남가좌제1동",
-"population": 17254,
-"households": 6389,
+"population": 17221,
+"households": 6380,
 "sido": "11"
 },
 "1141070000": {
 "gu": "서대문구",
 "hdong": "남가좌제2동",
-"population": 28282,
-"households": 13242,
+"population": 28299,
+"households": 13267,
 "sido": "11"
 },
 "1141071000": {
 "gu": "서대문구",
 "hdong": "북가좌제1동",
-"population": 16999,
-"households": 6700,
+"population": 17008,
+"households": 6709,
 "sido": "11"
 },
 "1141072000": {
 "gu": "서대문구",
 "hdong": "북가좌제2동",
 "population": 29398,
-"households": 14498,
+"households": 14508,
 "sido": "11"
 },
 "1144055500": {
 "gu": "마포구",
 "hdong": "아현동",
-"population": 28575,
-"households": 12137,
+"population": 28547,
+"households": 12121,
 "sido": "11"
 },
 "1144056500": {
 "gu": "마포구",
 "hdong": "공덕동",
-"population": 35754,
-"households": 18480,
+"population": 35703,
+"households": 18450,
 "sido": "11"
 },
 "1144058500": {
 "gu": "마포구",
 "hdong": "도화동",
-"population": 20194,
-"households": 9315,
+"population": 20206,
+"households": 9330,
 "sido": "11"
 },
 "1144059000": {
 "gu": "마포구",
 "hdong": "용강동",
-"population": 21195,
-"households": 9279,
+"population": 21206,
+"households": 9274,
 "sido": "11"
 },
 "1144060000": {
 "gu": "마포구",
 "hdong": "대흥동",
-"population": 14179,
-"households": 8658,
+"population": 14181,
+"households": 8654,
 "sido": "11"
 },
 "1144061000": {
 "gu": "마포구",
 "hdong": "염리동",
-"population": 16664,
-"households": 7692,
+"population": 16668,
+"households": 7680,
 "sido": "11"
 },
 "1144063000": {
 "gu": "마포구",
 "hdong": "신수동",
-"population": 22252,
-"households": 10224,
+"population": 22437,
+"households": 10283,
 "sido": "11"
 },
 "1144065500": {
 "gu": "마포구",
 "hdong": "서강동",
-"population": 24213,
-"households": 12272,
+"population": 24175,
+"households": 12256,
 "sido": "11"
 },
 "1144066000": {
 "gu": "마포구",
 "hdong": "서교동",
-"population": 23266,
-"households": 15064,
+"population": 23242,
+"households": 15061,
 "sido": "11"
 },
 "1144068000": {
 "gu": "마포구",
 "hdong": "합정동",
-"population": 15412,
-"households": 8858,
+"population": 15409,
+"households": 8865,
 "sido": "11"
 },
 "1144069000": {
 "gu": "마포구",
 "hdong": "망원제1동",
-"population": 18332,
-"households": 9999,
+"population": 18284,
+"households": 9974,
 "sido": "11"
 },
 "1144070000": {
 "gu": "마포구",
 "hdong": "망원제2동",
-"population": 17011,
-"households": 8167,
+"population": 16987,
+"households": 8171,
 "sido": "11"
 },
 "1144071000": {
 "gu": "마포구",
 "hdong": "연남동",
-"population": 13823,
-"households": 8281,
+"population": 13780,
+"households": 8264,
 "sido": "11"
 },
 "1144072000": {
 "gu": "마포구",
 "hdong": "성산제1동",
-"population": 18272,
-"households": 9670,
+"population": 18277,
+"households": 9700,
 "sido": "11"
 },
 "1144073000": {
 "gu": "마포구",
 "hdong": "성산제2동",
-"population": 37741,
-"households": 19633,
+"population": 37738,
+"households": 19655,
 "sido": "11"
 },
 "1144074000": {
 "gu": "마포구",
 "hdong": "상암동",
-"population": 28923,
-"households": 12755,
+"population": 28930,
+"households": 12750,
 "sido": "11"
 },
 "1147051000": {
 "gu": "양천구",
 "hdong": "목1동",
-"population": 29857,
-"households": 10353,
+"population": 29847,
+"households": 10354,
 "sido": "11"
 },
 "1147052000": {
 "gu": "양천구",
 "hdong": "목2동",
-"population": 27704,
-"households": 13254,
+"population": 27697,
+"households": 13260,
 "sido": "11"
 },
 "1147053000": {
 "gu": "양천구",
 "hdong": "목3동",
-"population": 20494,
-"households": 10104,
+"population": 20479,
+"households": 10101,
 "sido": "11"
 },
 "1147054000": {
 "gu": "양천구",
 "hdong": "목4동",
-"population": 23402,
-"households": 9850,
+"population": 23398,
+"households": 9863,
 "sido": "11"
 },
 "1147055000": {
 "gu": "양천구",
 "hdong": "목5동",
-"population": 40287,
-"households": 13526,
+"population": 40289,
+"households": 13528,
 "sido": "11"
 },
 "1147056000": {
 "gu": "양천구",
 "hdong": "신월1동",
-"population": 18380,
-"households": 9876,
+"population": 18367,
+"households": 9886,
 "sido": "11"
 },
 "1147057000": {
 "gu": "양천구",
 "hdong": "신월2동",
 "population": 20330,
-"households": 8722,
+"households": 8718,
 "sido": "11"
 },
 "1147058000": {
 "gu": "양천구",
 "hdong": "신월3동",
-"population": 13394,
-"households": 7403,
+"population": 13395,
+"households": 7393,
 "sido": "11"
 },
 "1147059000": {
 "gu": "양천구",
 "hdong": "신월4동",
-"population": 16542,
-"households": 6763,
+"population": 16534,
+"households": 6767,
 "sido": "11"
 },
 "1147060000": {
 "gu": "양천구",
 "hdong": "신월5동",
-"population": 13578,
-"households": 6368,
+"population": 13599,
+"households": 6378,
 "sido": "11"
 },
 "1147061000": {
 "gu": "양천구",
 "hdong": "신월6동",
-"population": 13514,
-"households": 5300,
+"population": 13544,
+"households": 5302,
 "sido": "11"
 },
 "1147061100": {
 "gu": "양천구",
 "hdong": "신월7동",
-"population": 17809,
-"households": 9095,
+"population": 17781,
+"households": 9089,
 "sido": "11"
 },
 "1147062000": {
 "gu": "양천구",
 "hdong": "신정1동",
-"population": 19342,
-"households": 6948,
+"population": 19359,
+"households": 6937,
 "sido": "11"
 },
 "1147063000": {
 "gu": "양천구",
 "hdong": "신정2동",
-"population": 18628,
-"households": 6910,
+"population": 18644,
+"households": 6914,
 "sido": "11"
 },
 "1147064000": {
 "gu": "양천구",
 "hdong": "신정3동",
-"population": 43886,
-"households": 17776,
+"population": 43799,
+"households": 17753,
 "sido": "11"
 },
 "1147065000": {
 "gu": "양천구",
 "hdong": "신정4동",
-"population": 31172,
-"households": 16723,
+"population": 31108,
+"households": 16698,
 "sido": "11"
 },
 "1147067000": {
 "gu": "양천구",
 "hdong": "신정6동",
-"population": 23764,
-"households": 8214,
+"population": 23804,
+"households": 8219,
 "sido": "11"
 },
 "1147068000": {
 "gu": "양천구",
 "hdong": "신정7동",
-"population": 27605,
-"households": 11509,
+"population": 27615,
+"households": 11523,
 "sido": "11"
 },
 "1150051000": {
 "gu": "강서구",
 "hdong": "염창동",
-"population": 40971,
-"households": 16851,
+"population": 40955,
+"households": 16858,
 "sido": "11"
 },
 "1150052000": {
 "gu": "강서구",
 "hdong": "등촌제1동",
-"population": 24831,
-"households": 14274,
+"population": 24802,
+"households": 14246,
 "sido": "11"
 },
 "1150053000": {
 "gu": "강서구",
 "hdong": "등촌제2동",
-"population": 18850,
-"households": 8636,
+"population": 18819,
+"households": 8640,
 "sido": "11"
 },
 "1150053500": {
 "gu": "강서구",
 "hdong": "등촌제3동",
-"population": 28407,
-"households": 15077,
+"population": 28358,
+"households": 15062,
 "sido": "11"
 },
 "1150054000": {
 "gu": "강서구",
 "hdong": "화곡제1동",
-"population": 49574,
-"households": 28391,
+"population": 49558,
+"households": 28422,
 "sido": "11"
 },
 "1150055000": {
 "gu": "강서구",
 "hdong": "화곡제2동",
-"population": 16624,
-"households": 8250,
+"population": 16591,
+"households": 8257,
 "sido": "11"
 },
 "1150056000": {
 "gu": "강서구",
 "hdong": "화곡제3동",
-"population": 20420,
-"households": 9683,
+"population": 20402,
+"households": 9682,
 "sido": "11"
 },
 "1150057000": {
 "gu": "강서구",
 "hdong": "화곡제4동",
-"population": 18942,
-"households": 9688,
+"population": 18963,
+"households": 9708,
 "sido": "11"
 },
 "1150059000": {
 "gu": "강서구",
 "hdong": "화곡본동",
-"population": 31572,
-"households": 17301,
+"population": 31600,
+"households": 17311,
 "sido": "11"
 },
 "1150059100": {
 "gu": "강서구",
 "hdong": "화곡제6동",
-"population": 25204,
-"households": 13433,
+"population": 25235,
+"households": 13458,
 "sido": "11"
 },
 "1150059300": {
 "gu": "강서구",
 "hdong": "화곡제8동",
-"population": 22260,
-"households": 11543,
+"population": 22239,
+"households": 11542,
 "sido": "11"
 },
 "1150060300": {
 "gu": "강서구",
 "hdong": "가양제1동",
-"population": 33322,
-"households": 21051,
+"population": 33252,
+"households": 21043,
 "sido": "11"
 },
 "1150060400": {
 "gu": "강서구",
 "hdong": "가양제2동",
-"population": 12751,
-"households": 7900,
+"population": 12748,
+"households": 7898,
 "sido": "11"
 },
 "1150060500": {
 "gu": "강서구",
 "hdong": "가양제3동",
-"population": 13266,
-"households": 7506,
+"population": 13253,
+"households": 7484,
 "sido": "11"
 },
 "1150061100": {
 "gu": "강서구",
 "hdong": "발산제1동",
-"population": 34432,
-"households": 13609,
+"population": 34395,
+"households": 13608,
 "sido": "11"
 },
 "1150061500": {
 "gu": "강서구",
 "hdong": "우장산동",
-"population": 43501,
-"households": 17444,
+"population": 43496,
+"households": 17446,
 "sido": "11"
 },
 "1150062000": {
 "gu": "강서구",
 "hdong": "공항동",
-"population": 29289,
-"households": 14084,
+"population": 29891,
+"households": 14344,
 "sido": "11"
 },
 "1150063000": {
 "gu": "강서구",
 "hdong": "방화제1동",
-"population": 40391,
-"households": 16840,
+"population": 40347,
+"households": 16848,
 "sido": "11"
 },
 "1150064000": {
 "gu": "강서구",
 "hdong": "방화제2동",
-"population": 22240,
-"households": 12248,
+"population": 21801,
+"households": 12036,
 "sido": "11"
 },
 "1150064100": {
 "gu": "강서구",
 "hdong": "방화제3동",
-"population": 21113,
-"households": 11095,
+"population": 21111,
+"households": 11103,
 "sido": "11"
 },
 "1153051000": {
 "gu": "구로구",
 "hdong": "신도림동",
-"population": 35688,
-"households": 14448,
+"population": 35723,
+"households": 14454,
 "sido": "11"
 },
 "1153052000": {
 "gu": "구로구",
 "hdong": "구로제1동",
-"population": 20025,
-"households": 8443,
+"population": 19981,
+"households": 8442,
 "sido": "11"
 },
 "1153053000": {
 "gu": "구로구",
 "hdong": "구로제2동",
-"population": 21577,
-"households": 12081,
+"population": 21516,
+"households": 12074,
 "sido": "11"
 },
 "1153054000": {
 "gu": "구로구",
 "hdong": "구로제3동",
-"population": 22631,
-"households": 13698,
+"population": 22588,
+"households": 13682,
 "sido": "11"
 },
 "1153055000": {
 "gu": "구로구",
 "hdong": "구로제4동",
-"population": 17544,
-"households": 10089,
+"population": 17503,
+"households": 10064,
 "sido": "11"
 },
 "1153056000": {
 "gu": "구로구",
 "hdong": "구로제5동",
-"population": 28445,
-"households": 15608,
+"population": 28411,
+"households": 15586,
 "sido": "11"
 },
 "1153059500": {
 "gu": "구로구",
 "hdong": "가리봉동",
-"population": 8874,
-"households": 6233,
+"population": 8917,
+"households": 6260,
 "sido": "11"
 },
 "1153072000": {
 "gu": "구로구",
 "hdong": "고척제1동",
-"population": 26248,
-"households": 11740,
+"population": 26180,
+"households": 11721,
 "sido": "11"
 },
 "1153073000": {
 "gu": "구로구",
 "hdong": "고척제2동",
-"population": 24647,
-"households": 11327,
+"population": 24597,
+"households": 11309,
 "sido": "11"
 },
 "1153074000": {
 "gu": "구로구",
 "hdong": "개봉제1동",
-"population": 33153,
-"households": 15432,
+"population": 33259,
+"households": 15553,
 "sido": "11"
 },
 "1153075000": {
 "gu": "구로구",
 "hdong": "개봉제2동",
-"population": 29048,
-"households": 12740,
+"population": 29033,
+"households": 12745,
 "sido": "11"
 },
 "1153076000": {
 "gu": "구로구",
 "hdong": "개봉제3동",
-"population": 18443,
-"households": 8544,
+"population": 18470,
+"households": 8558,
 "sido": "11"
 },
 "1153077000": {
 "gu": "구로구",
 "hdong": "오류제1동",
-"population": 22982,
-"households": 13348,
+"population": 22952,
+"households": 13357,
 "sido": "11"
 },
 "1153078000": {
 "gu": "구로구",
 "hdong": "오류제2동",
-"population": 35294,
-"households": 15506,
+"population": 35235,
+"households": 15507,
 "sido": "11"
 },
 "1153079000": {
 "gu": "구로구",
 "hdong": "수궁동",
-"population": 21624,
-"households": 9942,
+"population": 21564,
+"households": 9912,
 "sido": "11"
 },
 "1153080000": {
 "gu": "구로구",
 "hdong": "항동",
-"population": 15940,
-"households": 6211,
+"population": 15951,
+"households": 6204,
 "sido": "11"
 },
 "1154551000": {
 "gu": "금천구",
 "hdong": "가산동",
-"population": 25665,
-"households": 18983,
+"population": 25663,
+"households": 18968,
 "sido": "11"
 },
 "1154561000": {
 "gu": "금천구",
 "hdong": "독산제1동",
-"population": 47891,
-"households": 26968,
+"population": 47977,
+"households": 27062,
 "sido": "11"
 },
 "1154562000": {
 "gu": "금천구",
 "hdong": "독산제2동",
-"population": 16960,
-"households": 9344,
+"population": 16950,
+"households": 9335,
 "sido": "11"
 },
 "1154563000": {
 "gu": "금천구",
 "hdong": "독산제3동",
-"population": 22516,
-"households": 12749,
+"population": 22481,
+"households": 12741,
 "sido": "11"
 },
 "1154564000": {
 "gu": "금천구",
 "hdong": "독산제4동",
-"population": 13789,
-"households": 7438,
+"population": 13786,
+"households": 7448,
 "sido": "11"
 },
 "1154567000": {
 "gu": "금천구",
 "hdong": "시흥제1동",
-"population": 30952,
-"households": 16363,
+"population": 31060,
+"households": 16418,
 "sido": "11"
 },
 "1154568000": {
 "gu": "금천구",
 "hdong": "시흥제2동",
-"population": 19647,
-"households": 8167,
+"population": 19597,
+"households": 8159,
 "sido": "11"
 },
 "1154569000": {
 "gu": "금천구",
 "hdong": "시흥제3동",
-"population": 9830,
-"households": 4657,
+"population": 9785,
+"households": 4643,
 "sido": "11"
 },
 "1154570000": {
 "gu": "금천구",
 "hdong": "시흥제4동",
-"population": 18084,
-"households": 8767,
+"population": 17657,
+"households": 8557,
 "sido": "11"
 },
 "1154571000": {
 "gu": "금천구",
 "hdong": "시흥제5동",
-"population": 17096,
-"households": 8909,
+"population": 17088,
+"households": 8912,
 "sido": "11"
 },
 "1156051500": {
 "gu": "영등포구",
 "hdong": "영등포본동",
-"population": 20185,
-"households": 10412,
+"population": 20169,
+"households": 10398,
 "sido": "11"
 },
 "1156053500": {
 "gu": "영등포구",
 "hdong": "영등포동",
-"population": 31195,
-"households": 22303,
+"population": 31165,
+"households": 22271,
 "sido": "11"
 },
 "1156054000": {
 "gu": "영등포구",
 "hdong": "여의동",
-"population": 33775,
-"households": 14196,
+"population": 33406,
+"households": 14070,
 "sido": "11"
 },
 "1156055000": {
 "gu": "영등포구",
 "hdong": "당산제1동",
-"population": 21001,
-"households": 11947,
+"population": 20941,
+"households": 11903,
 "sido": "11"
 },
 "1156056000": {
 "gu": "영등포구",
 "hdong": "당산제2동",
-"population": 36071,
-"households": 18956,
+"population": 36022,
+"households": 18930,
 "sido": "11"
 },
 "1156058500": {
 "gu": "영등포구",
 "hdong": "도림동",
-"population": 17545,
-"households": 9988,
+"population": 17525,
+"households": 9978,
 "sido": "11"
 },
 "1156060500": {
 "gu": "영등포구",
 "hdong": "문래동",
-"population": 31095,
-"households": 12989,
+"population": 31081,
+"households": 12977,
 "sido": "11"
 },
 "1156061000": {
 "gu": "영등포구",
 "hdong": "양평제1동",
-"population": 19685,
-"households": 10683,
+"population": 19698,
+"households": 10681,
 "sido": "11"
 },
 "1156062000": {
 "gu": "영등포구",
 "hdong": "양평제2동",
-"population": 22348,
-"households": 11284,
+"population": 22334,
+"households": 11264,
 "sido": "11"
 },
 "1156063000": {
 "gu": "영등포구",
 "hdong": "신길제1동",
-"population": 18852,
-"households": 11710,
+"population": 18866,
+"households": 11726,
 "sido": "11"
 },
 "1156065000": {
 "gu": "영등포구",
 "hdong": "신길제3동",
-"population": 16030,
-"households": 7888,
+"population": 15992,
+"households": 7883,
 "sido": "11"
 },
 "1156066000": {
 "gu": "영등포구",
 "hdong": "신길제4동",
-"population": 11753,
-"households": 5706,
+"population": 11748,
+"households": 5700,
 "sido": "11"
 },
 "1156067000": {
 "gu": "영등포구",
 "hdong": "신길제5동",
-"population": 9481,
-"households": 4445,
+"population": 9448,
+"households": 4438,
 "sido": "11"
 },
 "1156068000": {
 "gu": "영등포구",
 "hdong": "신길제6동",
-"population": 17713,
-"households": 9225,
+"population": 17724,
+"households": 9230,
 "sido": "11"
 },
 "1156069000": {
 "gu": "영등포구",
 "hdong": "신길제7동",
-"population": 19277,
-"households": 7865,
+"population": 19272,
+"households": 7868,
 "sido": "11"
 },
 "1156070000": {
 "gu": "영등포구",
 "hdong": "대림제1동",
-"population": 13178,
-"households": 6802,
+"population": 13167,
+"households": 6795,
 "sido": "11"
 },
 "1156071000": {
 "gu": "영등포구",
 "hdong": "대림제2동",
-"population": 11403,
-"households": 6839,
+"population": 11390,
+"households": 6831,
 "sido": "11"
 },
 "1156072000": {
 "gu": "영등포구",
 "hdong": "대림제3동",
-"population": 20569,
-"households": 10238,
+"population": 20568,
+"households": 10248,
 "sido": "11"
 },
 "1159051000": {
 "gu": "동작구",
 "hdong": "노량진제1동",
-"population": 33319,
-"households": 18410,
+"population": 33191,
+"households": 18337,
 "sido": "11"
 },
 "1159052000": {
 "gu": "동작구",
 "hdong": "노량진제2동",
-"population": 7062,
-"households": 5074,
+"population": 6629,
+"households": 4841,
 "sido": "11"
 },
 "1159053000": {
 "gu": "동작구",
 "hdong": "상도제1동",
-"population": 43854,
-"households": 23228,
+"population": 43821,
+"households": 23208,
 "sido": "11"
 },
 "1159054000": {
 "gu": "동작구",
 "hdong": "상도제2동",
-"population": 26657,
-"households": 12282,
+"population": 26634,
+"households": 12274,
 "sido": "11"
 },
 "1159055000": {
 "gu": "동작구",
 "hdong": "상도제3동",
-"population": 23267,
-"households": 12214,
+"population": 23283,
+"households": 12229,
 "sido": "11"
 },
 "1159056000": {
 "gu": "동작구",
 "hdong": "상도제4동",
-"population": 28598,
-"households": 14752,
+"population": 28559,
+"households": 14740,
 "sido": "11"
 },
 "1159060500": {
 "gu": "동작구",
 "hdong": "흑석동",
-"population": 29713,
-"households": 13006,
+"population": 29659,
+"households": 12994,
 "sido": "11"
 },
 "1159062000": {
 "gu": "동작구",
 "hdong": "사당제1동",
-"population": 22032,
-"households": 13967,
+"population": 21970,
+"households": 13958,
 "sido": "11"
 },
 "1159063000": {
 "gu": "동작구",
 "hdong": "사당제2동",
-"population": 27502,
-"households": 12478,
+"population": 27460,
+"households": 12476,
 "sido": "11"
 },
 "1159064000": {
 "gu": "동작구",
 "hdong": "사당제3동",
-"population": 23022,
-"households": 10384,
+"population": 22976,
+"households": 10380,
 "sido": "11"
 },
 "1159065000": {
 "gu": "동작구",
 "hdong": "사당제4동",
-"population": 13459,
-"households": 7284,
+"population": 13431,
+"households": 7256,
 "sido": "11"
 },
 "1159065100": {
 "gu": "동작구",
 "hdong": "사당제5동",
-"population": 13620,
-"households": 6591,
+"population": 13617,
+"households": 6587,
 "sido": "11"
 },
 "1159066000": {
 "gu": "동작구",
 "hdong": "대방동",
-"population": 33370,
-"households": 16051,
+"population": 33317,
+"households": 16040,
 "sido": "11"
 },
 "1159067000": {
 "gu": "동작구",
 "hdong": "신대방제1동",
-"population": 22710,
-"households": 10435,
+"population": 22640,
+"households": 10405,
 "sido": "11"
 },
 "1159068000": {
 "gu": "동작구",
 "hdong": "신대방제2동",
-"population": 22156,
-"households": 11135,
+"population": 22157,
+"households": 11149,
 "sido": "11"
 },
 "1162052500": {
 "gu": "관악구",
 "hdong": "보라매동",
-"population": 22908,
-"households": 12978,
+"population": 22909,
+"households": 12974,
 "sido": "11"
 },
 "1162054500": {
 "gu": "관악구",
 "hdong": "청림동",
-"population": 14101,
-"households": 6338,
+"population": 14033,
+"households": 6309,
 "sido": "11"
 },
 "1162056500": {
 "gu": "관악구",
 "hdong": "성현동",
-"population": 29366,
-"households": 12925,
+"population": 29245,
+"households": 12859,
 "sido": "11"
 },
 "1162057500": {
 "gu": "관악구",
 "hdong": "행운동",
-"population": 28337,
-"households": 18348,
+"population": 28298,
+"households": 18330,
 "sido": "11"
 },
 "1162058500": {
 "gu": "관악구",
 "hdong": "낙성대동",
-"population": 17680,
-"households": 12666,
+"population": 17665,
+"households": 12658,
 "sido": "11"
 },
 "1162059500": {
 "gu": "관악구",
 "hdong": "청룡동",
-"population": 36184,
-"households": 25011,
+"population": 36097,
+"households": 24974,
 "sido": "11"
 },
 "1162060500": {
 "gu": "관악구",
 "hdong": "은천동",
-"population": 31229,
-"households": 16072,
+"population": 31221,
+"households": 16094,
 "sido": "11"
 },
 "1162061500": {
 "gu": "관악구",
 "hdong": "중앙동",
-"population": 15206,
-"households": 10632,
+"population": 15221,
+"households": 10638,
 "sido": "11"
 },
 "1162062500": {
 "gu": "관악구",
 "hdong": "인헌동",
-"population": 24941,
-"households": 15141,
+"population": 24931,
+"households": 15129,
 "sido": "11"
 },
 "1162063000": {
 "gu": "관악구",
 "hdong": "남현동",
-"population": 17040,
-"households": 9769,
+"population": 16968,
+"households": 9756,
 "sido": "11"
 },
 "1162064500": {
 "gu": "관악구",
 "hdong": "서원동",
-"population": 22691,
-"households": 15534,
+"population": 22723,
+"households": 15565,
 "sido": "11"
 },
 "1162065500": {
 "gu": "관악구",
 "hdong": "신원동",
-"population": 17095,
-"households": 11343,
+"population": 17074,
+"households": 11340,
 "sido": "11"
 },
 "1162066500": {
 "gu": "관악구",
 "hdong": "서림동",
-"population": 23535,
-"households": 15909,
+"population": 23560,
+"households": 15927,
 "sido": "11"
 },
 "1162068500": {
 "gu": "관악구",
 "hdong": "신사동",
-"population": 22013,
-"households": 14825,
+"population": 22042,
+"households": 14862,
 "sido": "11"
 },
 "1162069500": {
 "gu": "관악구",
 "hdong": "신림동",
-"population": 23465,
-"households": 19719,
+"population": 23417,
+"households": 19688,
 "sido": "11"
 },
 "1162071500": {
 "gu": "관악구",
 "hdong": "난향동",
-"population": 14194,
-"households": 6112,
+"population": 14199,
+"households": 6111,
 "sido": "11"
 },
 "1162072500": {
 "gu": "관악구",
 "hdong": "조원동",
-"population": 19938,
-"households": 12735,
+"population": 19898,
+"households": 12739,
 "sido": "11"
 },
 "1162073500": {
 "gu": "관악구",
 "hdong": "대학동",
-"population": 25080,
-"households": 18642,
+"population": 25075,
+"households": 18649,
 "sido": "11"
 },
 "1162074500": {
 "gu": "관악구",
 "hdong": "삼성동",
-"population": 19838,
-"households": 9815,
+"population": 19799,
+"households": 9797,
 "sido": "11"
 },
 "1162076500": {
 "gu": "관악구",
 "hdong": "미성동",
-"population": 28259,
-"households": 14090,
+"population": 28231,
+"households": 14080,
 "sido": "11"
 },
 "1162077500": {
 "gu": "관악구",
 "hdong": "난곡동",
-"population": 23973,
-"households": 12805,
+"population": 23929,
+"households": 12801,
 "sido": "11"
 },
 "1165051000": {
 "gu": "서초구",
 "hdong": "서초1동",
-"population": 20008,
-"households": 9598,
+"population": 20037,
+"households": 9595,
 "sido": "11"
 },
 "1165052000": {
 "gu": "서초구",
 "hdong": "서초2동",
-"population": 24872,
-"households": 11593,
+"population": 24787,
+"households": 11569,
 "sido": "11"
 },
 "1165053000": {
 "gu": "서초구",
 "hdong": "서초3동",
-"population": 32131,
-"households": 15725,
+"population": 32116,
+"households": 15738,
 "sido": "11"
 },
 "1165053100": {
 "gu": "서초구",
 "hdong": "서초4동",
-"population": 29880,
-"households": 10731,
+"population": 29767,
+"households": 10716,
 "sido": "11"
 },
 "1165054000": {
 "gu": "서초구",
 "hdong": "잠원동",
-"population": 34671,
-"households": 13349,
+"population": 34730,
+"households": 13370,
 "sido": "11"
 },
 "1165055000": {
 "gu": "서초구",
 "hdong": "반포본동",
-"population": 4230,
-"households": 1415,
+"population": 5398,
+"households": 1784,
 "sido": "11"
 },
 "1165056000": {
 "gu": "서초구",
 "hdong": "반포1동",
-"population": 32921,
-"households": 14357,
+"population": 32837,
+"households": 14347,
 "sido": "11"
 },
 "1165057000": {
 "gu": "서초구",
 "hdong": "반포2동",
-"population": 26373,
+"population": 26320,
 "households": 8563,
 "sido": "11"
 },
 "1165058000": {
 "gu": "서초구",
 "hdong": "반포3동",
-"population": 23427,
-"households": 8205,
+"population": 23391,
+"households": 8195,
 "sido": "11"
 },
 "1165058100": {
 "gu": "서초구",
 "hdong": "반포4동",
-"population": 17672,
-"households": 6799,
+"population": 17627,
+"households": 6785,
 "sido": "11"
 },
 "1165059000": {
 "gu": "서초구",
 "hdong": "방배본동",
-"population": 19602,
-"households": 7776,
+"population": 19562,
+"households": 7769,
 "sido": "11"
 },
 "1165060000": {
 "gu": "서초구",
 "hdong": "방배1동",
-"population": 16327,
-"households": 7593,
+"population": 16253,
+"households": 7579,
 "sido": "11"
 },
 "1165061000": {
 "gu": "서초구",
 "hdong": "방배2동",
-"population": 20165,
-"households": 8655,
+"population": 23223,
+"households": 9638,
 "sido": "11"
 },
 "1165062000": {
 "gu": "서초구",
 "hdong": "방배3동",
-"population": 15371,
-"households": 5771,
+"population": 15296,
+"households": 5753,
 "sido": "11"
 },
 "1165062100": {
 "gu": "서초구",
 "hdong": "방배4동",
-"population": 25522,
-"households": 10641,
+"population": 25386,
+"households": 10601,
 "sido": "11"
 },
 "1165065100": {
 "gu": "서초구",
 "hdong": "양재1동",
-"population": 40332,
-"households": 17623,
+"population": 40270,
+"households": 17594,
 "sido": "11"
 },
 "1165065200": {
 "gu": "서초구",
 "hdong": "양재2동",
-"population": 20700,
-"households": 10987,
+"population": 20718,
+"households": 11009,
 "sido": "11"
 },
 "1165066000": {
 "gu": "서초구",
 "hdong": "내곡동",
-"population": 16590,
-"households": 6994,
+"population": 16600,
+"households": 7015,
 "sido": "11"
 },
 "1168051000": {
 "gu": "강남구",
 "hdong": "신사동",
-"population": 14900,
-"households": 6521,
+"population": 14915,
+"households": 6523,
 "sido": "11"
 },
 "1168052100": {
 "gu": "강남구",
 "hdong": "논현1동",
-"population": 20607,
-"households": 13477,
+"population": 20636,
+"households": 13505,
 "sido": "11"
 },
 "1168053100": {
 "gu": "강남구",
 "hdong": "논현2동",
-"population": 20062,
-"households": 11102,
+"population": 20040,
+"households": 11099,
 "sido": "11"
 },
 "1168054500": {
 "gu": "강남구",
 "hdong": "압구정동",
-"population": 25322,
-"households": 9923,
+"population": 25271,
+"households": 9905,
 "sido": "11"
 },
 "1168056500": {
 "gu": "강남구",
 "hdong": "청담동",
-"population": 26488,
-"households": 11535,
+"population": 26458,
+"households": 11504,
 "sido": "11"
 },
 "1168058000": {
 "gu": "강남구",
 "hdong": "삼성1동",
-"population": 12700,
-"households": 5539,
+"population": 12759,
+"households": 5552,
 "sido": "11"
 },
 "1168059000": {
 "gu": "강남구",
 "hdong": "삼성2동",
-"population": 30203,
-"households": 13812,
+"population": 30204,
+"households": 13809,
 "sido": "11"
 },
 "1168060000": {
 "gu": "강남구",
 "hdong": "대치1동",
-"population": 23535,
-"households": 7227,
+"population": 23503,
+"households": 7224,
 "sido": "11"
 },
 "1168061000": {
 "gu": "강남구",
 "hdong": "대치2동",
-"population": 38306,
-"households": 13526,
+"population": 38276,
+"households": 13529,
 "sido": "11"
 },
 "1168063000": {
 "gu": "강남구",
 "hdong": "대치4동",
-"population": 18155,
-"households": 9717,
+"population": 18116,
+"households": 9698,
 "sido": "11"
 },
 "1168064000": {
 "gu": "강남구",
 "hdong": "역삼1동",
-"population": 34307,
-"households": 23958,
+"population": 34263,
+"households": 23960,
 "sido": "11"
 },
 "1168065000": {
 "gu": "강남구",
 "hdong": "역삼2동",
-"population": 35964,
-"households": 15672,
+"population": 35945,
+"households": 15661,
 "sido": "11"
 },
 "1168065500": {
 "gu": "강남구",
 "hdong": "도곡1동",
-"population": 20779,
-"households": 8519,
+"population": 20766,
+"households": 8515,
 "sido": "11"
 },
 "1168065600": {
 "gu": "강남구",
 "hdong": "도곡2동",
-"population": 30501,
-"households": 10903,
+"population": 30141,
+"households": 10764,
 "sido": "11"
 },
 "1168066000": {
 "gu": "강남구",
 "hdong": "개포1동",
-"population": 26457,
-"households": 9125,
+"population": 26444,
+"households": 9127,
 "sido": "11"
 },
 "1168067000": {
 "gu": "강남구",
 "hdong": "개포2동",
-"population": 39986,
-"households": 14194,
+"population": 39960,
+"households": 14171,
 "sido": "11"
 },
 "1168067500": {
 "gu": "강남구",
 "hdong": "개포3동",
-"population": 15483,
-"households": 6997,
+"population": 15465,
+"households": 7000,
 "sido": "11"
 },
 "1168069000": {
 "gu": "강남구",
 "hdong": "개포4동",
-"population": 22922,
-"households": 10033,
+"population": 22886,
+"households": 10043,
 "sido": "11"
 },
 "1168070000": {
 "gu": "강남구",
 "hdong": "세곡동",
-"population": 45638,
-"households": 20154,
+"population": 45607,
+"households": 20147,
 "sido": "11"
 },
 "1168072000": {
 "gu": "강남구",
 "hdong": "일원본동",
-"population": 22220,
-"households": 7915,
+"population": 22272,
+"households": 7927,
 "sido": "11"
 },
 "1168073000": {
 "gu": "강남구",
 "hdong": "일원1동",
-"population": 13978,
-"households": 7436,
+"population": 13943,
+"households": 7433,
 "sido": "11"
 },
 "1168075000": {
 "gu": "강남구",
 "hdong": "수서동",
-"population": 13394,
-"households": 7517,
+"population": 13375,
+"households": 7518,
 "sido": "11"
 },
 "1171051000": {
 "gu": "송파구",
 "hdong": "풍납1동",
-"population": 10451,
-"households": 5045,
+"population": 10418,
+"households": 5024,
 "sido": "11"
 },
 "1171052000": {
 "gu": "송파구",
 "hdong": "풍납2동",
-"population": 23043,
-"households": 10683,
+"population": 22998,
+"households": 10663,
 "sido": "11"
 },
 "1171053100": {
 "gu": "송파구",
 "hdong": "거여1동",
-"population": 11771,
-"households": 5683,
+"population": 11768,
+"households": 5685,
 "sido": "11"
 },
 "1171053200": {
 "gu": "송파구",
 "hdong": "거여2동",
-"population": 22812,
-"households": 10032,
+"population": 22813,
+"households": 10035,
 "sido": "11"
 },
 "1171054000": {
 "gu": "송파구",
 "hdong": "마천1동",
-"population": 14991,
-"households": 7262,
+"population": 14946,
+"households": 7250,
 "sido": "11"
 },
 "1171055000": {
 "gu": "송파구",
 "hdong": "마천2동",
-"population": 16813,
-"households": 8391,
+"population": 16786,
+"households": 8387,
 "sido": "11"
 },
 "1171056100": {
 "gu": "송파구",
 "hdong": "방이1동",
-"population": 14679,
-"households": 6131,
+"population": 14592,
+"households": 6102,
 "sido": "11"
 },
 "1171056200": {
 "gu": "송파구",
 "hdong": "방이2동",
-"population": 26359,
-"households": 16272,
+"population": 26405,
+"households": 16305,
 "sido": "11"
 },
 "1171056600": {
 "gu": "송파구",
 "hdong": "오륜동",
-"population": 17348,
+"population": 17320,
 "households": 5893,
 "sido": "11"
 },
 "1171057000": {
 "gu": "송파구",
 "hdong": "오금동",
-"population": 36836,
-"households": 15722,
+"population": 36750,
+"households": 15715,
 "sido": "11"
 },
 "1171058000": {
 "gu": "송파구",
 "hdong": "송파1동",
-"population": 22778,
-"households": 12441,
+"population": 22724,
+"households": 12416,
 "sido": "11"
 },
 "1171059000": {
 "gu": "송파구",
 "hdong": "송파2동",
-"population": 16763,
-"households": 6670,
+"population": 16671,
+"households": 6633,
 "sido": "11"
 },
 "1171060000": {
 "gu": "송파구",
 "hdong": "석촌동",
-"population": 29893,
-"households": 17073,
+"population": 29839,
+"households": 17051,
 "sido": "11"
 },
 "1171061000": {
 "gu": "송파구",
 "hdong": "삼전동",
-"population": 28085,
-"households": 16006,
+"population": 28101,
+"households": 16010,
 "sido": "11"
 },
 "1171062000": {
 "gu": "송파구",
 "hdong": "가락본동",
-"population": 24563,
-"households": 11699,
+"population": 24564,
+"households": 11696,
 "sido": "11"
 },
 "1171063100": {
 "gu": "송파구",
 "hdong": "가락1동",
-"population": 27068,
-"households": 9765,
+"population": 27026,
+"households": 9768,
 "sido": "11"
 },
 "1171063200": {
 "gu": "송파구",
 "hdong": "가락2동",
-"population": 27291,
-"households": 11367,
+"population": 26692,
+"households": 11118,
 "sido": "11"
 },
 "1171064100": {
 "gu": "송파구",
 "hdong": "문정1동",
-"population": 19614,
-"households": 9011,
+"population": 19604,
+"households": 9013,
 "sido": "11"
 },
 "1171064200": {
 "gu": "송파구",
 "hdong": "문정2동",
-"population": 28494,
-"households": 15779,
+"population": 28467,
+"households": 15767,
 "sido": "11"
 },
 "1171064600": {
 "gu": "송파구",
 "hdong": "장지동",
-"population": 30657,
-"households": 13224,
+"population": 30664,
+"households": 13229,
 "sido": "11"
 },
 "1171064700": {
 "gu": "송파구",
 "hdong": "위례동",
-"population": 44864,
-"households": 15072,
+"population": 44844,
+"households": 15077,
 "sido": "11"
 },
 "1171065000": {
 "gu": "송파구",
 "hdong": "잠실본동",
-"population": 26657,
-"households": 15866,
+"population": 26196,
+"households": 15730,
 "sido": "11"
 },
 "1171067000": {
 "gu": "송파구",
 "hdong": "잠실2동",
-"population": 34468,
-"households": 11503,
+"population": 34390,
+"households": 11484,
 "sido": "11"
 },
 "1171068000": {
 "gu": "송파구",
 "hdong": "잠실3동",
-"population": 33366,
-"households": 11780,
+"population": 33312,
+"households": 11771,
 "sido": "11"
 },
 "1171069000": {
 "gu": "송파구",
 "hdong": "잠실4동",
-"population": 33103,
-"households": 11492,
+"population": 33256,
+"households": 11540,
 "sido": "11"
 },
 "1171071000": {
 "gu": "송파구",
 "hdong": "잠실6동",
-"population": 16159,
+"population": 16160,
 "households": 5804,
 "sido": "11"
 },
 "1171072000": {
 "gu": "송파구",
 "hdong": "잠실7동",
-"population": 9212,
-"households": 3358,
+"population": 9211,
+"households": 3364,
 "sido": "11"
 },
 "1174051500": {
 "gu": "강동구",
 "hdong": "강일동",
-"population": 34151,
-"households": 13939,
+"population": 34171,
+"households": 13955,
 "sido": "11"
 },
 "1174052500": {
 "gu": "강동구",
 "hdong": "상일제1동",
-"population": 38953,
-"households": 13566,
+"population": 38960,
+"households": 13567,
 "sido": "11"
 },
 "1174052600": {
 "gu": "강동구",
 "hdong": "상일제2동",
-"population": 13141,
-"households": 5311,
+"population": 13131,
+"households": 5309,
 "sido": "11"
 },
 "1174053000": {
 "gu": "강동구",
 "hdong": "명일제1동",
-"population": 24772,
-"households": 10039,
+"population": 24801,
+"households": 10054,
 "sido": "11"
 },
 "1174054000": {
 "gu": "강동구",
 "hdong": "명일제2동",
-"population": 16915,
-"households": 6484,
+"population": 16966,
+"households": 6500,
 "sido": "11"
 },
 "1174055000": {
 "gu": "강동구",
 "hdong": "고덕제1동",
-"population": 23598,
-"households": 8125,
+"population": 23565,
+"households": 8117,
 "sido": "11"
 },
 "1174056000": {
 "gu": "강동구",
 "hdong": "고덕제2동",
-"population": 26314,
-"households": 10450,
+"population": 26333,
+"households": 10456,
 "sido": "11"
 },
 "1174057000": {
 "gu": "강동구",
 "hdong": "암사제1동",
-"population": 32399,
-"households": 15845,
+"population": 32410,
+"households": 15860,
 "sido": "11"
 },
 "1174058000": {
 "gu": "강동구",
 "hdong": "암사제2동",
-"population": 14507,
-"households": 6423,
+"population": 14476,
+"households": 6419,
 "sido": "11"
 },
 "1174059000": {
 "gu": "강동구",
 "hdong": "암사제3동",
-"population": 16837,
-"households": 6043,
+"population": 16795,
+"households": 6036,
 "sido": "11"
 },
 "1174060000": {
 "gu": "강동구",
 "hdong": "천호제1동",
-"population": 23651,
-"households": 12347,
+"population": 23683,
+"households": 12354,
 "sido": "11"
 },
 "1174061000": {
 "gu": "강동구",
 "hdong": "천호제2동",
-"population": 35947,
+"population": 35961,
 "households": 19264,
 "sido": "11"
 },
 "1174062000": {
 "gu": "강동구",
 "hdong": "천호제3동",
-"population": 27748,
-"households": 15890,
+"population": 27763,
+"households": 15907,
 "sido": "11"
 },
 "1174064000": {
 "gu": "강동구",
 "hdong": "성내제1동",
-"population": 18824,
-"households": 8257,
+"population": 18804,
+"households": 8267,
 "sido": "11"
 },
 "1174065000": {
 "gu": "강동구",
 "hdong": "성내제2동",
-"population": 23738,
-"households": 13860,
+"population": 23713,
+"households": 13848,
 "sido": "11"
 },
 "1174066000": {
 "gu": "강동구",
 "hdong": "성내제3동",
-"population": 21587,
-"households": 10695,
+"population": 21622,
+"households": 10722,
 "sido": "11"
 },
 "1174068500": {
 "gu": "강동구",
 "hdong": "길동",
-"population": 46426,
-"households": 23808,
+"population": 46048,
+"households": 23659,
 "sido": "11"
 },
 "1174069000": {
 "gu": "강동구",
 "hdong": "둔촌제1동",
-"population": 33099,
-"households": 12008,
+"population": 33093,
+"households": 12040,
 "sido": "11"
 },
 "1174070000": {
 "gu": "강동구",
 "hdong": "둔촌제2동",
-"population": 25102,
-"households": 10948,
+"population": 25117,
+"households": 10960,
 "sido": "11"
 },
 "4111156000": {
 "gu": "수원시 장안구",
 "hdong": "파장동",
-"population": 24509,
-"households": 11578,
+"population": 24465,
+"households": 11577,
 "sido": "41"
 },
 "4111156600": {
 "gu": "수원시 장안구",
 "hdong": "율천동",
-"population": 39296,
-"households": 19578,
+"population": 39295,
+"households": 19591,
 "sido": "41"
 },
 "4111157100": {
 "gu": "수원시 장안구",
 "hdong": "정자1동",
-"population": 33142,
-"households": 13307,
+"population": 33150,
+"households": 13319,
 "sido": "41"
 },
 "4111157200": {
 "gu": "수원시 장안구",
 "hdong": "정자2동",
-"population": 38077,
-"households": 16240,
+"population": 38087,
+"households": 16260,
 "sido": "41"
 },
 "4111157300": {
 "gu": "수원시 장안구",
 "hdong": "정자3동",
-"population": 38229,
-"households": 14215,
+"population": 38331,
+"households": 14287,
 "sido": "41"
 },
 "4111158000": {
 "gu": "수원시 장안구",
 "hdong": "영화동",
-"population": 17627,
-"households": 10210,
+"population": 17654,
+"households": 10226,
 "sido": "41"
 },
 "4111159100": {
 "gu": "수원시 장안구",
 "hdong": "송죽동",
-"population": 17874,
-"households": 8986,
+"population": 17838,
+"households": 8982,
 "sido": "41"
 },
 "4111159700": {
 "gu": "수원시 장안구",
 "hdong": "조원1동",
-"population": 27006,
-"households": 13274,
+"population": 26981,
+"households": 13306,
 "sido": "41"
 },
 "4111159800": {
 "gu": "수원시 장안구",
 "hdong": "조원2동",
-"population": 17029,
-"households": 6435,
+"population": 16993,
+"households": 6431,
 "sido": "41"
 },
 "4111160000": {
 "gu": "수원시 장안구",
 "hdong": "연무동",
-"population": 16860,
-"households": 9392,
+"population": 16828,
+"households": 9381,
 "sido": "41"
 },
 "4111352000": {
 "gu": "수원시 권선구",
 "hdong": "세류1동",
-"population": 9475,
-"households": 4370,
+"population": 9456,
+"households": 4374,
 "sido": "41"
 },
 "4111353000": {
 "gu": "수원시 권선구",
 "hdong": "세류2동",
-"population": 21696,
-"households": 12379,
+"population": 21678,
+"households": 12373,
 "sido": "41"
 },
 "4111354000": {
 "gu": "수원시 권선구",
 "hdong": "세류3동",
-"population": 19402,
-"households": 9868,
+"population": 20715,
+"households": 10391,
 "sido": "41"
 },
 "4111355000": {
 "gu": "수원시 권선구",
 "hdong": "평동",
-"population": 40842,
-"households": 18069,
+"population": 40834,
+"households": 18078,
 "sido": "41"
 },
 "4111356000": {
 "gu": "수원시 권선구",
 "hdong": "서둔동",
-"population": 36623,
-"households": 17914,
+"population": 36542,
+"households": 17919,
 "sido": "41"
 },
 "4111365000": {
 "gu": "수원시 권선구",
 "hdong": "구운동",
-"population": 22427,
-"households": 10732,
+"population": 22412,
+"households": 10734,
 "sido": "41"
 },
 "4111366200": {
 "gu": "수원시 권선구",
 "hdong": "금곡동",
-"population": 44160,
-"households": 18858,
+"population": 44184,
+"households": 18882,
 "sido": "41"
 },
 "4111366400": {
 "gu": "수원시 권선구",
 "hdong": "호매실동",
-"population": 43668,
-"households": 17393,
+"population": 43621,
+"households": 17384,
 "sido": "41"
 },
 "4111367000": {
 "gu": "수원시 권선구",
 "hdong": "권선1동",
-"population": 23880,
-"households": 14127,
+"population": 23942,
+"households": 14167,
 "sido": "41"
 },
 "4111368000": {
 "gu": "수원시 권선구",
 "hdong": "권선2동",
-"population": 46028,
-"households": 17595,
+"population": 45941,
+"households": 17583,
 "sido": "41"
 },
 "4111369000": {
 "gu": "수원시 권선구",
 "hdong": "곡선동",
-"population": 34594,
-"households": 18147,
+"population": 34654,
+"households": 18210,
 "sido": "41"
 },
 "4111370000": {
 "gu": "수원시 권선구",
 "hdong": "입북동",
-"population": 19549,
-"households": 8281,
+"population": 19531,
+"households": 8271,
 "sido": "41"
 },
 "4111565000": {
 "gu": "수원시 팔달구",
 "hdong": "매교동",
-"population": 21694,
-"households": 9529,
+"population": 21627,
+"households": 9535,
 "sido": "41"
 },
 "4111566000": {
 "gu": "수원시 팔달구",
 "hdong": "매산동",
-"population": 9749,
-"households": 6059,
+"population": 9733,
+"households": 6055,
 "sido": "41"
 },
 "4111567000": {
 "gu": "수원시 팔달구",
 "hdong": "고등동",
-"population": 19052,
-"households": 8990,
+"population": 19008,
+"households": 8959,
 "sido": "41"
 },
 "4111568000": {
 "gu": "수원시 팔달구",
 "hdong": "화서1동",
-"population": 20260,
-"households": 9636,
+"population": 20246,
+"households": 9645,
 "sido": "41"
 },
 "4111569000": {
 "gu": "수원시 팔달구",
 "hdong": "화서2동",
-"population": 23569,
-"households": 9527,
+"population": 23555,
+"households": 9526,
 "sido": "41"
 },
 "4111570000": {
 "gu": "수원시 팔달구",
 "hdong": "지동",
-"population": 11472,
-"households": 6190,
+"population": 11487,
+"households": 6201,
 "sido": "41"
 },
 "4111571000": {
 "gu": "수원시 팔달구",
 "hdong": "우만1동",
-"population": 17771,
-"households": 10520,
+"population": 17739,
+"households": 10519,
 "sido": "41"
 },
 "4111572000": {
 "gu": "수원시 팔달구",
 "hdong": "우만2동",
-"population": 15408,
-"households": 7563,
+"population": 15398,
+"households": 7559,
 "sido": "41"
 },
 "4111573000": {
 "gu": "수원시 팔달구",
 "hdong": "인계동",
-"population": 45208,
-"households": 25197,
+"population": 45224,
+"households": 25221,
 "sido": "41"
 },
 "4111574000": {
 "gu": "수원시 팔달구",
 "hdong": "행궁동",
-"population": 8867,
-"households": 5842,
+"population": 8850,
+"households": 5838,
 "sido": "41"
 },
 "4111751000": {
 "gu": "수원시 영통구",
 "hdong": "매탄1동",
-"population": 10027,
-"households": 4435,
+"population": 9969,
+"households": 4417,
 "sido": "41"
 },
 "4111752000": {
 "gu": "수원시 영통구",
 "hdong": "매탄2동",
-"population": 13243,
-"households": 6275,
+"population": 13239,
+"households": 6282,
 "sido": "41"
 },
 "4111753000": {
 "gu": "수원시 영통구",
 "hdong": "매탄3동",
-"population": 33599,
-"households": 15583,
+"population": 33516,
+"households": 15564,
 "sido": "41"
 },
 "4111754000": {
 "gu": "수원시 영통구",
 "hdong": "매탄4동",
-"population": 19241,
-"households": 9353,
+"population": 19212,
+"households": 9348,
 "sido": "41"
 },
 "4111755000": {
 "gu": "수원시 영통구",
 "hdong": "원천동",
-"population": 45639,
-"households": 21342,
+"population": 45719,
+"households": 21375,
 "sido": "41"
 },
 "4111757000": {
 "gu": "수원시 영통구",
 "hdong": "영통1동",
-"population": 32240,
-"households": 12619,
+"population": 32200,
+"households": 12599,
 "sido": "41"
 },
 "4111758000": {
 "gu": "수원시 영통구",
 "hdong": "영통2동",
-"population": 24344,
-"households": 13389,
+"population": 23674,
+"households": 13121,
 "sido": "41"
 },
 "4111758500": {
 "gu": "수원시 영통구",
 "hdong": "영통3동",
-"population": 31310,
-"households": 14341,
+"population": 31296,
+"households": 14361,
 "sido": "41"
 },
 "4111759300": {
 "gu": "수원시 영통구",
 "hdong": "망포1동",
-"population": 31197,
-"households": 11587,
+"population": 31161,
+"households": 11580,
 "sido": "41"
 },
 "4111759600": {
 "gu": "수원시 영통구",
 "hdong": "망포2동",
-"population": 38234,
-"households": 12920,
+"population": 38207,
+"households": 12914,
 "sido": "41"
 },
 "4111760000": {
 "gu": "수원시 영통구",
 "hdong": "광교1동",
-"population": 53856,
-"households": 23306,
+"population": 53878,
+"households": 23294,
 "sido": "41"
 },
 "4111761000": {
 "gu": "수원시 영통구",
 "hdong": "광교2동",
-"population": 28335,
-"households": 11704,
+"population": 28347,
+"households": 11728,
 "sido": "41"
 },
 "4113151000": {
 "gu": "성남시 수정구",
 "hdong": "신흥1동",
-"population": 11880,
-"households": 7399,
+"population": 11869,
+"households": 7391,
 "sido": "41"
 },
 "4113152000": {
 "gu": "성남시 수정구",
 "hdong": "신흥2동",
-"population": 31579,
-"households": 12333,
+"population": 31644,
+"households": 12336,
 "sido": "41"
 },
 "4113153000": {
 "gu": "성남시 수정구",
 "hdong": "신흥3동",
-"population": 10632,
-"households": 6470,
+"population": 10645,
+"households": 6492,
 "sido": "41"
 },
 "4113154000": {
 "gu": "성남시 수정구",
 "hdong": "태평1동",
-"population": 13472,
-"households": 8283,
+"population": 13469,
+"households": 8284,
 "sido": "41"
 },
 "4113155000": {
 "gu": "성남시 수정구",
 "hdong": "태평2동",
-"population": 13545,
-"households": 7548,
+"population": 13501,
+"households": 7523,
 "sido": "41"
 },
 "4113156000": {
 "gu": "성남시 수정구",
 "hdong": "태평3동",
-"population": 11384,
-"households": 6259,
+"population": 11333,
+"households": 6237,
 "sido": "41"
 },
 "4113156100": {
 "gu": "성남시 수정구",
 "hdong": "태평4동",
-"population": 10758,
-"households": 5919,
+"population": 10755,
+"households": 5913,
 "sido": "41"
 },
 "4113157000": {
 "gu": "성남시 수정구",
 "hdong": "수진1동",
-"population": 10302,
-"households": 6497,
+"population": 10096,
+"households": 6374,
 "sido": "41"
 },
 "4113158000": {
 "gu": "성남시 수정구",
 "hdong": "수진2동",
-"population": 14250,
-"households": 7530,
+"population": 14213,
+"households": 7519,
 "sido": "41"
 },
 "4113159000": {
 "gu": "성남시 수정구",
 "hdong": "단대동",
-"population": 14048,
-"households": 6504,
+"population": 14029,
+"households": 6497,
 "sido": "41"
 },
 "4113160000": {
 "gu": "성남시 수정구",
 "hdong": "산성동",
-"population": 4360,
-"households": 2085,
+"population": 4344,
+"households": 2079,
 "sido": "41"
 },
 "4113161000": {
 "gu": "성남시 수정구",
 "hdong": "양지동",
-"population": 8849,
-"households": 4255,
+"population": 8884,
+"households": 4268,
 "sido": "41"
 },
 "4113162000": {
 "gu": "성남시 수정구",
 "hdong": "복정동",
-"population": 14010,
-"households": 8050,
+"population": 14023,
+"households": 8049,
 "sido": "41"
 },
 "4113162500": {
 "gu": "성남시 수정구",
 "hdong": "위례동",
-"population": 45048,
-"households": 18654,
+"population": 45089,
+"households": 18679,
 "sido": "41"
 },
 "4113163000": {
 "gu": "성남시 수정구",
 "hdong": "신촌동",
-"population": 5404,
-"households": 2338,
+"population": 5579,
+"households": 2438,
 "sido": "41"
 },
 "4113164000": {
 "gu": "성남시 수정구",
 "hdong": "고등동",
-"population": 11707,
-"households": 5280,
+"population": 11665,
+"households": 5262,
 "sido": "41"
 },
 "4113165000": {
 "gu": "성남시 수정구",
 "hdong": "시흥동",
-"population": 3656,
-"households": 2200,
+"population": 3666,
+"households": 2204,
 "sido": "41"
 },
 "4113351000": {
 "gu": "성남시 중원구",
 "hdong": "성남동",
-"population": 31829,
-"households": 18485,
+"population": 31858,
+"households": 18490,
 "sido": "41"
 },
 "4113352500": {
 "gu": "성남시 중원구",
 "hdong": "중앙동",
-"population": 16500,
-"households": 7515,
+"population": 16511,
+"households": 7513,
 "sido": "41"
 },
 "4113353000": {
 "gu": "성남시 중원구",
 "hdong": "금광1동",
-"population": 19662,
-"households": 8256,
+"population": 19636,
+"households": 8245,
 "sido": "41"
 },
 "4113354000": {
 "gu": "성남시 중원구",
 "hdong": "금광2동",
-"population": 22091,
-"households": 11271,
+"population": 21984,
+"households": 11225,
 "sido": "41"
 },
 "4113355000": {
 "gu": "성남시 중원구",
 "hdong": "은행1동",
-"population": 9243,
-"households": 4415,
+"population": 9210,
+"households": 4409,
 "sido": "41"
 },
 "4113356000": {
 "gu": "성남시 중원구",
 "hdong": "은행2동",
-"population": 17286,
-"households": 9196,
+"population": 16777,
+"households": 8924,
 "sido": "41"
 },
 "4113357000": {
 "gu": "성남시 중원구",
 "hdong": "상대원1동",
-"population": 22203,
-"households": 11537,
+"population": 22213,
+"households": 11544,
 "sido": "41"
 },
 "4113358000": {
 "gu": "성남시 중원구",
 "hdong": "상대원2동",
-"population": 2855,
-"households": 1498,
+"population": 2842,
+"households": 1492,
 "sido": "41"
 },
 "4113359000": {
 "gu": "성남시 중원구",
 "hdong": "상대원3동",
-"population": 11034,
-"households": 6337,
+"population": 11042,
+"households": 6342,
 "sido": "41"
 },
 "4113366000": {
 "gu": "성남시 중원구",
 "hdong": "하대원동",
-"population": 19462,
-"households": 8385,
+"population": 19448,
+"households": 8376,
 "sido": "41"
 },
 "4113367000": {
 "gu": "성남시 중원구",
 "hdong": "도촌동",
-"population": 25523,
-"households": 10816,
+"population": 25458,
+"households": 10817,
 "sido": "41"
 },
 "4113551000": {
 "gu": "성남시 분당구",
 "hdong": "분당동",
-"population": 24293,
-"households": 10068,
+"population": 24282,
+"households": 10085,
 "sido": "41"
 },
 "4113552000": {
 "gu": "성남시 분당구",
 "hdong": "수내1동",
-"population": 17838,
-"households": 7917,
+"population": 17868,
+"households": 7931,
 "sido": "41"
 },
 "4113553000": {
 "gu": "성남시 분당구",
 "hdong": "수내2동",
-"population": 10217,
-"households": 3178,
+"population": 10212,
+"households": 3171,
 "sido": "41"
 },
 "4113554000": {
 "gu": "성남시 분당구",
 "hdong": "수내3동",
-"population": 13162,
-"households": 5148,
+"population": 13149,
+"households": 5137,
 "sido": "41"
 },
 "4113554500": {
 "gu": "성남시 분당구",
 "hdong": "정자동",
-"population": 13714,
-"households": 6271,
+"population": 13696,
+"households": 6261,
 "sido": "41"
 },
 "4113555000": {
 "gu": "성남시 분당구",
 "hdong": "정자1동",
-"population": 30421,
-"households": 14102,
+"population": 30456,
+"households": 14116,
 "sido": "41"
 },
 "4113556000": {
 "gu": "성남시 분당구",
 "hdong": "정자2동",
-"population": 12097,
-"households": 6128,
+"population": 12064,
+"households": 6109,
 "sido": "41"
 },
 "4113557000": {
 "gu": "성남시 분당구",
 "hdong": "정자3동",
-"population": 16440,
-"households": 6639,
+"population": 16411,
+"households": 6615,
 "sido": "41"
 },
 "4113558000": {
 "gu": "성남시 분당구",
 "hdong": "서현1동",
-"population": 30506,
-"households": 12697,
+"population": 30534,
+"households": 12710,
 "sido": "41"
 },
 "4113559000": {
 "gu": "성남시 분당구",
 "hdong": "서현2동",
-"population": 17164,
-"households": 6547,
+"population": 17168,
+"households": 6555,
 "sido": "41"
 },
 "4113560000": {
 "gu": "성남시 분당구",
 "hdong": "이매1동",
-"population": 24420,
-"households": 8985,
+"population": 24377,
+"households": 8974,
 "sido": "41"
 },
 "4113561000": {
 "gu": "성남시 분당구",
 "hdong": "이매2동",
-"population": 12756,
-"households": 4355,
+"population": 12758,
+"households": 4354,
 "sido": "41"
 },
 "4113562000": {
 "gu": "성남시 분당구",
 "hdong": "야탑1동",
-"population": 16459,
-"households": 7597,
+"population": 16464,
+"households": 7596,
 "sido": "41"
 },
 "4113563000": {
 "gu": "성남시 분당구",
 "hdong": "야탑2동",
-"population": 15477,
-"households": 6000,
+"population": 15465,
+"households": 5988,
 "sido": "41"
 },
 "4113564000": {
 "gu": "성남시 분당구",
 "hdong": "야탑3동",
-"population": 26509,
-"households": 12697,
+"population": 26530,
+"households": 12717,
 "sido": "41"
 },
 "4113565000": {
 "gu": "성남시 분당구",
 "hdong": "판교동",
-"population": 26227,
-"households": 8986,
+"population": 26222,
+"households": 8981,
 "sido": "41"
 },
 "4113565500": {
 "gu": "성남시 분당구",
 "hdong": "삼평동",
-"population": 23382,
-"households": 9075,
+"population": 23330,
+"households": 9063,
 "sido": "41"
 },
 "4113565700": {
 "gu": "성남시 분당구",
 "hdong": "백현동",
-"population": 26057,
-"households": 10539,
+"population": 26041,
+"households": 10525,
 "sido": "41"
 },
 "4113566200": {
 "gu": "성남시 분당구",
 "hdong": "금곡동",
-"population": 26628,
-"households": 11966,
+"population": 26581,
+"households": 11950,
 "sido": "41"
 },
 "4113566500": {
 "gu": "성남시 분당구",
 "hdong": "구미1동",
-"population": 16128,
-"households": 6942,
+"population": 16140,
+"households": 6933,
 "sido": "41"
 },
 "4113567000": {
 "gu": "성남시 분당구",
 "hdong": "구미동",
-"population": 27797,
-"households": 12635,
+"population": 27796,
+"households": 12639,
 "sido": "41"
 },
 "4113568000": {
 "gu": "성남시 분당구",
 "hdong": "운중동",
-"population": 38896,
-"households": 14131,
+"population": 38916,
+"households": 14140,
 "sido": "41"
 },
 "4115051000": {
 "gu": "의정부시",
 "hdong": "의정부1동",
-"population": 38049,
-"households": 22562,
+"population": 38084,
+"households": 22591,
 "sido": "41"
 },
 "4115052000": {
 "gu": "의정부시",
 "hdong": "의정부2동",
-"population": 29542,
-"households": 16474,
+"population": 29455,
+"households": 16433,
 "sido": "41"
 },
 "4115054500": {
 "gu": "의정부시",
 "hdong": "호원1동",
-"population": 33033,
-"households": 15084,
+"population": 33027,
+"households": 15080,
 "sido": "41"
 },
 "4115055500": {
 "gu": "의정부시",
 "hdong": "호원2동",
-"population": 32452,
-"households": 13548,
+"population": 32520,
+"households": 13575,
 "sido": "41"
 },
 "4115056100": {
 "gu": "의정부시",
 "hdong": "장암동",
-"population": 18228,
-"households": 8248,
+"population": 18254,
+"households": 8266,
 "sido": "41"
 },
 "4115056700": {
 "gu": "의정부시",
 "hdong": "신곡1동",
-"population": 41232,
-"households": 18091,
+"population": 41686,
+"households": 18330,
 "sido": "41"
 },
 "4115056800": {
 "gu": "의정부시",
 "hdong": "신곡2동",
-"population": 43519,
-"households": 18846,
+"population": 43451,
+"households": 18837,
 "sido": "41"
 },
 "4115057300": {
 "gu": "의정부시",
 "hdong": "송산1동",
-"population": 31430,
-"households": 14086,
+"population": 31437,
+"households": 14108,
 "sido": "41"
 },
 "4115057600": {
 "gu": "의정부시",
 "hdong": "송산2동",
-"population": 30693,
-"households": 13192,
+"population": 30675,
+"households": 13182,
 "sido": "41"
 },
 "4115057800": {
 "gu": "의정부시",
 "hdong": "송산3동",
-"population": 44438,
-"households": 18073,
+"population": 44396,
+"households": 18063,
 "sido": "41"
 },
 "4115058000": {
 "gu": "의정부시",
 "hdong": "자금동",
-"population": 26460,
-"households": 12510,
+"population": 26411,
+"households": 12483,
 "sido": "41"
 },
 "4115059500": {
 "gu": "의정부시",
 "hdong": "가능동",
 "population": 25583,
-"households": 13273,
+"households": 13278,
 "sido": "41"
 },
 "4115061500": {
 "gu": "의정부시",
 "hdong": "흥선동",
-"population": 17776,
-"households": 9124,
+"population": 17734,
+"households": 9118,
 "sido": "41"
 },
 "4115062000": {
 "gu": "의정부시",
 "hdong": "녹양동",
-"population": 18752,
-"households": 8956,
+"population": 18698,
+"households": 8953,
 "sido": "41"
 },
 "4115063000": {
 "gu": "의정부시",
 "hdong": "고산동",
-"population": 30821,
-"households": 12202,
+"population": 30827,
+"households": 12224,
 "sido": "41"
 },
 "4117151000": {
 "gu": "안양시 만안구",
 "hdong": "안양1동",
-"population": 18945,
-"households": 8123,
+"population": 18916,
+"households": 8117,
 "sido": "41"
 },
 "4117152000": {
 "gu": "안양시 만안구",
 "hdong": "안양2동",
-"population": 21983,
-"households": 10734,
+"population": 21932,
+"households": 10727,
 "sido": "41"
 },
 "4117153000": {
 "gu": "안양시 만안구",
 "hdong": "안양3동",
-"population": 14653,
-"households": 7243,
+"population": 14612,
+"households": 7238,
 "sido": "41"
 },
 "4117154000": {
 "gu": "안양시 만안구",
 "hdong": "안양4동",
-"population": 6588,
-"households": 3653,
+"population": 6581,
+"households": 3658,
 "sido": "41"
 },
 "4117155000": {
 "gu": "안양시 만안구",
 "hdong": "안양5동",
-"population": 14610,
-"households": 6753,
+"population": 14682,
+"households": 6781,
 "sido": "41"
 },
 "4117156000": {
 "gu": "안양시 만안구",
 "hdong": "안양6동",
-"population": 27267,
-"households": 13358,
+"population": 27314,
+"households": 13373,
 "sido": "41"
 },
 "4117157000": {
 "gu": "안양시 만안구",
 "hdong": "안양7동",
-"population": 14920,
-"households": 6028,
+"population": 14966,
+"households": 6056,
 "sido": "41"
 },
 "4117158200": {
 "gu": "안양시 만안구",
 "hdong": "명학동",
-"population": 7765,
-"households": 4120,
+"population": 7774,
+"households": 4116,
 "sido": "41"
 },
 "4117158300": {
 "gu": "안양시 만안구",
 "hdong": "병목안동",
-"population": 15447,
-"households": 6949,
+"population": 15423,
+"households": 6939,
 "sido": "41"
 },
 "4117159000": {
 "gu": "안양시 만안구",
 "hdong": "석수1동",
-"population": 18066,
-"households": 7475,
+"population": 18074,
+"households": 7477,
 "sido": "41"
 },
 "4117160000": {
 "gu": "안양시 만안구",
 "hdong": "석수2동",
-"population": 29445,
-"households": 12848,
+"population": 29415,
+"households": 12853,
 "sido": "41"
 },
 "4117161100": {
 "gu": "안양시 만안구",
 "hdong": "충훈동",
-"population": 11525,
-"households": 5287,
+"population": 11531,
+"households": 5306,
 "sido": "41"
 },
 "4117164000": {
 "gu": "안양시 만안구",
 "hdong": "박달동",
-"population": 13115,
-"households": 6637,
+"population": 13104,
+"households": 6648,
 "sido": "41"
 },
 "4117165000": {
 "gu": "안양시 만안구",
 "hdong": "호현동",
-"population": 19844,
+"population": 19793,
 "households": 7513,
 "sido": "41"
 },
 "4117351000": {
 "gu": "안양시 동안구",
 "hdong": "비산1동",
-"population": 28043,
-"households": 10558,
+"population": 28052,
+"households": 10571,
 "sido": "41"
 },
 "4117352000": {
 "gu": "안양시 동안구",
 "hdong": "비산2동",
-"population": 12827,
-"households": 4665,
+"population": 12816,
+"households": 4661,
 "sido": "41"
 },
 "4117353000": {
 "gu": "안양시 동안구",
 "hdong": "비산3동",
-"population": 17793,
-"households": 7664,
+"population": 17769,
+"households": 7656,
 "sido": "41"
 },
 "4117354000": {
 "gu": "안양시 동안구",
 "hdong": "부흥동",
-"population": 15701,
+"population": 15680,
 "households": 6291,
 "sido": "41"
 },
 "4117354600": {
 "gu": "안양시 동안구",
 "hdong": "달안동",
-"population": 9355,
-"households": 5381,
+"population": 9310,
+"households": 5368,
 "sido": "41"
 },
 "4117355200": {
 "gu": "안양시 동안구",
 "hdong": "관양동",
-"population": 31682,
-"households": 15277,
+"population": 31650,
+"households": 15275,
 "sido": "41"
 },
 "4117355900": {
 "gu": "안양시 동안구",
 "hdong": "인덕원동",
-"population": 17784,
-"households": 8826,
+"population": 17787,
+"households": 8833,
 "sido": "41"
 },
 "4117356600": {
 "gu": "안양시 동안구",
 "hdong": "부림동",
-"population": 26471,
-"households": 12771,
+"population": 26454,
+"households": 12763,
 "sido": "41"
 },
 "4117357000": {
 "gu": "안양시 동안구",
 "hdong": "평촌동",
-"population": 14688,
-"households": 5373,
+"population": 14670,
+"households": 5375,
 "sido": "41"
 },
 "4117357600": {
 "gu": "안양시 동안구",
 "hdong": "평안동",
-"population": 22155,
-"households": 8063,
+"population": 22160,
+"households": 8066,
 "sido": "41"
 },
 "4117357800": {
 "gu": "안양시 동안구",
 "hdong": "귀인동",
-"population": 15881,
-"households": 5080,
+"population": 15886,
+"households": 5079,
 "sido": "41"
 },
 "4117358000": {
 "gu": "안양시 동안구",
 "hdong": "호계1동",
-"population": 27169,
-"households": 10361,
+"population": 27403,
+"households": 10452,
 "sido": "41"
 },
 "4117359000": {
 "gu": "안양시 동안구",
 "hdong": "호계2동",
-"population": 27272,
-"households": 10678,
+"population": 27262,
+"households": 10681,
 "sido": "41"
 },
 "4117360000": {
 "gu": "안양시 동안구",
 "hdong": "호계3동",
-"population": 23852,
-"households": 9539,
+"population": 23870,
+"households": 9545,
 "sido": "41"
 },
 "4117361000": {
 "gu": "안양시 동안구",
 "hdong": "범계동",
-"population": 14914,
-"households": 5852,
+"population": 14894,
+"households": 5844,
 "sido": "41"
 },
 "4117362000": {
 "gu": "안양시 동안구",
 "hdong": "신촌동",
-"population": 12105,
-"households": 4414,
+"population": 12095,
+"households": 4418,
 "sido": "41"
 },
 "4117363000": {
 "gu": "안양시 동안구",
 "hdong": "갈산동",
-"population": 10275,
-"households": 3858,
+"population": 10293,
+"households": 3859,
 "sido": "41"
 },
 "4119251000": {
 "gu": "부천시 원미구",
 "hdong": "심곡1동",
-"population": 11827,
-"households": 6478,
+"population": 11880,
+"households": 6485,
 "sido": "41"
 },
 "4119252000": {
 "gu": "부천시 원미구",
 "hdong": "심곡2동",
-"population": 18235,
-"households": 11195,
+"population": 18178,
+"households": 11171,
 "sido": "41"
 },
 "4119253000": {
 "gu": "부천시 원미구",
 "hdong": "심곡3동",
-"population": 10495,
-"households": 5377,
+"population": 10494,
+"households": 5385,
 "sido": "41"
 },
 "4119254000": {
 "gu": "부천시 원미구",
 "hdong": "원미1동",
-"population": 16178,
-"households": 7604,
+"population": 16189,
+"households": 7608,
 "sido": "41"
 },
 "4119255000": {
 "gu": "부천시 원미구",
 "hdong": "원미2동",
-"population": 10913,
-"households": 5479,
+"population": 10934,
+"households": 5492,
 "sido": "41"
 },
 "4119256000": {
 "gu": "부천시 원미구",
 "hdong": "소사동",
-"population": 5736,
-"households": 3125,
+"population": 5746,
+"households": 3126,
 "sido": "41"
 },
 "4119257000": {
 "gu": "부천시 원미구",
 "hdong": "역곡1동",
-"population": 15942,
-"households": 6973,
+"population": 15900,
+"households": 6954,
 "sido": "41"
 },
 "4119258000": {
 "gu": "부천시 원미구",
 "hdong": "역곡2동",
-"population": 15854,
-"households": 7521,
+"population": 15791,
+"households": 7486,
 "sido": "41"
 },
 "4119259000": {
 "gu": "부천시 원미구",
 "hdong": "춘의동",
-"population": 13333,
-"households": 6679,
+"population": 13319,
+"households": 6674,
 "sido": "41"
 },
 "4119260000": {
 "gu": "부천시 원미구",
 "hdong": "도당동",
-"population": 19568,
-"households": 9063,
+"population": 19566,
+"households": 9070,
 "sido": "41"
 },
 "4119261000": {
 "gu": "부천시 원미구",
 "hdong": "약대동",
-"population": 16868,
-"households": 6867,
+"population": 16878,
+"households": 6876,
 "sido": "41"
 },
 "4119262000": {
 "gu": "부천시 원미구",
 "hdong": "중동",
-"population": 21007,
-"households": 9375,
+"population": 20985,
+"households": 9383,
 "sido": "41"
 },
 "4119263000": {
 "gu": "부천시 원미구",
 "hdong": "중1동",
-"population": 40317,
-"households": 19624,
+"population": 40288,
+"households": 19595,
 "sido": "41"
 },
 "4119264000": {
 "gu": "부천시 원미구",
 "hdong": "중2동",
-"population": 29110,
-"households": 11433,
+"population": 29092,
+"households": 11440,
 "sido": "41"
 },
 "4119265000": {
 "gu": "부천시 원미구",
 "hdong": "중3동",
-"population": 21502,
-"households": 10145,
+"population": 21473,
+"households": 10140,
 "sido": "41"
 },
 "4119266000": {
 "gu": "부천시 원미구",
 "hdong": "중4동",
-"population": 16425,
-"households": 7964,
+"population": 16412,
+"households": 7970,
 "sido": "41"
 },
 "4119267000": {
 "gu": "부천시 원미구",
 "hdong": "상동",
-"population": 17270,
-"households": 8192,
+"population": 17165,
+"households": 8157,
 "sido": "41"
 },
 "4119268000": {
 "gu": "부천시 원미구",
 "hdong": "상1동",
-"population": 23280,
-"households": 10197,
+"population": 23189,
+"households": 10179,
 "sido": "41"
 },
 "4119269000": {
 "gu": "부천시 원미구",
 "hdong": "상2동",
-"population": 27517,
-"households": 10235,
+"population": 27506,
+"households": 10230,
 "sido": "41"
 },
 "4119270000": {
 "gu": "부천시 원미구",
 "hdong": "상3동",
-"population": 29970,
-"households": 11389,
+"population": 29960,
+"households": 11402,
 "sido": "41"
 },
 "4119451000": {
 "gu": "부천시 소사구",
 "hdong": "심곡본1동",
-"population": 15006,
+"population": 14959,
 "households": 8110,
 "sido": "41"
 },
 "4119452000": {
 "gu": "부천시 소사구",
 "hdong": "심곡본동",
-"population": 13769,
-"households": 7400,
+"population": 13738,
+"households": 7397,
 "sido": "41"
 },
 "4119453000": {
 "gu": "부천시 소사구",
 "hdong": "소사본동",
-"population": 25759,
-"households": 12244,
+"population": 25680,
+"households": 12219,
 "sido": "41"
 },
 "4119454000": {
 "gu": "부천시 소사구",
 "hdong": "소사본1동",
-"population": 27027,
-"households": 11450,
+"population": 27039,
+"households": 11459,
 "sido": "41"
 },
 "4119455000": {
 "gu": "부천시 소사구",
 "hdong": "범박동",
-"population": 28352,
-"households": 10107,
+"population": 28369,
+"households": 10117,
 "sido": "41"
 },
 "4119456000": {
 "gu": "부천시 소사구",
 "hdong": "옥길동",
-"population": 30948,
-"households": 11417,
+"population": 30951,
+"households": 11425,
 "sido": "41"
 },
 "4119457000": {
 "gu": "부천시 소사구",
 "hdong": "괴안동",
-"population": 18120,
-"households": 8323,
+"population": 18110,
+"households": 8318,
 "sido": "41"
 },
 "4119458000": {
 "gu": "부천시 소사구",
 "hdong": "역곡3동",
-"population": 21442,
-"households": 10590,
+"population": 21302,
+"households": 10536,
 "sido": "41"
 },
 "4119459000": {
 "gu": "부천시 소사구",
 "hdong": "송내1동",
-"population": 20156,
-"households": 8940,
+"population": 20908,
+"households": 9306,
 "sido": "41"
 },
 "4119460000": {
 "gu": "부천시 소사구",
 "hdong": "송내2동",
-"population": 23427,
-"households": 10505,
+"population": 23356,
+"households": 10495,
 "sido": "41"
 },
 "4119651000": {
 "gu": "부천시 오정구",
 "hdong": "성곡동",
-"population": 36751,
-"households": 16920,
+"population": 36578,
+"households": 16873,
 "sido": "41"
 },
 "4119652000": {
 "gu": "부천시 오정구",
 "hdong": "원종1동",
-"population": 23895,
-"households": 11245,
+"population": 23935,
+"households": 11263,
 "sido": "41"
 },
 "4119653000": {
 "gu": "부천시 오정구",
 "hdong": "원종2동",
-"population": 16746,
-"households": 7998,
+"population": 16542,
+"households": 7888,
 "sido": "41"
 },
 "4119654000": {
 "gu": "부천시 오정구",
 "hdong": "고강본동",
-"population": 24389,
-"households": 12024,
+"population": 24398,
+"households": 12040,
 "sido": "41"
 },
 "4119655000": {
 "gu": "부천시 오정구",
 "hdong": "고강1동",
-"population": 12020,
-"households": 5797,
+"population": 12111,
+"households": 5851,
 "sido": "41"
 },
 "4119656000": {
 "gu": "부천시 오정구",
 "hdong": "오정동",
-"population": 18253,
+"population": 18248,
 "households": 8242,
 "sido": "41"
 },
 "4119657000": {
 "gu": "부천시 오정구",
 "hdong": "신흥동",
-"population": 16324,
-"households": 7969,
+"population": 16359,
+"households": 7987,
 "sido": "41"
 },
 "4121051000": {
 "gu": "광명시",
 "hdong": "광명1동",
-"population": 16284,
-"households": 6662,
+"population": 16337,
+"households": 6680,
 "sido": "41"
 },
 "4121052000": {
 "gu": "광명시",
 "hdong": "광명2동",
-"population": 7181,
-"households": 3359,
+"population": 7210,
+"households": 3375,
 "sido": "41"
 },
 "4121054000": {
 "gu": "광명시",
 "hdong": "광명3동",
-"population": 8760,
-"households": 4674,
+"population": 8740,
+"households": 4667,
 "sido": "41"
 },
 "4121055000": {
 "gu": "광명시",
 "hdong": "광명4동",
-"population": 7111,
+"population": 7103,
 "households": 3337,
 "sido": "41"
 },
 "4121056000": {
 "gu": "광명시",
 "hdong": "광명5동",
-"population": 11264,
-"households": 5049,
+"population": 11256,
+"households": 5047,
 "sido": "41"
 },
 "4121057000": {
 "gu": "광명시",
 "hdong": "광명6동",
-"population": 12405,
-"households": 4867,
+"population": 12386,
+"households": 4866,
 "sido": "41"
 },
 "4121058000": {
 "gu": "광명시",
 "hdong": "광명7동",
-"population": 25115,
-"households": 10368,
+"population": 25104,
+"households": 10370,
 "sido": "41"
 },
 "4121059000": {
 "gu": "광명시",
 "hdong": "철산1동",
-"population": 9907,
-"households": 3797,
+"population": 9914,
+"households": 3803,
 "sido": "41"
 },
 "4121060000": {
 "gu": "광명시",
 "hdong": "철산2동",
-"population": 19196,
-"households": 8035,
+"population": 19238,
+"households": 8040,
 "sido": "41"
 },
 "4121061000": {
 "gu": "광명시",
 "hdong": "철산3동",
-"population": 35054,
-"households": 12580,
+"population": 35016,
+"households": 12565,
 "sido": "41"
 },
 "4121062000": {
 "gu": "광명시",
 "hdong": "철산4동",
-"population": 8872,
-"households": 3631,
+"population": 8856,
+"households": 3621,
 "sido": "41"
 },
 "4121063100": {
 "gu": "광명시",
 "hdong": "하안1동",
-"population": 24101,
-"households": 9740,
+"population": 24091,
+"households": 9733,
 "sido": "41"
 },
 "4121063200": {
 "gu": "광명시",
 "hdong": "하안2동",
-"population": 12411,
-"households": 6441,
+"population": 12400,
+"households": 6444,
 "sido": "41"
 },
 "4121063300": {
 "gu": "광명시",
 "hdong": "하안3동",
-"population": 17942,
-"households": 8547,
+"population": 17923,
+"households": 8534,
 "sido": "41"
 },
 "4121063400": {
 "gu": "광명시",
 "hdong": "하안4동",
-"population": 11145,
-"households": 4982,
+"population": 11148,
+"households": 4981,
 "sido": "41"
 },
 "4121064000": {
 "gu": "광명시",
 "hdong": "소하1동",
-"population": 28916,
-"households": 11234,
+"population": 28888,
+"households": 11245,
 "sido": "41"
 },
 "4121065000": {
 "gu": "광명시",
 "hdong": "소하2동",
-"population": 25370,
-"households": 10883,
+"population": 25342,
+"households": 10884,
 "sido": "41"
 },
 "4121065500": {
 "gu": "광명시",
 "hdong": "일직동",
-"population": 21080,
-"households": 9024,
+"population": 21075,
+"households": 9016,
 "sido": "41"
 },
 "4121066000": {
 "gu": "광명시",
 "hdong": "학온동",
-"population": 1593,
-"households": 853,
+"population": 1575,
+"households": 843,
 "sido": "41"
 },
 "4122025000": {
 "gu": "평택시",
 "hdong": "팽성읍",
-"population": 26977,
-"households": 15533,
+"population": 26987,
+"households": 15549,
 "sido": "41"
 },
 "4122025300": {
 "gu": "평택시",
 "hdong": "안중읍",
-"population": 40621,
-"households": 19483,
+"population": 40698,
+"households": 19558,
 "sido": "41"
 },
 "4122025600": {
 "gu": "평택시",
 "hdong": "포승읍",
-"population": 21022,
-"households": 13043,
+"population": 21010,
+"households": 13067,
 "sido": "41"
 },
 "4122025900": {
 "gu": "평택시",
 "hdong": "청북읍",
-"population": 25950,
-"households": 11451,
+"population": 25919,
+"households": 11465,
 "sido": "41"
 },
 "4122031000": {
 "gu": "평택시",
 "hdong": "진위면",
-"population": 10666,
-"households": 6076,
+"population": 10701,
+"households": 6095,
 "sido": "41"
 },
 "4122032000": {
 "gu": "평택시",
 "hdong": "서탄면",
-"population": 3259,
-"households": 1795,
+"population": 3256,
+"households": 1794,
 "sido": "41"
 },
 "4122033000": {
 "gu": "평택시",
 "hdong": "고덕면",
-"population": 12732,
-"households": 6649,
+"population": 12717,
+"households": 6662,
 "sido": "41"
 },
 "4122034000": {
 "gu": "평택시",
 "hdong": "오성면",
-"population": 5942,
-"households": 3120,
+"population": 5935,
+"households": 3128,
 "sido": "41"
 },
 "4122037000": {
 "gu": "평택시",
 "hdong": "현덕면",
-"population": 17978,
-"households": 8497,
+"population": 18589,
+"households": 8778,
 "sido": "41"
 },
 "4122051000": {
 "gu": "평택시",
 "hdong": "중앙동",
-"population": 45255,
-"households": 23476,
+"population": 45285,
+"households": 23490,
 "sido": "41"
 },
 "4122052000": {
 "gu": "평택시",
 "hdong": "서정동",
-"population": 24518,
-"households": 13330,
+"population": 24529,
+"households": 13340,
 "sido": "41"
 },
 "4122053500": {
 "gu": "평택시",
 "hdong": "송탄동",
-"population": 26909,
-"households": 11785,
+"population": 27677,
+"households": 12103,
 "sido": "41"
 },
 "4122055000": {
 "gu": "평택시",
 "hdong": "지산동",
-"population": 12158,
-"households": 7607,
+"population": 12152,
+"households": 7625,
 "sido": "41"
 },
 "4122056000": {
 "gu": "평택시",
 "hdong": "송북동",
-"population": 20296,
-"households": 9524,
+"population": 20317,
+"households": 9553,
 "sido": "41"
 },
 "4122057000": {
 "gu": "평택시",
 "hdong": "신장1동",
-"population": 6615,
-"households": 3760,
+"population": 6642,
+"households": 3790,
 "sido": "41"
 },
 "4122058000": {
 "gu": "평택시",
 "hdong": "신장2동",
-"population": 4616,
-"households": 2967,
+"population": 4614,
+"households": 2972,
 "sido": "41"
 },
 "4122059000": {
 "gu": "평택시",
 "hdong": "신평동",
-"population": 19472,
-"households": 11499,
+"population": 19508,
+"households": 11532,
 "sido": "41"
 },
 "4122060000": {
 "gu": "평택시",
 "hdong": "원평동",
-"population": 12598,
-"households": 7031,
+"population": 12606,
+"households": 7050,
 "sido": "41"
 },
 "4122061000": {
 "gu": "평택시",
 "hdong": "통복동",
-"population": 6341,
-"households": 3633,
+"population": 6328,
+"households": 3631,
 "sido": "41"
 },
 "4122062000": {
 "gu": "평택시",
 "hdong": "비전1동",
-"population": 48765,
-"households": 21595,
+"population": 48768,
+"households": 21609,
 "sido": "41"
 },
 "4122063000": {
 "gu": "평택시",
 "hdong": "비전2동",
-"population": 55735,
-"households": 22939,
+"population": 55715,
+"households": 22941,
 "sido": "41"
 },
 "4122063500": {
 "gu": "평택시",
 "hdong": "용이동",
-"population": 25407,
-"households": 11317,
+"population": 25453,
+"households": 11356,
 "sido": "41"
 },
 "4122064000": {
 "gu": "평택시",
 "hdong": "세교동",
-"population": 37427,
-"households": 16239,
+"population": 37405,
+"households": 16259,
 "sido": "41"
 },
 "4122065000": {
 "gu": "평택시",
 "hdong": "동삭동",
-"population": 45357,
-"households": 19804,
+"population": 45414,
+"households": 19811,
 "sido": "41"
 },
-"4122066000": {
+"4122067000": {
 "gu": "평택시",
-"hdong": "고덕동",
-"population": 67920,
-"households": 29925,
+"hdong": "고덕1동",
+"population": 33833,
+"households": 15018,
+"sido": "41"
+},
+"4122068000": {
+"gu": "평택시",
+"hdong": "고덕2동",
+"population": 34236,
+"households": 14956,
 "sido": "41"
 },
 "4125051000": {
 "gu": "동두천시",
 "hdong": "생연1동",
-"population": 5986,
-"households": 3209,
+"population": 5988,
+"households": 3217,
 "sido": "41"
 },
 "4125052000": {
 "gu": "동두천시",
 "hdong": "생연2동",
-"population": 10353,
-"households": 4942,
+"population": 10358,
+"households": 4936,
 "sido": "41"
 },
 "4125053500": {
 "gu": "동두천시",
 "hdong": "중앙동",
-"population": 4255,
-"households": 2818,
+"population": 4241,
+"households": 2816,
 "sido": "41"
 },
 "4125055000": {
 "gu": "동두천시",
 "hdong": "보산동",
-"population": 2515,
-"households": 1492,
+"population": 2523,
+"households": 1502,
 "sido": "41"
 },
 "4125056500": {
 "gu": "동두천시",
 "hdong": "불현동",
-"population": 25089,
-"households": 12561,
+"population": 25036,
+"households": 12564,
 "sido": "41"
 },
 "4125056600": {
 "gu": "동두천시",
 "hdong": "송내동",
-"population": 25465,
-"households": 11964,
+"population": 25426,
+"households": 11982,
 "sido": "41"
 },
 "4125058000": {
 "gu": "동두천시",
 "hdong": "소요동",
-"population": 8027,
-"households": 4295,
+"population": 8000,
+"households": 4292,
 "sido": "41"
 },
 "4125060000": {
 "gu": "동두천시",
 "hdong": "상패동",
-"population": 4445,
-"households": 2604,
+"population": 4459,
+"households": 2611,
 "sido": "41"
 },
 "4127151000": {
 "gu": "안산시 상록구",
 "hdong": "일동",
-"population": 22019,
-"households": 10966,
+"population": 22037,
+"households": 10975,
 "sido": "41"
 },
 "4127151500": {
 "gu": "안산시 상록구",
 "hdong": "이동",
-"population": 22238,
-"households": 13510,
+"population": 22276,
+"households": 13552,
 "sido": "41"
 },
 "4127152500": {
 "gu": "안산시 상록구",
 "hdong": "사동",
-"population": 28607,
-"households": 15245,
+"population": 28637,
+"households": 15275,
 "sido": "41"
 },
 "4127153200": {
 "gu": "안산시 상록구",
 "hdong": "사이동",
-"population": 29458,
-"households": 12906,
+"population": 29437,
+"households": 12902,
 "sido": "41"
 },
 "4127153700": {
 "gu": "안산시 상록구",
 "hdong": "해양동",
-"population": 39171,
-"households": 15147,
+"population": 39148,
+"households": 15125,
 "sido": "41"
 },
 "4127154000": {
 "gu": "안산시 상록구",
 "hdong": "본오1동",
-"population": 33710,
-"households": 17128,
+"population": 33704,
+"households": 17150,
 "sido": "41"
 },
 "4127155000": {
 "gu": "안산시 상록구",
 "hdong": "본오2동",
-"population": 23614,
-"households": 10784,
+"population": 23592,
+"households": 10775,
 "sido": "41"
 },
 "4127156000": {
 "gu": "안산시 상록구",
 "hdong": "본오3동",
-"population": 17691,
-"households": 8880,
+"population": 17699,
+"households": 8888,
 "sido": "41"
 },
 "4127157000": {
 "gu": "안산시 상록구",
 "hdong": "부곡동",
-"population": 19633,
-"households": 9279,
+"population": 19606,
+"households": 9271,
 "sido": "41"
 },
 "4127158000": {
 "gu": "안산시 상록구",
 "hdong": "월피동",
-"population": 34465,
-"households": 16811,
+"population": 34369,
+"households": 16787,
 "sido": "41"
 },
 "4127159000": {
 "gu": "안산시 상록구",
 "hdong": "성포동",
-"population": 23887,
-"households": 9570,
+"population": 23844,
+"households": 9565,
 "sido": "41"
 },
 "4127160000": {
 "gu": "안산시 상록구",
 "hdong": "반월동",
-"population": 17709,
-"households": 8288,
+"population": 17694,
+"households": 8298,
 "sido": "41"
 },
 "4127161000": {
 "gu": "안산시 상록구",
 "hdong": "안산동",
-"population": 7931,
-"households": 3974,
+"population": 7895,
+"households": 3966,
 "sido": "41"
 },
 "4127351000": {
 "gu": "안산시 단원구",
 "hdong": "와동",
-"population": 34691,
-"households": 17287,
+"population": 34678,
+"households": 17306,
 "sido": "41"
 },
 "4127352500": {
 "gu": "안산시 단원구",
 "hdong": "고잔동",
-"population": 19339,
-"households": 10064,
+"population": 19327,
+"households": 10074,
 "sido": "41"
 },
 "4127353200": {
 "gu": "안산시 단원구",
 "hdong": "중앙동",
-"population": 23740,
-"households": 12346,
+"population": 24059,
+"households": 12527,
 "sido": "41"
 },
 "4127353500": {
 "gu": "안산시 단원구",
 "hdong": "호수동",
-"population": 41441,
-"households": 16088,
+"population": 41455,
+"households": 16083,
 "sido": "41"
 },
 "4127354500": {
 "gu": "안산시 단원구",
 "hdong": "원곡동",
-"population": 5384,
-"households": 3841,
+"population": 5365,
+"households": 3837,
 "sido": "41"
 },
 "4127355500": {
 "gu": "안산시 단원구",
 "hdong": "백운동",
-"population": 23609,
-"households": 9552,
+"population": 23597,
+"households": 9568,
 "sido": "41"
 },
 "4127356500": {
 "gu": "안산시 단원구",
 "hdong": "신길동",
-"population": 20144,
+"population": 20123,
 "households": 9641,
 "sido": "41"
 },
 "4127357000": {
 "gu": "안산시 단원구",
 "hdong": "초지동",
-"population": 46079,
-"households": 21451,
+"population": 46167,
+"households": 21502,
 "sido": "41"
 },
 "4127358000": {
 "gu": "안산시 단원구",
 "hdong": "선부1동",
-"population": 16515,
-"households": 8114,
+"population": 16466,
+"households": 8092,
 "sido": "41"
 },
 "4127359000": {
 "gu": "안산시 단원구",
 "hdong": "선부2동",
-"population": 16914,
-"households": 8549,
+"population": 16881,
+"households": 8543,
 "sido": "41"
 },
 "4127360000": {
 "gu": "안산시 단원구",
 "hdong": "선부3동",
-"population": 31193,
-"households": 14601,
+"population": 31134,
+"households": 14600,
 "sido": "41"
 },
 "4127361000": {
 "gu": "안산시 단원구",
 "hdong": "대부동",
-"population": 9161,
-"households": 5617,
+"population": 9140,
+"households": 5605,
 "sido": "41"
 },
 "4128151000": {
 "gu": "고양시 덕양구",
 "hdong": "주교동",
-"population": 10045,
-"households": 5240,
+"population": 10009,
+"households": 5231,
 "sido": "41"
 },
 "4128152000": {
 "gu": "고양시 덕양구",
 "hdong": "원신동",
-"population": 22179,
-"households": 9333,
+"population": 22176,
+"households": 9337,
 "sido": "41"
 },
 "4128153000": {
 "gu": "고양시 덕양구",
 "hdong": "흥도동",
-"population": 29309,
-"households": 13079,
+"population": 29270,
+"households": 13065,
 "sido": "41"
 },
 "4128154000": {
 "gu": "고양시 덕양구",
 "hdong": "성사1동",
-"population": 23712,
-"households": 11535,
+"population": 23680,
+"households": 11536,
 "sido": "41"
 },
 "4128155000": {
 "gu": "고양시 덕양구",
 "hdong": "성사2동",
-"population": 10071,
-"households": 4596,
+"population": 10066,
+"households": 4588,
 "sido": "41"
 },
 "4128156000": {
 "gu": "고양시 덕양구",
 "hdong": "효자동",
-"population": 26305,
-"households": 10760,
+"population": 26314,
+"households": 10778,
 "sido": "41"
 },
 "4128157600": {
 "gu": "고양시 덕양구",
 "hdong": "삼송1동",
-"population": 22247,
-"households": 10275,
+"population": 22244,
+"households": 10279,
 "sido": "41"
 },
 "4128157700": {
 "gu": "고양시 덕양구",
 "hdong": "삼송2동",
-"population": 27835,
-"households": 14130,
+"population": 27824,
+"households": 14127,
 "sido": "41"
 },
 "4128158000": {
 "gu": "고양시 덕양구",
 "hdong": "창릉동",
-"population": 22813,
-"households": 10064,
+"population": 22827,
+"households": 10044,
 "sido": "41"
 },
 "4128159000": {
 "gu": "고양시 덕양구",
 "hdong": "고양동",
-"population": 26878,
-"households": 12344,
+"population": 26876,
+"households": 12356,
 "sido": "41"
 },
 "4128160000": {
 "gu": "고양시 덕양구",
 "hdong": "관산동",
-"population": 32773,
-"households": 16061,
+"population": 32761,
+"households": 16065,
 "sido": "41"
 },
 "4128161000": {
 "gu": "고양시 덕양구",
 "hdong": "능곡동",
 "population": 16829,
-"households": 7360,
+"households": 7378,
 "sido": "41"
 },
 "4128162100": {
 "gu": "고양시 덕양구",
 "hdong": "화정1동",
-"population": 34698,
+"population": 34705,
 "households": 15792,
 "sido": "41"
 },
 "4128162200": {
 "gu": "고양시 덕양구",
 "hdong": "화정2동",
-"population": 31150,
-"households": 13184,
+"population": 31153,
+"households": 13194,
 "sido": "41"
 },
 "4128163000": {
 "gu": "고양시 덕양구",
 "hdong": "행주동",
-"population": 11630,
-"households": 6448,
+"population": 11569,
+"households": 6426,
 "sido": "41"
 },
 "4128164000": {
 "gu": "고양시 덕양구",
 "hdong": "행신1동",
 "population": 19635,
-"households": 8489,
+"households": 8496,
 "sido": "41"
 },
 "4128165000": {
 "gu": "고양시 덕양구",
 "hdong": "행신2동",
-"population": 29156,
-"households": 13100,
+"population": 29072,
+"households": 13086,
 "sido": "41"
 },
 "4128165500": {
 "gu": "고양시 덕양구",
 "hdong": "행신3동",
-"population": 21983,
-"households": 8851,
+"population": 21972,
+"households": 8848,
 "sido": "41"
 },
 "4128165600": {
 "gu": "고양시 덕양구",
 "hdong": "행신4동",
-"population": 18446,
+"population": 18407,
 "households": 9492,
 "sido": "41"
 },
 "4128166000": {
 "gu": "고양시 덕양구",
 "hdong": "화전동",
-"population": 27615,
-"households": 12109,
+"population": 27632,
+"households": 12108,
 "sido": "41"
 },
 "4128167000": {
 "gu": "고양시 덕양구",
 "hdong": "대덕동",
-"population": 16987,
-"households": 6976,
+"population": 16953,
+"households": 6972,
 "sido": "41"
 },
 "4128551000": {
 "gu": "고양시 일산동구",
 "hdong": "식사동",
-"population": 40204,
-"households": 15057,
+"population": 40227,
+"households": 15091,
 "sido": "41"
 },
 "4128552500": {
 "gu": "고양시 일산동구",
 "hdong": "중산1동",
-"population": 19751,
+"population": 19718,
 "households": 8945,
 "sido": "41"
 },
 "4128552600": {
 "gu": "고양시 일산동구",
 "hdong": "중산2동",
-"population": 22543,
+"population": 22506,
 "households": 9438,
 "sido": "41"
 },
 "4128553000": {
 "gu": "고양시 일산동구",
 "hdong": "정발산동",
-"population": 20951,
-"households": 9934,
+"population": 20936,
+"households": 9935,
 "sido": "41"
 },
 "4128554000": {
 "gu": "고양시 일산동구",
 "hdong": "풍산동",
-"population": 42248,
-"households": 17029,
+"population": 42203,
+"households": 17039,
 "sido": "41"
 },
 "4128555100": {
 "gu": "고양시 일산동구",
 "hdong": "백석1동",
-"population": 27960,
-"households": 12728,
+"population": 27965,
+"households": 12733,
 "sido": "41"
 },
 "4128555200": {
 "gu": "고양시 일산동구",
 "hdong": "백석2동",
-"population": 19827,
-"households": 11683,
+"population": 19902,
+"households": 11707,
 "sido": "41"
 },
 "4128556000": {
 "gu": "고양시 일산동구",
 "hdong": "마두1동",
-"population": 22258,
-"households": 8672,
+"population": 22277,
+"households": 8679,
 "sido": "41"
 },
 "4128557000": {
 "gu": "고양시 일산동구",
 "hdong": "마두2동",
-"population": 15002,
-"households": 5702,
+"population": 15001,
+"households": 5713,
 "sido": "41"
 },
 "4128558000": {
 "gu": "고양시 일산동구",
 "hdong": "장항1동",
-"population": 20172,
-"households": 8463,
+"population": 20234,
+"households": 8485,
 "sido": "41"
 },
 "4128559000": {
 "gu": "고양시 일산동구",
 "hdong": "장항2동",
-"population": 26607,
-"households": 16444,
+"population": 26594,
+"households": 16440,
 "sido": "41"
 },
 "4128560000": {
 "gu": "고양시 일산동구",
 "hdong": "고봉동",
-"population": 20724,
-"households": 10572,
+"population": 20673,
+"households": 10548,
 "sido": "41"
 },
 "4128751000": {
 "gu": "고양시 일산서구",
 "hdong": "일산1동",
-"population": 24356,
-"households": 9879,
+"population": 24336,
+"households": 9870,
 "sido": "41"
 },
 "4128752000": {
 "gu": "고양시 일산서구",
 "hdong": "일산2동",
-"population": 18379,
-"households": 8360,
+"population": 18358,
+"households": 8357,
 "sido": "41"
 },
 "4128753000": {
 "gu": "고양시 일산서구",
 "hdong": "일산3동",
-"population": 32821,
-"households": 11941,
+"population": 32823,
+"households": 11934,
 "sido": "41"
 },
 "4128754500": {
 "gu": "고양시 일산서구",
 "hdong": "탄현1동",
-"population": 28860,
-"households": 12328,
+"population": 28817,
+"households": 12334,
 "sido": "41"
 },
 "4128754600": {
 "gu": "고양시 일산서구",
 "hdong": "탄현2동",
-"population": 18304,
-"households": 7138,
+"population": 18255,
+"households": 7123,
 "sido": "41"
 },
 "4128755000": {
 "gu": "고양시 일산서구",
 "hdong": "주엽1동",
-"population": 25656,
-"households": 10920,
+"population": 25646,
+"households": 10928,
 "sido": "41"
 },
 "4128756000": {
 "gu": "고양시 일산서구",
 "hdong": "주엽2동",
-"population": 26123,
-"households": 11301,
+"population": 26113,
+"households": 11294,
 "sido": "41"
 },
 "4128757000": {
 "gu": "고양시 일산서구",
 "hdong": "대화동",
-"population": 33250,
-"households": 16067,
+"population": 33215,
+"households": 16079,
 "sido": "41"
 },
 "4128758000": {
 "gu": "고양시 일산서구",
 "hdong": "송포동",
-"population": 19844,
-"households": 7891,
+"population": 19834,
+"households": 7882,
 "sido": "41"
 },
 "4128760000": {
 "gu": "고양시 일산서구",
 "hdong": "덕이동",
-"population": 30446,
-"households": 11840,
+"population": 30457,
+"households": 11844,
 "sido": "41"
 },
 "4128761000": {
 "gu": "고양시 일산서구",
 "hdong": "가좌동",
-"population": 17950,
-"households": 7035,
+"population": 17896,
+"households": 7019,
 "sido": "41"
 },
 "4129051000": {
 "gu": "과천시",
 "hdong": "중앙동",
-"population": 11327,
-"households": 4239,
+"population": 11343,
+"households": 4242,
 "sido": "41"
 },
 "4129051500": {
 "gu": "과천시",
 "hdong": "원문동",
-"population": 16162,
-"households": 5349,
+"population": 16109,
+"households": 5335,
 "sido": "41"
 },
 "4129052000": {
 "gu": "과천시",
 "hdong": "갈현동",
-"population": 19917,
-"households": 6910,
+"population": 20019,
+"households": 6957,
 "sido": "41"
 },
 "4129053000": {
 "gu": "과천시",
 "hdong": "별양동",
-"population": 12517,
-"households": 4645,
+"population": 12610,
+"households": 4696,
 "sido": "41"
 },
 "4129054000": {
 "gu": "과천시",
 "hdong": "부림동",
-"population": 8778,
-"households": 3290,
+"population": 8805,
+"households": 3292,
 "sido": "41"
 },
 "4129055000": {
 "gu": "과천시",
 "hdong": "과천동",
-"population": 5731,
-"households": 2614,
+"population": 5715,
+"households": 2592,
 "sido": "41"
 },
 "4129056000": {
 "gu": "과천시",
 "hdong": "문원동",
-"population": 6599,
-"households": 2729,
+"population": 6586,
+"households": 2725,
 "sido": "41"
 },
 "4131051000": {
 "gu": "구리시",
 "hdong": "갈매동",
-"population": 30385,
-"households": 12592,
+"population": 30393,
+"households": 12591,
 "sido": "41"
 },
 "4131052000": {
 "gu": "구리시",
 "hdong": "동구동",
-"population": 34706,
-"households": 13668,
+"population": 34705,
+"households": 13670,
 "sido": "41"
 },
 "4131053000": {
 "gu": "구리시",
 "hdong": "인창동",
-"population": 26488,
-"households": 11187,
+"population": 26531,
+"households": 11218,
 "sido": "41"
 },
 "4131054100": {
 "gu": "구리시",
 "hdong": "교문1동",
-"population": 14605,
-"households": 8091,
+"population": 14612,
+"households": 8097,
 "sido": "41"
 },
 "4131054200": {
 "gu": "구리시",
 "hdong": "교문2동",
-"population": 20402,
-"households": 7909,
+"population": 20373,
+"households": 7898,
 "sido": "41"
 },
 "4131057000": {
 "gu": "구리시",
 "hdong": "수택1동",
-"population": 16865,
-"households": 8618,
+"population": 16856,
+"households": 8611,
 "sido": "41"
 },
 "4131058000": {
 "gu": "구리시",
 "hdong": "수택2동",
-"population": 23936,
-"households": 11897,
+"population": 23927,
+"households": 11902,
 "sido": "41"
 },
 "4131059000": {
 "gu": "구리시",
 "hdong": "수택3동",
-"population": 20768,
-"households": 9568,
+"population": 20726,
+"households": 9558,
 "sido": "41"
 },
 "4136025000": {
 "gu": "남양주시",
 "hdong": "와부읍",
-"population": 59388,
-"households": 23838,
+"population": 59367,
+"households": 23837,
 "sido": "41"
 },
 "4136025300": {
 "gu": "남양주시",
 "hdong": "진접읍",
-"population": 94314,
-"households": 40051,
+"population": 94276,
+"households": 40064,
 "sido": "41"
 },
 "4136025600": {
 "gu": "남양주시",
 "hdong": "화도읍",
-"population": 63427,
-"households": 28934,
+"population": 63456,
+"households": 28959,
 "sido": "41"
 },
 "4136025700": {
 "gu": "남양주시",
 "hdong": "화도읍동부출장소",
-"population": 13162,
-"households": 5674,
+"population": 13179,
+"households": 5679,
 "sido": "41"
 },
 "4136025800": {
 "gu": "남양주시",
 "hdong": "화도읍남부출장소",
-"population": 35115,
-"households": 14708,
+"population": 35128,
+"households": 14725,
 "sido": "41"
 },
 "4136025900": {
 "gu": "남양주시",
 "hdong": "진건읍",
-"population": 19271,
-"households": 9376,
+"population": 19185,
+"households": 9337,
 "sido": "41"
 },
 "4136026200": {
 "gu": "남양주시",
 "hdong": "오남읍",
-"population": 50248,
-"households": 21745,
+"population": 50270,
+"households": 21765,
 "sido": "41"
 },
 "4136026500": {
 "gu": "남양주시",
 "hdong": "퇴계원읍",
-"population": 25946,
-"households": 11253,
+"population": 25960,
+"households": 11248,
 "sido": "41"
 },
 "4136031000": {
 "gu": "남양주시",
 "hdong": "별내면",
-"population": 17662,
-"households": 8077,
+"population": 17657,
+"households": 8082,
 "sido": "41"
 },
 "4136034000": {
 "gu": "남양주시",
 "hdong": "수동면",
-"population": 8435,
-"households": 4784,
+"population": 8459,
+"households": 4794,
 "sido": "41"
 },
 "4136036000": {
 "gu": "남양주시",
 "hdong": "조안면",
-"population": 3642,
-"households": 1891,
+"population": 3639,
+"households": 1887,
 "sido": "41"
 },
 "4136051000": {
 "gu": "남양주시",
 "hdong": "호평동",
-"population": 55221,
-"households": 21909,
+"population": 55226,
+"households": 21925,
 "sido": "41"
 },
 "4136052000": {
 "gu": "남양주시",
 "hdong": "평내동",
-"population": 37199,
-"households": 14709,
+"population": 37210,
+"households": 14705,
 "sido": "41"
 },
 "4136053000": {
 "gu": "남양주시",
 "hdong": "금곡동",
-"population": 16734,
-"households": 8691,
+"population": 16738,
+"households": 8722,
 "sido": "41"
 },
 "4136054000": {
 "gu": "남양주시",
 "hdong": "양정동",
-"population": 2060,
-"households": 1250,
+"population": 2062,
+"households": 1246,
 "sido": "41"
 },
 "4136054500": {
 "gu": "남양주시",
 "hdong": "다산1동",
-"population": 105713,
-"households": 42264,
+"population": 105778,
+"households": 42316,
 "sido": "41"
 },
 "4136056500": {
 "gu": "남양주시",
 "hdong": "다산2동",
-"population": 36501,
-"households": 14441,
+"population": 36492,
+"households": 14443,
 "sido": "41"
 },
 "4136057000": {
 "gu": "남양주시",
 "hdong": "별내동",
-"population": 83028,
-"households": 36015,
+"population": 83113,
+"households": 36080,
 "sido": "41"
 },
 "4137051000": {
 "gu": "오산시",
 "hdong": "중앙동",
-"population": 32763,
-"households": 14081,
+"population": 32760,
+"households": 14083,
 "sido": "41"
 },
 "4137052300": {
 "gu": "오산시",
 "hdong": "대원1동",
-"population": 44997,
-"households": 21676,
+"population": 44982,
+"households": 21701,
 "sido": "41"
 },
 "4137052600": {
 "gu": "오산시",
 "hdong": "대원2동",
-"population": 24528,
-"households": 10521,
+"population": 24551,
+"households": 10549,
 "sido": "41"
 },
 "4137053000": {
 "gu": "오산시",
 "hdong": "남촌동",
-"population": 32382,
-"households": 18493,
+"population": 32476,
+"households": 18530,
 "sido": "41"
 },
 "4137054300": {
 "gu": "오산시",
 "hdong": "신장1동",
-"population": 35309,
-"households": 16051,
+"population": 35354,
+"households": 16083,
 "sido": "41"
 },
 "4137054600": {
 "gu": "오산시",
 "hdong": "신장2동",
-"population": 22532,
-"households": 9978,
+"population": 22578,
+"households": 10009,
 "sido": "41"
 },
 "4137055000": {
 "gu": "오산시",
 "hdong": "세마동",
-"population": 31885,
-"households": 13789,
+"population": 31927,
+"households": 13790,
 "sido": "41"
 },
 "4137056000": {
 "gu": "오산시",
 "hdong": "초평동",
-"population": 31333,
-"households": 14542,
+"population": 31460,
+"households": 14593,
 "sido": "41"
 },
 "4139051000": {
 "gu": "시흥시",
 "hdong": "대야동",
-"population": 42451,
-"households": 19158,
+"population": 42594,
+"households": 19274,
 "sido": "41"
 },
 "4139052000": {
 "gu": "시흥시",
 "hdong": "신천동",
-"population": 31932,
-"households": 16063,
+"population": 31871,
+"households": 16050,
 "sido": "41"
 },
 "4139053100": {
 "gu": "시흥시",
 "hdong": "신현동",
-"population": 8680,
-"households": 4284,
+"population": 8665,
+"households": 4277,
 "sido": "41"
 },
 "4139054000": {
 "gu": "시흥시",
 "hdong": "은행동",
-"population": 57462,
-"households": 22201,
+"population": 57569,
+"households": 22238,
 "sido": "41"
 },
 "4139055000": {
 "gu": "시흥시",
 "hdong": "매화동",
-"population": 10823,
-"households": 5146,
+"population": 10799,
+"households": 5147,
 "sido": "41"
 },
 "4139057000": {
 "gu": "시흥시",
 "hdong": "목감동",
-"population": 40558,
-"households": 17318,
+"population": 40613,
+"households": 17339,
 "sido": "41"
 },
 "4139058100": {
 "gu": "시흥시",
 "hdong": "군자동",
-"population": 20892,
-"households": 9933,
+"population": 20893,
+"households": 9950,
 "sido": "41"
 },
 "4139058200": {
 "gu": "시흥시",
 "hdong": "월곶동",
-"population": 17593,
-"households": 8842,
+"population": 17609,
+"households": 8845,
 "sido": "41"
 },
 "4139058900": {
 "gu": "시흥시",
 "hdong": "정왕본동",
-"population": 17063,
-"households": 11757,
+"population": 17017,
+"households": 11725,
 "sido": "41"
 },
 "4139059100": {
 "gu": "시흥시",
 "hdong": "정왕1동",
-"population": 21034,
-"households": 13314,
+"population": 21055,
+"households": 13341,
 "sido": "41"
 },
 "4139059200": {
 "gu": "시흥시",
 "hdong": "정왕2동",
-"population": 26137,
-"households": 11136,
+"population": 26128,
+"households": 11142,
 "sido": "41"
 },
 "4139059300": {
 "gu": "시흥시",
 "hdong": "정왕3동",
-"population": 21155,
-"households": 10998,
+"population": 21160,
+"households": 10992,
 "sido": "41"
 },
 "4139059400": {
 "gu": "시흥시",
 "hdong": "정왕4동",
-"population": 19087,
+"population": 19060,
 "households": 7391,
 "sido": "41"
 },
 "4139059600": {
 "gu": "시흥시",
 "hdong": "배곧1동",
-"population": 35269,
-"households": 12332,
+"population": 35295,
+"households": 12352,
 "sido": "41"
 },
 "4139059700": {
 "gu": "시흥시",
 "hdong": "배곧2동",
-"population": 35398,
-"households": 15677,
+"population": 35404,
+"households": 15686,
 "sido": "41"
 },
 "4139062100": {
 "gu": "시흥시",
 "hdong": "과림동",
-"population": 1681,
-"households": 1119,
+"population": 1661,
+"households": 1111,
 "sido": "41"
 },
 "4139063000": {
 "gu": "시흥시",
 "hdong": "연성동",
-"population": 23513,
-"households": 9888,
+"population": 23496,
+"households": 9900,
 "sido": "41"
 },
 "4139063100": {
 "gu": "시흥시",
 "hdong": "장곡동",
-"population": 46752,
-"households": 18158,
+"population": 46729,
+"households": 18153,
 "sido": "41"
 },
 "4139064000": {
 "gu": "시흥시",
 "hdong": "능곡동",
-"population": 25922,
-"households": 11033,
+"population": 25941,
+"households": 11062,
 "sido": "41"
 },
 "4139065000": {
 "gu": "시흥시",
 "hdong": "거북섬동",
-"population": 12231,
-"households": 6753,
+"population": 12300,
+"households": 6792,
 "sido": "41"
 },
 "4141051000": {
 "gu": "군포시",
 "hdong": "군포1동",
-"population": 29937,
-"households": 14813,
+"population": 29898,
+"households": 14797,
 "sido": "41"
 },
 "4141052000": {
 "gu": "군포시",
 "hdong": "군포2동",
-"population": 40193,
-"households": 16087,
+"population": 40199,
+"households": 16119,
 "sido": "41"
 },
 "4141054000": {
 "gu": "군포시",
 "hdong": "산본1동",
-"population": 14073,
+"population": 14090,
 "households": 8300,
 "sido": "41"
 },
 "4141055000": {
 "gu": "군포시",
 "hdong": "산본2동",
-"population": 24542,
-"households": 9847,
+"population": 24515,
+"households": 9844,
 "sido": "41"
 },
 "4141056000": {
 "gu": "군포시",
 "hdong": "금정동",
-"population": 18402,
-"households": 9625,
+"population": 18393,
+"households": 9648,
 "sido": "41"
 },
 "4141057000": {
 "gu": "군포시",
 "hdong": "재궁동",
-"population": 16770,
-"households": 8315,
+"population": 16776,
+"households": 8328,
 "sido": "41"
 },
 "4141058000": {
 "gu": "군포시",
 "hdong": "오금동",
-"population": 19337,
-"households": 8591,
+"population": 19270,
+"households": 8576,
 "sido": "41"
 },
 "4141059000": {
 "gu": "군포시",
 "hdong": "수리동",
-"population": 14798,
-"households": 6977,
+"population": 14760,
+"households": 6972,
 "sido": "41"
 },
 "4141060000": {
 "gu": "군포시",
 "hdong": "궁내동",
-"population": 19146,
-"households": 6924,
+"population": 19111,
+"households": 6923,
 "sido": "41"
 },
 "4141061000": {
 "gu": "군포시",
 "hdong": "대야동",
-"population": 8875,
-"households": 3776,
+"population": 8868,
+"households": 3772,
 "sido": "41"
 },
 "4141062000": {
 "gu": "군포시",
 "hdong": "광정동",
-"population": 22792,
-"households": 10308,
+"population": 22803,
+"households": 10317,
 "sido": "41"
 },
 "4141063000": {
 "gu": "군포시",
 "hdong": "송부동",
-"population": 20094,
-"households": 8251,
+"population": 20077,
+"households": 8254,
 "sido": "41"
 },
 "4143051000": {
 "gu": "의왕시",
 "hdong": "고천동",
-"population": 17983,
-"households": 7613,
+"population": 18058,
+"households": 7644,
 "sido": "41"
 },
 "4143052000": {
 "gu": "의왕시",
 "hdong": "부곡동",
-"population": 28532,
-"households": 12551,
+"population": 28509,
+"households": 12536,
 "sido": "41"
 },
 "4143053000": {
 "gu": "의왕시",
 "hdong": "오전동",
-"population": 32506,
-"households": 12464,
+"population": 32548,
+"households": 12520,
 "sido": "41"
 },
 "4143054000": {
 "gu": "의왕시",
 "hdong": "내손1동",
-"population": 19481,
-"households": 8337,
+"population": 19447,
+"households": 8324,
 "sido": "41"
 },
 "4143055000": {
 "gu": "의왕시",
 "hdong": "내손2동",
-"population": 31068,
-"households": 12185,
+"population": 31400,
+"households": 12357,
 "sido": "41"
 },
 "4143056000": {
 "gu": "의왕시",
 "hdong": "청계동",
-"population": 37523,
-"households": 16111,
+"population": 37543,
+"households": 16118,
 "sido": "41"
 },
 "4145051000": {
 "gu": "하남시",
 "hdong": "천현동",
-"population": 5657,
-"households": 3145,
+"population": 5640,
+"households": 3134,
 "sido": "41"
 },
 "4145052000": {
 "gu": "하남시",
 "hdong": "신장1동",
-"population": 7060,
-"households": 4031,
+"population": 7084,
+"households": 4049,
 "sido": "41"
 },
 "4145053000": {
 "gu": "하남시",
 "hdong": "신장2동",
-"population": 44742,
-"households": 18723,
+"population": 44679,
+"households": 18698,
 "sido": "41"
 },
 "4145054000": {
 "gu": "하남시",
 "hdong": "덕풍1동",
-"population": 13769,
-"households": 6253,
+"population": 13724,
+"households": 6234,
 "sido": "41"
 },
 "4145055000": {
 "gu": "하남시",
 "hdong": "덕풍2동",
-"population": 17130,
-"households": 8364,
+"population": 17103,
+"households": 8349,
 "sido": "41"
 },
 "4145056000": {
 "gu": "하남시",
 "hdong": "덕풍3동",
-"population": 27444,
-"households": 11775,
+"population": 27421,
+"households": 11764,
 "sido": "41"
 },
 "4145058000": {
 "gu": "하남시",
 "hdong": "감북동",
-"population": 3218,
-"households": 1770,
+"population": 3221,
+"households": 1769,
 "sido": "41"
 },
 "4145058200": {
 "gu": "하남시",
 "hdong": "감일동",
-"population": 39618,
-"households": 14789,
+"population": 39606,
+"households": 14783,
 "sido": "41"
 },
 "4145058500": {
 "gu": "하남시",
 "hdong": "위례동",
-"population": 35286,
-"households": 12258,
+"population": 35253,
+"households": 12240,
 "sido": "41"
 },
 "4145059000": {
 "gu": "하남시",
 "hdong": "춘궁동",
-"population": 689,
-"households": 470,
+"population": 695,
+"households": 467,
 "sido": "41"
 },
 "4145060000": {
 "gu": "하남시",
 "hdong": "초이동",
-"population": 2821,
-"households": 1644,
+"population": 2806,
+"households": 1638,
 "sido": "41"
 },
 "4145061000": {
 "gu": "하남시",
 "hdong": "미사1동",
-"population": 54213,
-"households": 28341,
+"population": 54188,
+"households": 28327,
 "sido": "41"
 },
 "4145062000": {
 "gu": "하남시",
 "hdong": "미사2동",
-"population": 46263,
-"households": 18410,
+"population": 46241,
+"households": 18415,
 "sido": "41"
 },
 "4145063000": {
 "gu": "하남시",
 "hdong": "미사3동",
-"population": 29463,
-"households": 11042,
+"population": 29496,
+"households": 11060,
 "sido": "41"
 },
 "4146125000": {
 "gu": "용인시 처인구",
 "hdong": "포곡읍",
-"population": 31031,
-"households": 14265,
+"population": 31058,
+"households": 14283,
 "sido": "41"
 },
 "4146125300": {
 "gu": "용인시 처인구",
 "hdong": "모현읍",
-"population": 34780,
-"households": 16030,
+"population": 34798,
+"households": 16047,
 "sido": "41"
 },
 "4146125600": {
 "gu": "용인시 처인구",
 "hdong": "이동읍",
-"population": 18472,
-"households": 8758,
+"population": 18431,
+"households": 8750,
 "sido": "41"
 },
 "4146125900": {
 "gu": "용인시 처인구",
 "hdong": "남사읍",
-"population": 23454,
-"households": 9953,
+"population": 23446,
+"households": 9945,
 "sido": "41"
 },
 "4146126200": {
 "gu": "용인시 처인구",
 "hdong": "양지읍",
-"population": 22191,
-"households": 10682,
+"population": 21958,
+"households": 10656,
 "sido": "41"
 },
 "4146134000": {
 "gu": "용인시 처인구",
 "hdong": "원삼면",
-"population": 7787,
-"households": 4312,
+"population": 7608,
+"households": 4134,
 "sido": "41"
 },
 "4146135000": {
 "gu": "용인시 처인구",
 "hdong": "백암면",
-"population": 7679,
-"households": 4192,
+"population": 7580,
+"households": 4186,
 "sido": "41"
 },
 "4146151000": {
 "gu": "용인시 처인구",
 "hdong": "중앙동",
-"population": 26577,
-"households": 13583,
+"population": 26591,
+"households": 13591,
 "sido": "41"
 },
 "4146152500": {
 "gu": "용인시 처인구",
 "hdong": "역북동",
-"population": 34620,
-"households": 15823,
+"population": 34641,
+"households": 15845,
 "sido": "41"
 },
 "4146152600": {
 "gu": "용인시 처인구",
 "hdong": "삼가동",
-"population": 16452,
-"households": 6700,
+"population": 16480,
+"households": 6705,
 "sido": "41"
 },
 "4146153500": {
 "gu": "용인시 처인구",
 "hdong": "유림1동",
-"population": 13721,
-"households": 6783,
+"population": 13644,
+"households": 6751,
 "sido": "41"
 },
 "4146153600": {
 "gu": "용인시 처인구",
 "hdong": "유림2동",
-"population": 38348,
-"households": 14945,
+"population": 38384,
+"households": 14961,
 "sido": "41"
 },
 "4146154000": {
 "gu": "용인시 처인구",
 "hdong": "동부동",
-"population": 12277,
-"households": 6145,
+"population": 12290,
+"households": 6151,
 "sido": "41"
 },
 "4146351000": {
 "gu": "용인시 기흥구",
 "hdong": "신갈동",
-"population": 36079,
-"households": 16108,
+"population": 36008,
+"households": 16093,
 "sido": "41"
 },
 "4146351600": {
 "gu": "용인시 기흥구",
 "hdong": "영덕1동",
-"population": 34396,
+"population": 34397,
 "households": 13923,
 "sido": "41"
 },
 "4146351700": {
 "gu": "용인시 기흥구",
 "hdong": "영덕2동",
-"population": 19102,
-"households": 7985,
+"population": 19095,
+"households": 7987,
 "sido": "41"
 },
 "4146352000": {
 "gu": "용인시 기흥구",
 "hdong": "구갈동",
-"population": 39845,
-"households": 18148,
+"population": 39827,
+"households": 18170,
 "sido": "41"
 },
 "4146353000": {
 "gu": "용인시 기흥구",
 "hdong": "상갈동",
-"population": 12477,
-"households": 6197,
+"population": 12437,
+"households": 6201,
 "sido": "41"
 },
 "4146353500": {
 "gu": "용인시 기흥구",
 "hdong": "보라동",
-"population": 32314,
-"households": 12598,
+"population": 32348,
+"households": 12607,
 "sido": "41"
 },
 "4146354000": {
 "gu": "용인시 기흥구",
 "hdong": "기흥동",
-"population": 20636,
-"households": 9153,
+"population": 20693,
+"households": 9160,
 "sido": "41"
 },
 "4146355000": {
 "gu": "용인시 기흥구",
 "hdong": "서농동",
-"population": 24463,
-"households": 10992,
+"population": 24418,
+"households": 10979,
 "sido": "41"
 },
 "4146356000": {
 "gu": "용인시 기흥구",
 "hdong": "구성동",
-"population": 38122,
-"households": 15353,
+"population": 38157,
+"households": 15369,
 "sido": "41"
 },
 "4146357000": {
 "gu": "용인시 기흥구",
 "hdong": "마북동",
-"population": 33588,
-"households": 13175,
+"population": 33556,
+"households": 13172,
 "sido": "41"
 },
 "4146357200": {
 "gu": "용인시 기흥구",
 "hdong": "동백1동",
-"population": 30776,
-"households": 11694,
+"population": 30792,
+"households": 11698,
 "sido": "41"
 },
 "4146357500": {
 "gu": "용인시 기흥구",
 "hdong": "동백2동",
-"population": 25883,
-"households": 9431,
+"population": 25880,
+"households": 9428,
 "sido": "41"
 },
 "4146357700": {
 "gu": "용인시 기흥구",
 "hdong": "동백3동",
-"population": 27747,
-"households": 10556,
+"population": 27777,
+"households": 10582,
 "sido": "41"
 },
 "4146358600": {
 "gu": "용인시 기흥구",
 "hdong": "상하동",
-"population": 22692,
-"households": 9156,
+"population": 22671,
+"households": 9143,
 "sido": "41"
 },
 "4146359000": {
 "gu": "용인시 기흥구",
 "hdong": "보정동",
-"population": 36119,
-"households": 13632,
+"population": 36144,
+"households": 13639,
 "sido": "41"
 },
 "4146551000": {
 "gu": "용인시 수지구",
 "hdong": "풍덕천1동",
-"population": 30069,
-"households": 13581,
+"population": 29995,
+"households": 13543,
 "sido": "41"
 },
 "4146552000": {
 "gu": "용인시 수지구",
 "hdong": "풍덕천2동",
-"population": 41152,
-"households": 15398,
+"population": 41141,
+"households": 15408,
 "sido": "41"
 },
 "4146553000": {
 "gu": "용인시 수지구",
 "hdong": "신봉동",
-"population": 40946,
-"households": 14799,
+"population": 40915,
+"households": 14785,
 "sido": "41"
 },
 "4146554000": {
 "gu": "용인시 수지구",
 "hdong": "죽전1동",
-"population": 28803,
-"households": 11116,
+"population": 28752,
+"households": 11106,
 "sido": "41"
 },
 "4146555000": {
 "gu": "용인시 수지구",
 "hdong": "죽전2동",
-"population": 16930,
-"households": 7092,
+"population": 16909,
+"households": 7090,
 "sido": "41"
 },
 "4146555500": {
 "gu": "용인시 수지구",
 "hdong": "죽전3동",
-"population": 26361,
-"households": 11128,
+"population": 26323,
+"households": 11124,
 "sido": "41"
 },
 "4146556000": {
 "gu": "용인시 수지구",
 "hdong": "동천동",
-"population": 50731,
-"households": 19797,
+"population": 50729,
+"households": 19799,
 "sido": "41"
 },
 "4146557000": {
 "gu": "용인시 수지구",
 "hdong": "상현1동",
-"population": 19567,
-"households": 6522,
+"population": 19570,
+"households": 6517,
 "sido": "41"
 },
 "4146558000": {
 "gu": "용인시 수지구",
 "hdong": "상현2동",
-"population": 32368,
-"households": 11407,
+"population": 32341,
+"households": 11409,
 "sido": "41"
 },
 "4146558500": {
 "gu": "용인시 수지구",
 "hdong": "상현3동",
-"population": 27043,
-"households": 11080,
+"population": 27017,
+"households": 11064,
 "sido": "41"
 },
 "4146559000": {
 "gu": "용인시 수지구",
 "hdong": "성복동",
-"population": 54505,
-"households": 18799,
+"population": 54519,
+"households": 18813,
 "sido": "41"
 },
 "4148025000": {
 "gu": "파주시",
 "hdong": "문산읍",
-"population": 47775,
-"households": 22440,
+"population": 47747,
+"households": 22443,
 "sido": "41"
 },
 "4148025300": {
 "gu": "파주시",
 "hdong": "파주읍",
-"population": 13175,
-"households": 7461,
+"population": 13187,
+"households": 7482,
 "sido": "41"
 },
 "4148025600": {
 "gu": "파주시",
 "hdong": "법원읍",
-"population": 8979,
-"households": 5086,
+"population": 8962,
+"households": 5078,
 "sido": "41"
 },
 "4148026200": {
 "gu": "파주시",
 "hdong": "조리읍",
-"population": 27167,
-"households": 12615,
+"population": 27162,
+"households": 12623,
 "sido": "41"
 },
 "4148031000": {
 "gu": "파주시",
 "hdong": "월롱면",
-"population": 7435,
-"households": 5359,
+"population": 7405,
+"households": 5342,
 "sido": "41"
 },
 "4148032000": {
 "gu": "파주시",
 "hdong": "탄현면",
-"population": 14322,
-"households": 7822,
+"population": 14382,
+"households": 7860,
 "sido": "41"
 },
 "4148035000": {
 "gu": "파주시",
 "hdong": "광탄면",
-"population": 9935,
-"households": 5562,
+"population": 9925,
+"households": 5557,
 "sido": "41"
 },
 "4148036000": {
 "gu": "파주시",
 "hdong": "파평면",
-"population": 3333,
-"households": 1887,
+"population": 3316,
+"households": 1885,
 "sido": "41"
 },
 "4148037000": {
 "gu": "파주시",
 "hdong": "적성면",
-"population": 6280,
-"households": 3385,
+"population": 6242,
+"households": 3377,
 "sido": "41"
 },
 "4148039000": {
 "gu": "파주시",
 "hdong": "장단면",
-"population": 682,
-"households": 317,
+"population": 689,
+"households": 320,
 "sido": "41"
 },
 "4148051000": {
 "gu": "파주시",
 "hdong": "금촌1동",
-"population": 22066,
-"households": 13110,
+"population": 22041,
+"households": 13107,
 "sido": "41"
 },
 "4148052000": {
 "gu": "파주시",
 "hdong": "금촌2동",
-"population": 29539,
-"households": 12644,
+"population": 29542,
+"households": 12653,
 "sido": "41"
 },
 "4148053000": {
 "gu": "파주시",
 "hdong": "금촌3동",
-"population": 24064,
-"households": 10518,
+"population": 24063,
+"households": 10534,
 "sido": "41"
 },
 "4148054000": {
 "gu": "파주시",
 "hdong": "교하동",
-"population": 6954,
-"households": 3688,
+"population": 6953,
+"households": 3700,
 "sido": "41"
 },
 "4148055000": {
 "gu": "파주시",
 "hdong": "운정1동",
-"population": 58806,
-"households": 24397,
+"population": 58872,
+"households": 24466,
 "sido": "41"
 },
 "4148056000": {
 "gu": "파주시",
 "hdong": "운정2동",
-"population": 63762,
-"households": 24648,
+"population": 63805,
+"households": 24714,
 "sido": "41"
 },
 "4148057000": {
 "gu": "파주시",
 "hdong": "운정3동",
-"population": 66919,
-"households": 26998,
+"population": 66883,
+"households": 27008,
 "sido": "41"
 },
 "4148058000": {
 "gu": "파주시",
 "hdong": "운정4동",
-"population": 24491,
-"households": 10861,
+"population": 24519,
+"households": 10864,
 "sido": "41"
 },
 "4148059000": {
 "gu": "파주시",
 "hdong": "운정5동",
-"population": 58833,
-"households": 22733,
+"population": 58815,
+"households": 22766,
 "sido": "41"
 },
 "4148060000": {
 "gu": "파주시",
 "hdong": "운정6동",
-"population": 42123,
-"households": 17630,
+"population": 43125,
+"households": 17977,
 "sido": "41"
 },
 "4150025000": {
 "gu": "이천시",
 "hdong": "장호원읍",
-"population": 13915,
-"households": 6977,
+"population": 13918,
+"households": 6981,
 "sido": "41"
 },
 "4150025300": {
 "gu": "이천시",
 "hdong": "부발읍",
-"population": 35355,
-"households": 17035,
+"population": 35290,
+"households": 17037,
 "sido": "41"
 },
 "4150031000": {
 "gu": "이천시",
 "hdong": "신둔면",
-"population": 13781,
-"households": 7054,
+"population": 13724,
+"households": 7045,
 "sido": "41"
 },
 "4150032000": {
 "gu": "이천시",
 "hdong": "백사면",
-"population": 12517,
-"households": 5918,
+"population": 12491,
+"households": 5920,
 "sido": "41"
 },
 "4150033000": {
 "gu": "이천시",
 "hdong": "호법면",
-"population": 6142,
-"households": 3712,
+"population": 5995,
+"households": 3588,
 "sido": "41"
 },
 "4150034000": {
 "gu": "이천시",
 "hdong": "마장면",
-"population": 16630,
-"households": 8901,
+"population": 16594,
+"households": 8848,
 "sido": "41"
 },
 "4150035000": {
 "gu": "이천시",
 "hdong": "대월면",
-"population": 14674,
-"households": 8090,
+"population": 14673,
+"households": 8104,
 "sido": "41"
 },
 "4150036000": {
 "gu": "이천시",
 "hdong": "모가면",
-"population": 3947,
-"households": 2227,
+"population": 3923,
+"households": 2217,
 "sido": "41"
 },
 "4150037000": {
 "gu": "이천시",
 "hdong": "설성면",
-"population": 4081,
-"households": 2349,
+"population": 4088,
+"households": 2350,
 "sido": "41"
 },
 "4150038000": {
@@ -6733,876 +6740,876 @@
 "4150051000": {
 "gu": "이천시",
 "hdong": "창전동",
-"population": 14618,
-"households": 8221,
+"population": 14589,
+"households": 8216,
 "sido": "41"
 },
 "4150051500": {
 "gu": "이천시",
 "hdong": "증포동",
-"population": 55945,
-"households": 21985,
+"population": 56089,
+"households": 22083,
 "sido": "41"
 },
 "4150052000": {
 "gu": "이천시",
 "hdong": "중리동",
-"population": 21862,
-"households": 11520,
+"population": 22398,
+"households": 11721,
 "sido": "41"
 },
 "4150053000": {
 "gu": "이천시",
 "hdong": "관고동",
-"population": 11147,
-"households": 5585,
+"population": 11150,
+"households": 5601,
 "sido": "41"
 },
 "4155025000": {
 "gu": "안성시",
 "hdong": "공도읍",
-"population": 71281,
-"households": 32601,
+"population": 71242,
+"households": 32612,
 "sido": "41"
 },
 "4155031000": {
 "gu": "안성시",
 "hdong": "보개면",
-"population": 4695,
-"households": 2463,
+"population": 4677,
+"households": 2460,
 "sido": "41"
 },
 "4155032000": {
 "gu": "안성시",
 "hdong": "금광면",
-"population": 6671,
-"households": 3557,
+"population": 6632,
+"households": 3551,
 "sido": "41"
 },
 "4155033000": {
 "gu": "안성시",
 "hdong": "서운면",
-"population": 2907,
-"households": 1581,
+"population": 2895,
+"households": 1577,
 "sido": "41"
 },
 "4155034000": {
 "gu": "안성시",
 "hdong": "미양면",
-"population": 5173,
-"households": 2856,
+"population": 5156,
+"households": 2852,
 "sido": "41"
 },
 "4155035000": {
 "gu": "안성시",
 "hdong": "대덕면",
-"population": 14189,
-"households": 8264,
+"population": 14114,
+"households": 8239,
 "sido": "41"
 },
 "4155036000": {
 "gu": "안성시",
 "hdong": "양성면",
-"population": 4790,
-"households": 2609,
+"population": 4756,
+"households": 2602,
 "sido": "41"
 },
 "4155038000": {
 "gu": "안성시",
 "hdong": "원곡면",
-"population": 6322,
-"households": 3655,
+"population": 6297,
+"households": 3645,
 "sido": "41"
 },
 "4155039000": {
 "gu": "안성시",
 "hdong": "일죽면",
-"population": 6970,
-"households": 3802,
+"population": 6954,
+"households": 3797,
 "sido": "41"
 },
 "4155040000": {
 "gu": "안성시",
 "hdong": "죽산면",
-"population": 6666,
-"households": 3938,
+"population": 6632,
+"households": 3916,
 "sido": "41"
 },
 "4155041000": {
 "gu": "안성시",
 "hdong": "삼죽면",
-"population": 3967,
-"households": 2553,
+"population": 3934,
+"households": 2526,
 "sido": "41"
 },
 "4155042000": {
 "gu": "안성시",
 "hdong": "고삼면",
-"population": 1747,
-"households": 991,
+"population": 1736,
+"households": 989,
 "sido": "41"
 },
 "4155051000": {
 "gu": "안성시",
 "hdong": "안성1동",
-"population": 10716,
-"households": 5436,
+"population": 10641,
+"households": 5398,
 "sido": "41"
 },
 "4155052000": {
 "gu": "안성시",
 "hdong": "안성2동",
-"population": 26260,
-"households": 12833,
+"population": 26012,
+"households": 12758,
 "sido": "41"
 },
 "4155053000": {
 "gu": "안성시",
 "hdong": "안성3동",
-"population": 26934,
-"households": 12206,
+"population": 27806,
+"households": 12697,
 "sido": "41"
 },
 "4157025000": {
 "gu": "김포시",
 "hdong": "통진읍",
-"population": 34500,
-"households": 18624,
+"population": 34506,
+"households": 18640,
 "sido": "41"
 },
 "4157025300": {
 "gu": "김포시",
 "hdong": "고촌읍",
-"population": 52023,
-"households": 19726,
+"population": 52121,
+"households": 19753,
 "sido": "41"
 },
 "4157025600": {
 "gu": "김포시",
 "hdong": "양촌읍",
-"population": 30335,
-"households": 16251,
+"population": 30388,
+"households": 16318,
 "sido": "41"
 },
 "4157034000": {
 "gu": "김포시",
 "hdong": "대곶면",
-"population": 8837,
-"households": 5162,
+"population": 8806,
+"households": 5146,
 "sido": "41"
 },
 "4157035000": {
 "gu": "김포시",
 "hdong": "월곶면",
-"population": 5077,
-"households": 3023,
+"population": 5054,
+"households": 3017,
 "sido": "41"
 },
 "4157036000": {
 "gu": "김포시",
 "hdong": "하성면",
-"population": 7459,
-"households": 3974,
+"population": 7464,
+"households": 3981,
 "sido": "41"
 },
 "4157051500": {
 "gu": "김포시",
 "hdong": "김포본동",
-"population": 56450,
-"households": 22200,
+"population": 56357,
+"households": 22139,
 "sido": "41"
 },
 "4157052500": {
 "gu": "김포시",
 "hdong": "장기본동",
-"population": 38516,
-"households": 13835,
+"population": 38490,
+"households": 13850,
 "sido": "41"
 },
 "4157054000": {
 "gu": "김포시",
 "hdong": "사우동",
-"population": 20507,
-"households": 9520,
+"population": 20471,
+"households": 9522,
 "sido": "41"
 },
 "4157055000": {
 "gu": "김포시",
 "hdong": "풍무동",
-"population": 59408,
-"households": 23617,
+"population": 59394,
+"households": 23613,
 "sido": "41"
 },
 "4157056000": {
 "gu": "김포시",
 "hdong": "장기동",
-"population": 40215,
-"households": 16192,
+"population": 40207,
+"households": 16199,
 "sido": "41"
 },
 "4157057000": {
 "gu": "김포시",
 "hdong": "구래동",
-"population": 45972,
-"households": 21907,
+"population": 46013,
+"households": 21934,
 "sido": "41"
 },
 "4157057500": {
 "gu": "김포시",
 "hdong": "마산동",
-"population": 35520,
-"households": 15371,
+"population": 35544,
+"households": 15390,
 "sido": "41"
 },
 "4157058000": {
 "gu": "김포시",
 "hdong": "운양동",
-"population": 48780,
-"households": 18756,
+"population": 48831,
+"households": 18763,
 "sido": "41"
 },
 "4159125000": {
 "gu": "화성시 만세구",
 "hdong": "우정읍",
-"population": 16477,
-"households": 9262,
+"population": 16444,
+"households": 9245,
 "sido": "41"
 },
 "4159125300": {
 "gu": "화성시 만세구",
 "hdong": "향남읍",
-"population": 84621,
-"households": 41239,
+"population": 84526,
+"households": 41251,
 "sido": "41"
 },
 "4159125600": {
 "gu": "화성시 만세구",
 "hdong": "남양읍",
-"population": 60607,
-"households": 30257,
+"population": 60638,
+"households": 30256,
 "sido": "41"
 },
 "4159131000": {
 "gu": "화성시 만세구",
 "hdong": "마도면",
-"population": 6411,
-"households": 3886,
+"population": 6390,
+"households": 3871,
 "sido": "41"
 },
 "4159132000": {
 "gu": "화성시 만세구",
 "hdong": "송산면",
-"population": 10155,
+"population": 10140,
 "households": 5532,
 "sido": "41"
 },
 "4159133000": {
 "gu": "화성시 만세구",
 "hdong": "서신면",
-"population": 6921,
-"households": 4042,
+"population": 6916,
+"households": 4045,
 "sido": "41"
 },
 "4159134000": {
 "gu": "화성시 만세구",
 "hdong": "팔탄면",
-"population": 9144,
-"households": 5841,
+"population": 9127,
+"households": 5847,
 "sido": "41"
 },
 "4159135000": {
 "gu": "화성시 만세구",
 "hdong": "장안면",
-"population": 9191,
-"households": 5216,
+"population": 9196,
+"households": 5223,
 "sido": "41"
 },
 "4159136000": {
 "gu": "화성시 만세구",
 "hdong": "양감면",
-"population": 3637,
-"households": 2289,
+"population": 3640,
+"households": 2299,
 "sido": "41"
 },
 "4159151000": {
 "gu": "화성시 만세구",
 "hdong": "새솔동",
-"population": 27060,
-"households": 9105,
+"population": 27109,
+"households": 9115,
 "sido": "41"
 },
 "4159325000": {
 "gu": "화성시 효행구",
 "hdong": "봉담읍",
-"population": 112861,
-"households": 47858,
+"population": 112995,
+"households": 47886,
 "sido": "41"
 },
 "4159331000": {
 "gu": "화성시 효행구",
 "hdong": "매송면",
-"population": 6127,
-"households": 3385,
+"population": 6119,
+"households": 3383,
 "sido": "41"
 },
 "4159332000": {
 "gu": "화성시 효행구",
 "hdong": "비봉면",
-"population": 16657,
-"households": 8839,
+"population": 16690,
+"households": 8850,
 "sido": "41"
 },
 "4159333000": {
 "gu": "화성시 효행구",
 "hdong": "정남면",
-"population": 10063,
-"households": 5855,
+"population": 10044,
+"households": 5841,
 "sido": "41"
 },
 "4159351000": {
 "gu": "화성시 효행구",
 "hdong": "기배동",
-"population": 15468,
-"households": 6098,
+"population": 15449,
+"households": 6089,
 "sido": "41"
 },
 "4159551000": {
 "gu": "화성시 병점구",
 "hdong": "진안동",
-"population": 50351,
-"households": 23834,
+"population": 50390,
+"households": 23862,
 "sido": "41"
 },
 "4159552000": {
 "gu": "화성시 병점구",
 "hdong": "병점1동",
-"population": 36413,
-"households": 16178,
+"population": 36590,
+"households": 16288,
 "sido": "41"
 },
 "4159553000": {
 "gu": "화성시 병점구",
 "hdong": "병점2동",
-"population": 21953,
-"households": 8785,
+"population": 21981,
+"households": 8798,
 "sido": "41"
 },
 "4159554000": {
 "gu": "화성시 병점구",
 "hdong": "반월동",
-"population": 37259,
-"households": 13334,
+"population": 37180,
+"households": 13321,
 "sido": "41"
 },
 "4159555000": {
 "gu": "화성시 병점구",
 "hdong": "화산동",
-"population": 29355,
-"households": 13860,
+"population": 29404,
+"households": 13882,
 "sido": "41"
 },
 "4159751000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄1동",
-"population": 49943,
-"households": 20871,
+"population": 49949,
+"households": 20860,
 "sido": "41"
 },
 "4159752000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄2동",
-"population": 33681,
-"households": 11810,
+"population": 33743,
+"households": 11861,
 "sido": "41"
 },
 "4159753000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄3동",
-"population": 39860,
-"households": 17464,
+"population": 39832,
+"households": 17457,
 "sido": "41"
 },
 "4159754000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄4동",
-"population": 52612,
-"households": 16845,
+"population": 52594,
+"households": 16858,
 "sido": "41"
 },
 "4159755000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄5동",
-"population": 47847,
-"households": 21526,
+"population": 47851,
+"households": 21535,
 "sido": "41"
 },
 "4159756000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄6동",
-"population": 47088,
-"households": 20318,
+"population": 47142,
+"households": 20324,
 "sido": "41"
 },
 "4159757000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄7동",
-"population": 57512,
-"households": 22653,
+"population": 57568,
+"households": 22665,
 "sido": "41"
 },
 "4159758000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄8동",
-"population": 40577,
-"households": 14830,
+"population": 40575,
+"households": 14823,
 "sido": "41"
 },
 "4159759000": {
 "gu": "화성시 동탄구",
 "hdong": "동탄9동",
-"population": 61708,
-"households": 23621,
+"population": 61915,
+"households": 23663,
 "sido": "41"
 },
 "4161025300": {
 "gu": "광주시",
 "hdong": "초월읍",
-"population": 51957,
-"households": 23166,
+"population": 51912,
+"households": 23148,
 "sido": "41"
 },
 "4161025900": {
 "gu": "광주시",
 "hdong": "곤지암읍",
-"population": 20864,
-"households": 11065,
+"population": 20891,
+"households": 11079,
 "sido": "41"
 },
 "4161033000": {
 "gu": "광주시",
 "hdong": "도척면",
-"population": 8941,
-"households": 4928,
+"population": 8937,
+"households": 4938,
 "sido": "41"
 },
 "4161034000": {
 "gu": "광주시",
 "hdong": "퇴촌면",
-"population": 15398,
-"households": 7634,
+"population": 15402,
+"households": 7636,
 "sido": "41"
 },
 "4161035000": {
 "gu": "광주시",
 "hdong": "남종면",
-"population": 1338,
-"households": 764,
+"population": 1333,
+"households": 761,
 "sido": "41"
 },
 "4161037000": {
 "gu": "광주시",
 "hdong": "남한산성면",
-"population": 2172,
-"households": 1078,
+"population": 2189,
+"households": 1081,
 "sido": "41"
 },
 "4161051000": {
 "gu": "광주시",
 "hdong": "경안동",
-"population": 32254,
-"households": 14768,
+"population": 32334,
+"households": 14813,
 "sido": "41"
 },
 "4161052000": {
 "gu": "광주시",
 "hdong": "송정동",
-"population": 24729,
-"households": 11224,
+"population": 24849,
+"households": 11270,
 "sido": "41"
 },
 "4161054000": {
 "gu": "광주시",
 "hdong": "쌍령동",
-"population": 16992,
-"households": 7005,
+"population": 17002,
+"households": 7028,
 "sido": "41"
 },
 "4161055000": {
 "gu": "광주시",
 "hdong": "탄벌동",
-"population": 42210,
-"households": 18423,
+"population": 42222,
+"households": 18459,
 "sido": "41"
 },
 "4161056000": {
 "gu": "광주시",
 "hdong": "광남1동",
-"population": 30952,
-"households": 14127,
+"population": 30957,
+"households": 14150,
 "sido": "41"
 },
 "4161057000": {
 "gu": "광주시",
 "hdong": "광남2동",
-"population": 32981,
-"households": 11733,
+"population": 33003,
+"households": 11750,
 "sido": "41"
 },
 "4161058000": {
 "gu": "광주시",
 "hdong": "오포1동",
-"population": 30355,
-"households": 12267,
+"population": 30389,
+"households": 12280,
 "sido": "41"
 },
 "4161059000": {
 "gu": "광주시",
 "hdong": "오포2동",
-"population": 31985,
-"households": 13485,
+"population": 32023,
+"households": 13515,
 "sido": "41"
 },
 "4161060000": {
 "gu": "광주시",
 "hdong": "신현동",
-"population": 35873,
-"households": 16972,
+"population": 35843,
+"households": 16973,
 "sido": "41"
 },
 "4161061000": {
 "gu": "광주시",
 "hdong": "능평동",
-"population": 22475,
-"households": 10233,
+"population": 22492,
+"households": 10225,
 "sido": "41"
 },
 "4163025000": {
 "gu": "양주시",
 "hdong": "백석읍",
-"population": 25498,
-"households": 12291,
+"population": 25455,
+"households": 12290,
 "sido": "41"
 },
 "4163031000": {
 "gu": "양주시",
 "hdong": "은현면",
-"population": 4866,
-"households": 2791,
+"population": 4872,
+"households": 2789,
 "sido": "41"
 },
 "4163032000": {
 "gu": "양주시",
 "hdong": "남면",
-"population": 5796,
-"households": 3361,
+"population": 5808,
+"households": 3363,
 "sido": "41"
 },
 "4163033000": {
 "gu": "양주시",
 "hdong": "광적면",
-"population": 10327,
+"population": 10304,
 "households": 5599,
 "sido": "41"
 },
 "4163034000": {
 "gu": "양주시",
 "hdong": "장흥면",
-"population": 13611,
-"households": 7238,
+"population": 13645,
+"households": 7256,
 "sido": "41"
 },
 "4163051000": {
 "gu": "양주시",
 "hdong": "양주1동",
-"population": 4403,
-"households": 2375,
+"population": 4387,
+"households": 2359,
 "sido": "41"
 },
 "4163052000": {
 "gu": "양주시",
 "hdong": "양주2동",
-"population": 49030,
-"households": 21018,
+"population": 48933,
+"households": 20983,
 "sido": "41"
 },
 "4163053000": {
 "gu": "양주시",
 "hdong": "회천1동",
-"population": 10616,
-"households": 5269,
+"population": 10581,
+"households": 5260,
 "sido": "41"
 },
 "4163054000": {
 "gu": "양주시",
 "hdong": "회천2동",
-"population": 47250,
-"households": 21233,
+"population": 48345,
+"households": 21909,
 "sido": "41"
 },
 "4163055000": {
 "gu": "양주시",
 "hdong": "회천3동",
-"population": 24658,
-"households": 11089,
+"population": 24652,
+"households": 11102,
 "sido": "41"
 },
 "4163057000": {
 "gu": "양주시",
 "hdong": "옥정1동",
-"population": 42740,
-"households": 18919,
+"population": 42733,
+"households": 18916,
 "sido": "41"
 },
 "4163058000": {
 "gu": "양주시",
 "hdong": "옥정2동",
-"population": 59344,
-"households": 22748,
+"population": 59407,
+"households": 22770,
 "sido": "41"
 },
 "4165025000": {
 "gu": "포천시",
 "hdong": "소흘읍",
-"population": 42781,
-"households": 20372,
+"population": 42757,
+"households": 20377,
 "sido": "41"
 },
 "4165031000": {
 "gu": "포천시",
 "hdong": "군내면",
-"population": 9794,
-"households": 5025,
+"population": 9825,
+"households": 5034,
 "sido": "41"
 },
 "4165032000": {
 "gu": "포천시",
 "hdong": "내촌면",
-"population": 4035,
-"households": 2498,
+"population": 4034,
+"households": 2504,
 "sido": "41"
 },
 "4165033000": {
 "gu": "포천시",
 "hdong": "가산면",
-"population": 7469,
-"households": 4439,
+"population": 7445,
+"households": 4432,
 "sido": "41"
 },
 "4165034000": {
 "gu": "포천시",
 "hdong": "신북면",
-"population": 10830,
-"households": 6168,
+"population": 10770,
+"households": 6147,
 "sido": "41"
 },
 "4165035000": {
 "gu": "포천시",
 "hdong": "창수면",
-"population": 1903,
-"households": 1129,
+"population": 1913,
+"households": 1132,
 "sido": "41"
 },
 "4165036000": {
 "gu": "포천시",
 "hdong": "영중면",
-"population": 4402,
-"households": 2616,
+"population": 4404,
+"households": 2612,
 "sido": "41"
 },
 "4165037000": {
 "gu": "포천시",
 "hdong": "일동면",
-"population": 8631,
-"households": 4843,
+"population": 8633,
+"households": 4836,
 "sido": "41"
 },
 "4165038000": {
 "gu": "포천시",
 "hdong": "이동면",
-"population": 5525,
-"households": 3270,
+"population": 5496,
+"households": 3267,
 "sido": "41"
 },
 "4165039000": {
 "gu": "포천시",
 "hdong": "영북면",
-"population": 7192,
-"households": 4102,
+"population": 7189,
+"households": 4096,
 "sido": "41"
 },
 "4165040000": {
 "gu": "포천시",
 "hdong": "관인면",
-"population": 2393,
-"households": 1387,
+"population": 2395,
+"households": 1386,
 "sido": "41"
 },
 "4165041000": {
 "gu": "포천시",
 "hdong": "화현면",
-"population": 2333,
-"households": 1387,
+"population": 2328,
+"households": 1389,
 "sido": "41"
 },
 "4165051000": {
 "gu": "포천시",
 "hdong": "포천동",
-"population": 19116,
-"households": 9657,
+"population": 19100,
+"households": 9677,
 "sido": "41"
 },
 "4165052000": {
 "gu": "포천시",
 "hdong": "선단동",
-"population": 13962,
-"households": 7639,
+"population": 13942,
+"households": 7640,
 "sido": "41"
 },
 "4167025000": {
 "gu": "여주시",
 "hdong": "가남읍",
-"population": 13870,
-"households": 7442,
+"population": 13866,
+"households": 7437,
 "sido": "41"
 },
 "4167031000": {
 "gu": "여주시",
 "hdong": "점동면",
-"population": 4558,
-"households": 2366,
+"population": 4536,
+"households": 2364,
 "sido": "41"
 },
 "4167032000": {
 "gu": "여주시",
 "hdong": "흥천면",
-"population": 4806,
-"households": 2494,
+"population": 4795,
+"households": 2493,
 "sido": "41"
 },
 "4167033000": {
 "gu": "여주시",
 "hdong": "금사면",
-"population": 2780,
+"population": 2769,
 "households": 1613,
 "sido": "41"
 },
 "4167034500": {
 "gu": "여주시",
 "hdong": "세종대왕면",
-"population": 5509,
-"households": 2921,
+"population": 5517,
+"households": 2923,
 "sido": "41"
 },
 "4167035000": {
 "gu": "여주시",
 "hdong": "대신면",
-"population": 6342,
-"households": 3517,
+"population": 6331,
+"households": 3503,
 "sido": "41"
 },
 "4167036000": {
 "gu": "여주시",
 "hdong": "북내면",
-"population": 4479,
-"households": 2455,
+"population": 4463,
+"households": 2456,
 "sido": "41"
 },
 "4167037000": {
 "gu": "여주시",
 "hdong": "강천면",
-"population": 4231,
+"population": 4242,
 "households": 2387,
 "sido": "41"
 },
 "4167038000": {
 "gu": "여주시",
 "hdong": "산북면",
-"population": 2413,
-"households": 1310,
+"population": 2405,
+"households": 1308,
 "sido": "41"
 },
 "4167051000": {
 "gu": "여주시",
 "hdong": "여흥동",
-"population": 20549,
-"households": 10772,
+"population": 20536,
+"households": 10770,
 "sido": "41"
 },
 "4167052000": {
 "gu": "여주시",
 "hdong": "중앙동",
-"population": 25363,
-"households": 11460,
+"population": 25388,
+"households": 11474,
 "sido": "41"
 },
 "4167053000": {
 "gu": "여주시",
 "hdong": "오학동",
-"population": 18302,
-"households": 8462,
+"population": 18299,
+"households": 8474,
 "sido": "41"
 },
 "4180025000": {
 "gu": "연천군",
 "hdong": "연천읍",
-"population": 8298,
-"households": 4433,
+"population": 8340,
+"households": 4475,
 "sido": "41"
 },
 "4180025300": {
 "gu": "연천군",
 "hdong": "전곡읍",
-"population": 19666,
-"households": 9705,
+"population": 19736,
+"households": 9734,
 "sido": "41"
 },
 "4180031000": {
 "gu": "연천군",
 "hdong": "군남면",
-"population": 2939,
-"households": 1661,
+"population": 2935,
+"households": 1654,
 "sido": "41"
 },
 "4180032000": {
 "gu": "연천군",
 "hdong": "청산면",
-"population": 3881,
-"households": 2352,
+"population": 3842,
+"households": 2330,
 "sido": "41"
 },
 "4180033000": {
 "gu": "연천군",
 "hdong": "백학면",
-"population": 2464,
-"households": 1359,
+"population": 2462,
+"households": 1360,
 "sido": "41"
 },
 "4180034000": {
 "gu": "연천군",
 "hdong": "미산면",
-"population": 1696,
-"households": 972,
+"population": 1697,
+"households": 971,
 "sido": "41"
 },
 "4180035000": {
 "gu": "연천군",
 "hdong": "왕징면",
-"population": 980,
-"households": 572,
+"population": 977,
+"households": 567,
 "sido": "41"
 },
 "4180036000": {
 "gu": "연천군",
 "hdong": "신서면",
-"population": 2379,
-"households": 1470,
+"population": 2359,
+"households": 1460,
 "sido": "41"
 },
 "4180037000": {
 "gu": "연천군",
 "hdong": "중면",
-"population": 160,
-"households": 89,
+"population": 162,
+"households": 90,
 "sido": "41"
 },
 "4180038000": {
@@ -7615,127 +7622,127 @@
 "4182025000": {
 "gu": "가평군",
 "hdong": "가평읍",
-"population": 21114,
-"households": 10700,
+"population": 21110,
+"households": 10711,
 "sido": "41"
 },
 "4182031000": {
 "gu": "가평군",
 "hdong": "설악면",
-"population": 10018,
-"households": 5653,
+"population": 10014,
+"households": 5652,
 "sido": "41"
 },
 "4182032500": {
 "gu": "가평군",
 "hdong": "청평면",
-"population": 13060,
-"households": 7312,
+"population": 13063,
+"households": 7314,
 "sido": "41"
 },
 "4182033000": {
 "gu": "가평군",
 "hdong": "상면",
-"population": 5377,
-"households": 3181,
+"population": 5365,
+"households": 3174,
 "sido": "41"
 },
 "4182034500": {
 "gu": "가평군",
 "hdong": "조종면",
-"population": 8925,
-"households": 4359,
+"population": 8886,
+"households": 4349,
 "sido": "41"
 },
 "4182035000": {
 "gu": "가평군",
 "hdong": "북면",
-"population": 3460,
-"households": 2121,
+"population": 3455,
+"households": 2113,
 "sido": "41"
 },
 "4183025000": {
 "gu": "양평군",
 "hdong": "양평읍",
-"population": 38425,
-"households": 18003,
+"population": 38499,
+"households": 18034,
 "sido": "41"
 },
 "4183031000": {
 "gu": "양평군",
 "hdong": "강상면",
-"population": 10087,
-"households": 4834,
+"population": 10067,
+"households": 4845,
 "sido": "41"
 },
 "4183032000": {
 "gu": "양평군",
 "hdong": "강하면",
-"population": 4742,
-"households": 2630,
+"population": 4772,
+"households": 2643,
 "sido": "41"
 },
 "4183033000": {
 "gu": "양평군",
 "hdong": "양서면",
-"population": 13993,
-"households": 6969,
+"population": 13994,
+"households": 6987,
 "sido": "41"
 },
 "4183034000": {
 "gu": "양평군",
 "hdong": "옥천면",
-"population": 7899,
-"households": 4165,
+"population": 7907,
+"households": 4158,
 "sido": "41"
 },
 "4183035000": {
 "gu": "양평군",
 "hdong": "서종면",
-"population": 9805,
-"households": 5090,
+"population": 9832,
+"households": 5103,
 "sido": "41"
 },
 "4183036000": {
 "gu": "양평군",
 "hdong": "단월면",
-"population": 3810,
-"households": 2120,
+"population": 3788,
+"households": 2119,
 "sido": "41"
 },
 "4183037000": {
 "gu": "양평군",
 "hdong": "청운면",
-"population": 3633,
-"households": 2148,
+"population": 3626,
+"households": 2154,
 "sido": "41"
 },
 "4183038000": {
 "gu": "양평군",
 "hdong": "양동면",
-"population": 4413,
-"households": 2459,
+"population": 4418,
+"households": 2460,
 "sido": "41"
 },
 "4183039500": {
 "gu": "양평군",
 "hdong": "지평면",
-"population": 6522,
-"households": 3605,
+"population": 6506,
+"households": 3597,
 "sido": "41"
 },
 "4183040000": {
 "gu": "양평군",
 "hdong": "용문면",
-"population": 18713,
-"households": 9390,
+"population": 18708,
+"households": 9414,
 "sido": "41"
 },
 "4183041000": {
 "gu": "양평군",
 "hdong": "개군면",
-"population": 4977,
-"households": 2688,
+"population": 4983,
+"households": 2691,
 "sido": "41"
 }
 }
