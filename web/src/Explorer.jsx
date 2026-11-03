@@ -515,6 +515,8 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const work = data.work || { name: "광화문" }, odsay = work.name === "광화문" ? data.commute?.[apt.hcode] : null;
   const ride = odsay || (apt.lon != null && work.lon != null ? { min: estCommute(kmTo(apt, work)), est: true, km: kmTo(apt, work) } : null);
   const det = details?.[apt.id], info = basics?.[apt.id];
+  // complexes K-apt does not list: 세대수 etc. from the 건축물대장 of the parcel under the map point
+  const smallF = useLazyFile("apt_small", !!basics && !info), small = !info ? smallF?.items?.[apt.id] : null, hi = info || small;
   const landuse = useLazyFile("landuse"), land = info?.kaptCode ? landuse?.items?.[info.kaptCode] : null;
   const school = useLazyFile("school"), sstats = useLazyFile("school_stats"), infra = useLazyFile("infra");
   const cost = info?.kaptCode ? data.apt_cost?.items?.[info.kaptCode] : null;
@@ -552,12 +554,13 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
           <div key={l} className="rounded-medium bg-default-100 px-2.5 py-2"><div className="text-tiny text-default-500">{l}</div><div className="text-small font-semibold num">{v}</div></div>
         ))}
       </div>}
-      {!info && basics && <p className="rounded-medium bg-default-50 px-3 py-2 text-tiny text-default-500">세대수·동수·시공사 같은 단지 정보가 없습니다. K-apt(공동주택관리정보)에 등록되지 않은 단지예요. 대개 의무관리 대상이 아닌 소규모 단지(약 150세대 미만)이거나, 실거래 단지명과 K-apt 이름이 달라 연결하지 못한 경우입니다.</p>}
-      {info && (
+      {!hi && basics && smallF && <p className="rounded-medium bg-default-50 px-3 py-2 text-tiny text-default-500">세대수·동수·시공사 같은 단지 정보가 없습니다. K-apt(공동주택관리정보)에 등록되지 않은 단지예요. 대개 의무관리 대상이 아닌 소규모 단지(약 150세대 미만)이거나, 실거래 단지명과 K-apt 이름이 달라 연결하지 못한 경우입니다.</p>}
+      {hi && (
         <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 rounded-medium bg-default-50 px-3 py-2 text-tiny num">
-          {[["세대수", info.households && `${Number(info.households).toLocaleString()}세대`], ["동수", info.buildings && `${info.buildings}개동`], ["사용승인", info.approval], ["시공사", info.builder], ["난방", info.heating], ["주차", info.parking && info.households ? `${info.parking.toLocaleString()}대 (세대당 ${(info.parking / info.households).toFixed(2)})` : info.parking], ["복도", info.hall], ["최고층", info.floors_max && `${info.floors_max}층`], ["평형 구성", [info.units_le60 && `~60㎡ ${info.units_le60}`, info.units_60_85 && `60~85㎡ ${info.units_60_85}`, info.units_85_135 && `85㎡~ ${info.units_85_135 + (info.units_gt135 || 0)}`].filter(Boolean).join(" · ")]].filter(([, v]) => v).map(([l, v]) => (
+          {[["세대수", hi.households && `${Number(hi.households).toLocaleString()}세대`], ["동수", hi.buildings && `${hi.buildings}개동`], ["사용승인", hi.approval], ["시공사", hi.builder], ["난방", hi.heating], ["주차", hi.parking && hi.households ? `${hi.parking.toLocaleString()}대 (세대당 ${(hi.parking / hi.households).toFixed(2)})` : hi.parking], ["복도", hi.hall], ["최고층", hi.floors_max && `${hi.floors_max}층`], ["평형 구성", [hi.units_le60 && `~60㎡ ${hi.units_le60}`, hi.units_60_85 && `60~85㎡ ${hi.units_60_85}`, hi.units_85_135 && `85㎡~ ${hi.units_85_135 + (hi.units_gt135 || 0)}`].filter(Boolean).join(" · ")]].filter(([, v]) => v).map(([l, v]) => (
             <div key={l} className={`min-w-0 ${l === "평형 구성" || l === "주차" ? "col-span-3" : ""}`}><span className="text-default-500">{l} </span><span className="font-medium">{v}</span></div>
           ))}
+          {small && <div className="col-span-3 text-[10px] text-default-400">K-apt에 없는 단지라 건축물대장 기준입니다{small.name ? ` (대장 건물명: ${small.name})` : ""}. 여러 필지에 걸친 단지는 세대수가 적게 나올 수 있어요.</div>}
         </div>
       )}
       {(cost || infra?.apts?.[apt.id]) && <Living cost={cost} inf={infra?.apts?.[apt.id]} />}
