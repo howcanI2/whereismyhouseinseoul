@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 60
     env:
       DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}
-      KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+      VWORLD_API_KEY: ${{ secrets.VWORLD_API_KEY }}  # places new complexes and 정비구역 rows (cached; without it they wait for the PC refresh)
       ECOS_API_KEY: ${{ secrets.ECOS_API_KEY }}
       TZ: Asia/Seoul
     steps:

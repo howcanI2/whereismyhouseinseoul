@@ -102,7 +102,9 @@ def main():
 
     # per complex: [지금 용적률, 건폐율, 연면적, 대지면적, 주차 대수, 승강기, 최고층]; plus 재건축 여지 per region
     land = (load(os.path.join(OUT, "landuse.json"), {}) or {}).get("items", {})
-    geo = load(os.path.join(RAW, "geocode_kapt.json"), {}) or {}
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from vgeo import kapt_geo
+    geo = kapt_geo(basic)  # 행정동 of each complex, from the 브이월드 cache
     out, reg = {}, defaultdict(list)
     year = dt.date.today().year
     for b in basic:

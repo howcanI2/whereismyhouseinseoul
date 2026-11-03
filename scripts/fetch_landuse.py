@@ -6,9 +6,9 @@
    coordinates (coord2address for the lot, coord2regioncode for the 법정동 code); cached in data/raw/pnu_kapt.json
 2. 브이월드 getLandUseAttr for that parcel; cached in data/raw/landuse_kapt.json (zoning rarely changes, so a
    complex is looked up once and refreshed after 90 days)
-Needs VWORLD_API_KEY (vworld.kr, 서비스 URL https://howcani2.github.io) and KAKAO_REST_KEY.
+Needs VWORLD_API_KEY (vworld.kr, 서비스 URL https://howcani2.github.io); the PNU comes from 브이월드 too (vgeo.py).
 """
-import argparse, datetime as dt, json, os, re, time, urllib.parse, urllib.request
+import argparse, datetime as dt, json, os, re, sys, time, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # keys for local runs live in <repo>/.env (gitignored); CI passes them as real environment variables
@@ -34,6 +34,9 @@ FLAGS = [("토지거래", "토지거래허가구역"), ("재정비촉진", "재�
          ("역사문화환경", "문화유산 주변"), ("문화재보호", "문화유산 주변"), ("국가유산", "문화유산 주변"), ("상수원", "상수원보호구역"),
          ("공공주택지구", "공공주택지구"), ("택지개발", "택지개발지구"), ("도시개발구역", "도시개발구역"), ("방화지구", "방화지구"), ("학교환경위생", "교육환경보호구역"), ("교육환경보호", "교육환경보호구역")]
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from vgeo import Geo, kapt_address, kapt_geo
+
 def get(url, headers=None, tries=3):
     for t in range(tries):
         try:
@@ -41,27 +44,15 @@ def get(url, headers=None, tries=3):
         except Exception as e:
             err = e; time.sleep(1 + t)
     raise RuntimeError(err)
-def kakao(path, params, key): return get(f"https://dapi.kakao.com/v2/local/{path}.json?" + urllib.parse.urlencode(params), {"Authorization": "KakaoAK " + key}) or {}
 def pnu_from(d):
     if not d or not d.get("b_code") or not d.get("main_address_no"): return None
     return d["b_code"] + ("2" if d.get("mountain_yn") == "Y" else "1") + d["main_address_no"].zfill(4) + (d.get("sub_address_no") or "0").zfill(4)
 
-def find_pnu(b, geo, key):
-    """K-apt writes 시군구 run together ("수원장안구 파장동 199,…- 이름"), so rebuild "<시도> <시군구> <동> <지번>" first."""
-    sido = "서울특별시" if b.get("sido", "11") == "11" else "경기도"
-    m = re.search(r"\s(" + re.escape(b.get("dong") or "") + r")\s+(산\s*)?(\d+(?:-\d+)?)", b.get("address") or "") if b.get("dong") else None
-    tries = [f"{sido} {b.get('gu', '')} {b['dong']} {m.group(2) or ''}{m.group(3)}"] if m else []
-    if b.get("road_address"): tries.append(b["road_address"].split(",")[0])
-    for q in tries:
-        for d in kakao("search/address", {"query": q, "size": 1}, key).get("documents", []):
-            p = pnu_from(d.get("address"))
-            if p: return p
-    g = geo.get(b["kaptCode"])
-    if g:  # last resort: the lot under the complex's map point
-        a = (kakao("geo/coord2address", {"x": g["lon"], "y": g["lat"]}, key).get("documents") or [{}])[0].get("address")
-        rc = next((d for d in kakao("geo/coord2regioncode", {"x": g["lon"], "y": g["lat"]}, key).get("documents", []) if d["region_type"] == "B"), None)
-        if a and rc: return pnu_from({**a, "b_code": rc["code"]})
-    return None
+def find_pnu(b, G):
+    """PNU of the complex's main lot: its 지번 address on 브이월드 (a 도로명 hit gives no PNU, so it is not tried)"""
+    parcel, _ = kapt_address(b)
+    hit = G.parcel(parcel) if parcel else None
+    return hit.get("pnu") if hit else None
 
 def summarize(rows, sido):
     """rows: [{n: 지역·지구 name, c: 포함/저촉/접함}]. 접함 only touches the parcel's edge (it is the neighbour's), so it is left out;
@@ -113,9 +104,8 @@ def region_rollup(out, basic, geo):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--limit", type=int, default=9000); args = ap.parse_args()
-    vk, kk = os.environ.get("VWORLD_API_KEY"), os.environ.get("KAKAO_REST_KEY")
+    vk = os.environ.get("VWORLD_API_KEY"); G = Geo(vk)
     basic = json.load(open(os.path.join(ROOT, "data", "static", "apt_basic.json"), encoding="utf-8"))
-    geo = json.load(open(os.path.join(RAW, "geocode_kapt.json"), encoding="utf-8"))
     pp, lp = os.path.join(RAW, "pnu_kapt.json"), os.path.join(RAW, "landuse_kapt.json")
     pnus = json.load(open(pp, encoding="utf-8")) if os.path.exists(pp) else {}
     lu = json.load(open(lp, encoding="utf-8")) if os.path.exists(lp) else {}
@@ -123,12 +113,12 @@ def main():
     # Seoul first, then Gyeonggi; within each, complexes never looked up before those due a refresh
     todo = sorted((b for b in basic if b["kaptCode"] not in lu or lu[b["kaptCode"]].get("at", "") < stale), key=lambda b: (b.get("sido") != "11", b["kaptCode"] in lu))
     done = calls = 0
-    if not (vk and kk): print(f"landuse: VWORLD_API_KEY / KAKAO_REST_KEY not set; {len(todo)} complexes still to look up")
-    for b in todo if vk and kk else []:
+    if not vk: print(f"landuse: VWORLD_API_KEY not set; {len(todo)} complexes still to look up")
+    for b in todo if vk else []:
         if done >= args.limit: break
         code = b["kaptCode"]
         try:
-            if code not in pnus: pnus[code] = find_pnu(b, geo, kk)
+            if code not in pnus: pnus[code] = find_pnu(b, G)
             if not pnus[code]: lu[code] = {"at": dt.date.today().isoformat(), "rows": []}; done += 1; continue
             j = get("https://api.vworld.kr/ned/data/getLandUseAttr?" + urllib.parse.urlencode({"key": vk, "pnu": pnus[code], "format": "json", "numOfRows": 100, "pageNo": 1, "domain": DOMAIN}))
             calls += 1
@@ -147,7 +137,7 @@ def main():
     sido = {b["kaptCode"]: b.get("sido", "11") for b in basic}
     out = {code: {"pnu": v.get("pnu"), **summarize(v["rows"], sido.get(code, "11"))} for code, v in lu.items() if v.get("rows")}
     json.dump({"as_of": dt.date.today().isoformat(), "items": out}, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    json.dump({"as_of": dt.date.today().isoformat(), **region_rollup(out, basic, geo)}, open(OUT.replace("landuse.json", "landuse_region.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    json.dump({"as_of": dt.date.today().isoformat(), **region_rollup(out, basic, kapt_geo(basic))}, open(OUT.replace("landuse.json", "landuse_region.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     left = sum(1 for b in basic if b["kaptCode"] not in lu)
     print(f"landuse: {done} looked up this run ({calls} 브이월드 calls), {len(out)} complexes with zoning, {left} left")
 

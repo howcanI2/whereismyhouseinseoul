@@ -25,7 +25,7 @@ def region_of(addr, sido):
     return (t[1] if len(t) > 1 else "") if sido == "11" else (t[1] if len(t) > 1 else "")
 
 def main():
-    key, kk = os.environ.get("DATA_GO_KR_API_KEY"), os.environ.get("KAKAO_REST_KEY")
+    key = os.environ.get("DATA_GO_KR_API_KEY"); G = ah.Geo()
     if not key: sys.exit("DATA_GO_KR_API_KEY is not set; keeping the existing newbuild.json")
     today = dt.date.today(); ym_now = today.strftime("%Y%m")
     try:
@@ -35,7 +35,6 @@ def main():
         sys.exit(f"newbuild: 청약홈 request failed ({e}); keeping the existing file")
     by = defaultdict(list)
     for m in models: by[(m.get("HOUSE_MANAGE_NO"), m.get("PBLANC_NO"))].append(m)
-    cache = load(ah.GEO, {})
     notices = []
     for h in heads:
         sido = "11" if h.get("SUBSCRPT_AREA_CODE_NM") == "서울" else "41"
@@ -44,21 +43,21 @@ def main():
         prices = [int(m.get("LTTOT_TOP_AMOUNT") or 0) for m in types if m.get("LTTOT_TOP_AMOUNT")]
         # 전용면적 is the leading number of the 주택형 ("059.9800A"); price per 전용 3.3㎡ matches the app's 평당가
         ppp = [int(m["LTTOT_TOP_AMOUNT"]) / float(mm.group(1)) * PY for m in types if m.get("LTTOT_TOP_AMOUNT") and (mm := re.match(r"0*(\d+(?:\.\d+)?)", m.get("HOUSE_TY") or "")) and float(mm.group(1)) > 10]
-        g = ah.geocode(h.get("HSSPLY_ADRES") or "", h.get("HOUSE_NM"), kk, cache) or {}
+        g = ah.geocode(h.get("HSSPLY_ADRES") or "", h.get("HOUSE_NM"), G) or {}
         notices.append({"id": f"{h.get('HOUSE_MANAGE_NO')}-{h.get('PBLANC_NO')}", "name": h.get("HOUSE_NM"), "sido": sido, "region": region_of(h.get("HSSPLY_ADRES"), sido),
                         "addr": h.get("HSSPLY_ADRES"), "kind": h.get("HOUSE_DTL_SECD_NM") or h.get("HOUSE_SECD_NM"), "households": int(h.get("TOT_SUPLY_HSHLDCO") or 0),
                         "notice": h.get("RCRIT_PBLANC_DE"), "receipt_end": h.get("RCEPT_ENDDE"), "mvn": f"{mvn[:4]}-{mvn[4:6]}" if len(mvn) >= 6 else None, "_mvn": mvn,
                         "builder": h.get("CNSTRCT_ENTRPS_NM"), "price_min": min(prices) if prices else None, "price_max": max(prices) if prices else None,
                         "ppp": round(st.median(ppp)) if ppp else None, "url": h.get("PBLANC_URL"),
                         **({"lon": g["lon"], "lat": g["lat"], "approx": bool(g.get("approx"))} if g else {})})
-    json.dump(cache, open(ah.GEO, "w", encoding="utf-8"), ensure_ascii=False)
+    G.save()
     selling = [n for n in notices if (n["receipt_end"] or "") >= today.isoformat()]
     # 조합원 취소분·잔여세대·추가 모집 re-offer flats of a complex already counted by its first notice
     reoffer = re.compile(r"취소분|잔여|추가\s*입주|추가입주|무순위|재공급|임의공급")
     upcoming = sorted((n for n in notices if n["_mvn"] >= ym_now and not reoffer.search(n["name"] or "")), key=lambda n: n["_mvn"])
 
     # 최근 입주: K-apt 사용승인 within 2 years
-    basic, geo = load(os.path.join(STATIC, "apt_basic.json"), []), load(os.path.join(RAW, "geocode_kapt.json"), {})
+    basic = load(os.path.join(STATIC, "apt_basic.json"), []); geo = ah.kapt_geo(basic)
     since = (today - dt.timedelta(days=730)).isoformat()
     recent = []
     for b in basic:

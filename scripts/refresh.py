@@ -3,12 +3,12 @@
     python scripts/refresh.py            # fetch latest trades, geocode new complexes, rebuild web/public/data
     python scripts/refresh.py --no-fetch # rebuild only, from data/raw
 
-Environment: DATA_GO_KR_API_KEY (국토부 실거래가 API), KAKAO_REST_KEY (optional; geocodes new complexes).
+Environment: DATA_GO_KR_API_KEY (국토부 실거래가 API), VWORLD_API_KEY (optional; places new complexes on their parcel).
 Every window (3/6/12 months, 2-year trend) is computed from today's date, so nothing here needs editing month to month.
 """
 import argparse, datetime as dt, gzip, json, math, os, re, statistics as st, sys, time, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # keys for local runs live in <repo>/.env (gitignored); CI passes them as real environment variables
@@ -137,7 +137,7 @@ def fetch_month(key, url, code, ym, kind):
             t = lambda tag: (it.findtext(tag) or "").strip()
             if t("cdealType") == "O": continue  # cancelled deal
             date = f"{t('dealYear')}-{int(t('dealMonth') or 1):02d}-{int(t('dealDay') or 1):02d}"
-            base = {"dong": t("umdNm"), "area_sqm": _f(t("excluUseAr")), "floor": _num(t("floor")), "trade_date": date, "build_year": _num(t("buildYear"))}
+            base = {"dong": t("umdNm"), "area_sqm": _f(t("excluUseAr")), "floor": _num(t("floor")), "trade_date": date, "build_year": _num(t("buildYear")), "jibun": t("jibun")}
             if kind == "trade":
                 p = _num(t("dealAmount"))
                 if p: items.append({"apt_name": t("aptNm"), "price_10k": p, "deal": t("dealingGbn"), **base})
@@ -157,7 +157,9 @@ def fetch(W, key):
     for code in REGIONS:
         for ym in W["months24"]:
             k = f"{code}_{ym}"
-            if k in raw["trades"] and ym not in fresh: continue
+            have = raw["trades"].get(k)
+            # months saved before 지번 was kept are pulled once more: 지번 places the complex on its parcel
+            if have and ym not in fresh and (not have["items"] or "jibun" in have["items"][0]): continue
             raw["trades"][k] = {"items": fetch_month(key, TRADE_URL, code, ym, "trade")}; calls += 1
         for ym in W["rents"]:
             k = f"{code}_{ym}"
@@ -167,50 +169,35 @@ def fetch(W, key):
     print(f"fetch: {calls} API calls, {sum(len(v['items']) for v in raw['trades'].values()):,} trades kept")
     return raw
 
-# ---------------- geocoding (Kakao, cached) ----------------
-def kakao(path, params, key):
-    req = urllib.request.Request(f"https://dapi.kakao.com/v2/local/{path}.json?" + urllib.parse.urlencode(params), headers={"Authorization": "KakaoAK " + key})
-    for t in range(3):
-        try:
-            with urllib.request.urlopen(req, timeout=15) as r: return json.load(r)
-        except Exception: time.sleep(1 + t)
-    return {}
-def geocode_new(ids_rows, key):
-    geo = load(os.path.join(RAW, "geocode_apts.json"), {}); hd = load(os.path.join(RAW, "hdong_apts.json"), {})
-    new = [r for r in ids_rows if r["id"] not in geo]
-    if new and not key: print(f"geocode: {len(new)} new complexes left without coordinates (KAKAO_REST_KEY not set)")
-    for r in new if key else []:
-        gu, dong, apt = r["gu"], r["dong"], r["apt"]; hit = None
-        m = re.fullmatch(r"\((\d+(?:-\d+)?)\)", apt.strip())
-        city = gu.split()[0]  # "수원시 장안구" -> match on "수원시": new 구 names lag in some address records
-        inside = lambda a: a and city in a and dong in a.split()
-        sido = "서울" if r.get("sido", "11") == "11" else "경기"
-        if m:
-            for d in kakao("search/address", {"query": f"{sido} {gu} {dong} {m.group(1)}", "size": 5}, key).get("documents", []):
-                if inside(d.get("address_name", "")): hit = d; break
-        else:
-            docs = kakao("search/keyword", {"query": f"{gu} {dong} {re.sub(r'\(.*?\)', '', apt).strip() or apt}", "size": 15}, key).get("documents", [])
-            cand = [d for d in docs if inside(d.get("address_name", ""))]
-            hit = ([d for d in cand if "아파트" in d.get("category_name", "") or "주거시설" in d.get("category_name", "")] or cand or [None])[0]
-        geo[r["id"]] = {"lon": round(float(hit["x"]), 6), "lat": round(float(hit["y"]), 6)} if hit else None
-        if hit:
-            h = next((d for d in kakao("geo/coord2regioncode", {"x": hit["x"], "y": hit["y"]}, key).get("documents", []) if d["region_type"] == "H"), None)
-            hd[r["id"]] = {"hcode": h["code"], "hdong": h["region_3depth_name"], "hgu": h["region_2depth_name"]} if h else None
-        time.sleep(0.05)
-    if new and key:
-        save(os.path.join(RAW, "geocode_apts.json"), geo); save(os.path.join(RAW, "hdong_apts.json"), hd)
-        print(f"geocode: {len(new)} new complexes looked up")
+# ---------------- geocoding (브이월드, by the 지번 the 실거래 reports carry; cached in data/raw/vworld_geo.json) ----------------
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from vgeo import Geo, SIDO, kapt_address
+
+def geocode_new(rows, jib, G):
+    """Each complex goes on the parcel its sales report most often (a complex on several parcels reports the main one),
+    which also gives its 행정동 and PNU. rows: complexes; jib: id -> Counter of 지번."""
+    geo, hd, pnus = {}, {}, load(os.path.join(RAW, "pnu_apts.json"), {}) or {}
+    for r in rows:
+        hit = None
+        for j, _ in (jib.get(r["id"]) or Counter()).most_common(3):
+            if j and (hit := G.safe(G.parcel, f"{SIDO.get(r.get('sido', '11'), '서울특별시')} {r['gu']} {r['dong']} {j}")): break
+        if not hit: continue
+        geo[r["id"]] = {"lon": hit["lon"], "lat": hit["lat"]}
+        hd[r["id"]] = {"hcode": hit["hcode"], "hdong": hit["hdong"], "hgu": r["gu"]} if hit.get("hcode") else None
+        if hit.get("pnu"): pnus[r["id"]] = hit["pnu"]
+    G.save(); save(os.path.join(RAW, "pnu_apts.json"), pnus)
+    print(f"geocode: {len(geo):,} of {len(rows):,} complexes placed by 지번 ({G.calls} 브이월드 calls)")
     return geo, hd
 
 # ---------------- build ----------------
-def build(raw, W, kakao_key):
+def build(raw, W, G, located=None):
     trades = []  # (gu, dong, apt, ym, date, area, floor, price)
     for k, v in raw["trades"].items():
         code, ym = k.split("_")
         if code not in GU: continue  # the Seoul build; Gyeonggi goes through build_metro
         gu = GU[code]
         for i in v["items"]:
-            if i.get("price_10k") and i.get("area_sqm"): trades.append((gu, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year"), i.get("deal")))
+            if i.get("price_10k") and i.get("area_sqm"): trades.append((gu, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year"), i.get("deal"), i.get("jibun")))
     rents = []  # (gu, dong, name, area, deposit) jeonse only
     for k, v in raw["rents"].items():
         if k.split("_")[0] not in GU: continue
@@ -259,7 +246,9 @@ def build(raw, W, kakao_key):
         v.sort(key=lambda t: t[4]); lst = v[-1]; p = [t[7] for t in v]
         apt_rows.append({"id": f"{gu} {dong} {apt}", "gu": gu, "dong": dong, "apt": apt, "build_year": lst[8], "trades_6m": 0, "trades_24m": len(v), "median_price_10k": lst[7],
                          "min_price_10k": min(p), "max_price_10k": max(p), "median_area_sqm": round(lst[5]), "last_trade": lst[4], "fit": "오래된 거래", "stale": True})
-    geo, hd = geocode_new(apt_rows, kakao_key)
+    jib = defaultdict(Counter)
+    for t in trades: jib[f"{t[0]} {t[1]} {t[2]}"][t[10]] += 1
+    geo, hd = geocode_new(apt_rows, jib, G)
     for a in apt_rows:
         g = geo.get(a["id"]); h = hd.get(a["id"])
         if g: a["lon"], a["lat"] = g["lon"], g["lat"]
@@ -360,10 +349,9 @@ def build(raw, W, kakao_key):
     save(os.path.join(OUT, "apt_detail.json"), detail); save(os.path.join(OUT, "trades.json"), hist)
 
     # complex basics from K-apt (matched by name in the same 법정동, else nearby + shared name)
-    basic = [b for b in load(os.path.join(STATIC, "apt_basic.json"), []) if b.get("sido", "11") == "11"]; kgeo = load(os.path.join(RAW, "geocode_kapt.json"), {})
-    for b in basic:
-        g_ = kgeo.get(b["kaptCode"])
-        if g_: b["lon"], b["lat"] = g_["lon"], g_["lat"]
+    # same parcel first (both placed by 브이월드), then name in the same 법정동, then nearby + shared name
+    basic = [b for b in (located or []) if b.get("sido", "11") == "11"]
+    pnus = load(os.path.join(RAW, "pnu_apts.json"), {}) or {}; by_pnu = {b["pnu"]: b for b in sorted(basic, key=lambda b: "임대" not in (b.get("name") or "")) if b.get("pnu")}  # 분양 over 임대 on a shared lot
     norm = lambda s: re.sub(r"\(.*?\)|아파트|apt|[\s\-·.,]", "", (s or "").lower())
     bd = defaultdict(list)
     for b in basic: bd[(b["gu"], b["dong"])].append(b)
@@ -371,20 +359,22 @@ def build(raw, W, kakao_key):
     info = {}
     for a in apt_rows:
         n = norm(a["apt"]); cands = bd.get((a["gu"], a["dong"]), [])
-        hit = next((b for b in cands if norm(b["name"]) == n), None) or next((b for b in cands if n and (n in norm(b["name"]) or norm(b["name"]) in n)), None)
+        hit = by_pnu.get(pnus.get(a["id"])) or next((b for b in cands if norm(b["name"]) == n), None) or next((b for b in cands if n and (n in norm(b["name"]) or norm(b["name"]) in n)), None)
         if not hit and a.get("lon") is not None:
             near = sorted(((dist(a, b), b) for b in basic if b.get("lon") is not None and abs(b["lat"] - a["lat"]) < 0.003 and abs(b["lon"] - a["lon"]) < 0.004), key=lambda x: x[0])
             hit = next((b for d, b in near if d <= 200 and any(n[i:i + 2] in norm(b["name"]) for i in range(len(n) - 1))), None)
         if hit: info[a["id"]] = {k: hit.get(k) for k in ("kaptCode", "name", "households", "buildings", "approval", "builder", "heating", "hall", "parking", "floors_max", "units_le60", "units_60_85", "units_85_135", "units_gt135", "sale_type", "rental_units")}
+        if hit and a.get("lon") is None and hit.get("lon") is not None:  # 지번 did not place it: use the K-apt complex's own address
+            a["lon"], a["lat"] = hit["lon"], hit["lat"]
+            if hit.get("hcode"): a["hcode"] = hit["hcode"]
     # K-apt complexes with no sale at all in two years: still on the map, with their basics and no price
     matched, ids = {v["kaptCode"] for v in info.values()}, {a["id"] for a in apt_rows}
     for b in basic:
         if b["kaptCode"] in matched or b.get("lon") is None: continue
         aid = f"{b['gu']} {b['dong']} {b['name']}"
         if aid in ids: continue
-        g_ = kgeo.get(b["kaptCode"]) or {}
         apt_rows.append({"id": aid, "gu": b["gu"], "dong": b["dong"], "apt": b["name"], "build_year": int(b["approval"][:4]) if b.get("approval") else None, "trades_6m": 0, "trades_24m": 0,
-                         "median_price_10k": None, "median_area_sqm": None, "last_trade": None, "fit": "거래 없음", "no_trade": True, "lon": b["lon"], "lat": b["lat"], **({"hcode": g_["hcode"]} if g_.get("hcode") else {})})
+                         "median_price_10k": None, "median_area_sqm": None, "last_trade": None, "fit": "거래 없음", "no_trade": True, "lon": b["lon"], "lat": b["lat"], **({"hcode": b["hcode"]} if b.get("hcode") else {})})
         info[aid] = {k: b.get(k) for k in ("kaptCode", "name", "households", "buildings", "approval", "builder", "heating", "hall", "parking", "floors_max", "units_le60", "units_60_85", "units_85_135", "units_gt135", "sale_type", "rental_units")}
     save(os.path.join(OUT, "apts.json"), apt_rows)
     save(os.path.join(OUT, "apt_info.json"), info)
@@ -427,24 +417,14 @@ def build(raw, W, kakao_key):
 
 KAPT_FIELDS = ("kaptCode", "name", "households", "buildings", "approval", "builder", "heating", "hall", "parking", "floors_max", "units_le60", "units_60_85", "units_85_135", "units_gt135", "sale_type", "rental_units")
 
-def kapt_located(kakao_key):
-    """K-apt complexes (Seoul + Gyeonggi) with coordinates and 행정동 code; new ones are geocoded once and cached."""
-    basic = load(os.path.join(STATIC, "apt_basic.json"), []); cache = load(os.path.join(RAW, "geocode_kapt.json"), {})
-    new = [b for b in basic if b["kaptCode"] not in cache]
-    for b in new if kakao_key else []:
-        sido = "서울" if b.get("sido", "11") == "11" else "경기"
-        q = b.get("address") or ""
-        q = q if q.startswith(("서울", "경기")) else f"{sido} {b.get('gu', '')} {q}"
-        docs = kakao("search/address", {"query": q, "size": 1}, kakao_key).get("documents", [])
-        if not docs and b.get("road_address"): docs = kakao("search/address", {"query": b["road_address"], "size": 1}, kakao_key).get("documents", [])
-        if docs:
-            d = docs[0]; cache[b["kaptCode"]] = {"lon": float(d["x"]), "lat": float(d["y"]), "hcode": (d.get("address") or {}).get("h_code")}
-        else: cache[b["kaptCode"]] = None
-        time.sleep(0.04)
-    if new and kakao_key: save(os.path.join(RAW, "geocode_kapt.json"), cache); print(f"kapt: {len(new)} complexes geocoded")
+def kapt_located(G):
+    """K-apt complexes (Seoul + Gyeonggi) with coordinates, 행정동 code and PNU, from their 지번 (or 도로명) address."""
+    basic = load(os.path.join(STATIC, "apt_basic.json"), [])
     for b in basic:
-        g = cache.get(b["kaptCode"])
-        if g: b["lon"], b["lat"], b["hcode"] = round(g["lon"], 6), round(g["lat"], 6), g.get("hcode")
+        hit = G.any(*kapt_address(b))
+        if hit: b["lon"], b["lat"], b["hcode"], b["pnu"] = hit["lon"], hit["lat"], hit.get("hcode"), hit.get("pnu")
+    G.save()
+    print(f"kapt: {sum(1 for b in basic if b.get('lon') is not None):,} of {len(basic):,} K-apt complexes placed ({G.calls} 브이월드 calls so far)")
     return basic
 
 def kapt_match(apt_rows, basic):
@@ -453,15 +433,19 @@ def kapt_match(apt_rows, basic):
     bd = defaultdict(list)
     for b in basic: bd[(b.get("gu"), b.get("dong"))].append(b)
     located = [b for b in basic if b.get("lon") is not None]
+    pnus = load(os.path.join(RAW, "pnu_apts.json"), {}) or {}; by_pnu = {b["pnu"]: b for b in sorted(basic, key=lambda b: "임대" not in (b.get("name") or "")) if b.get("pnu")}  # 분양 over 임대 on a shared lot
     def dist(a, b): return 6371000 * math.hypot(math.radians(b["lon"] - a["lon"]) * math.cos(math.radians(a["lat"])), math.radians(b["lat"] - a["lat"]))
     info = {}
     for a in apt_rows:
         n = norm(a["apt"]); cands = bd.get((a["gu"], a["dong"]), [])
-        hit = next((b for b in cands if norm(b["name"]) == n), None) or next((b for b in cands if n and (n in norm(b["name"]) or norm(b["name"]) in n)), None)
+        hit = by_pnu.get(pnus.get(a["id"])) or next((b for b in cands if norm(b["name"]) == n), None) or next((b for b in cands if n and (n in norm(b["name"]) or norm(b["name"]) in n)), None)
         if not hit and a.get("lon") is not None:
             near = sorted(((dist(a, b), b) for b in located if abs(b["lat"] - a["lat"]) < 0.003 and abs(b["lon"] - a["lon"]) < 0.004), key=lambda x: x[0])
             hit = next((b for d, b in near if d <= 200 and any(n[i:i + 2] in norm(b["name"]) for i in range(len(n) - 1))), None)
         if hit: info[a["id"]] = {k: hit.get(k) for k in KAPT_FIELDS}
+        if hit and a.get("lon") is None and hit.get("lon") is not None:  # 지번 did not place it: use the K-apt complex's own address
+            a["lon"], a["lat"] = hit["lon"], hit["lat"]
+            if hit.get("hcode"): a["hcode"] = hit["hcode"]
     return info
 
 def build_region_stats(basic):
@@ -498,7 +482,7 @@ def sgg_of(code):
     if code.startswith("4159"): return "41590", "화성시"
     return code, REGIONS[code]
 
-def build_metro(raw, W, kakao_key, basic=None):
+def build_metro(raw, W, G, basic=None):
     """서울+경기 view: 시군구 / 행정동 insights, complexes, per-complex detail for Gyeonggi."""
     trades, rents = [], []
     for k, v in raw["trades"].items():
@@ -506,7 +490,7 @@ def build_metro(raw, W, kakao_key, basic=None):
         if code not in REGIONS: continue
         sgg, name = sgg_of(code)
         for i in v["items"]:
-            if i.get("price_10k") and i.get("area_sqm"): trades.append((sgg, name, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year"), i.get("deal")))
+            if i.get("price_10k") and i.get("area_sqm"): trades.append((sgg, name, i["dong"], i["apt_name"], ym, i["trade_date"], i["area_sqm"], i.get("floor"), i["price_10k"], i.get("build_year"), i.get("deal"), i.get("jibun")))
     for k, v in raw["rents"].items():
         code = k.split("_")[0]
         if code not in REGIONS: continue
@@ -534,7 +518,9 @@ def build_metro(raw, W, kakao_key, basic=None):
         v.sort(key=lambda t: t[5]); lst = v[-1]; p = [t[8] for t in v]
         apts.append({"id": f"{name} {dong} {apt}", "sido": sgg[:2], "sgg": sgg, "gu": name, "dong": dong, "apt": apt, "build_year": lst[9], "trades_6m": 0, "trades_24m": len(v), "median_price_10k": lst[8],
                      "min_price_10k": min(p), "max_price_10k": max(p), "median_area_sqm": round(lst[6]), "last_trade": lst[5], "fit": "오래된 거래", "stale": True})
-    geo, hd = geocode_new(apts, kakao_key)
+    jib = defaultdict(Counter)
+    for t in trades: jib[f"{t[1]} {t[2]} {t[3]}"][t[11]] += 1
+    geo, hd = geocode_new(apts, jib, G)
     for a in apts:
         g = geo.get(a["id"]); h = hd.get(a["id"])
         if g: a["lon"], a["lat"] = g["lon"], g["lat"]
@@ -655,8 +641,8 @@ if __name__ == "__main__":
             # data.go.kr refuses some non-Korean IPs (GitHub's runners); keep the other sources' updates flowing
             print(f"fetch: WARNING trades not refreshed ({e}); rebuilding from cached data/raw")
             raw = load(os.path.join(RAW, "molit.json.gz"))
-    kk = os.environ.get("KAKAO_REST_KEY")
-    basic = kapt_located(kk)
-    build(raw, W, kk)
-    build_metro(raw, W, kk, basic)
+    G = Geo()
+    basic = kapt_located(G)
+    build(raw, W, G, basic)
+    build_metro(raw, W, G, basic)
     build_region_stats(basic)

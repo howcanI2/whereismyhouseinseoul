@@ -12,8 +12,8 @@ Sources (all keyless):
   redev 서울 열린데이터광장 OA-23112 (정비사업) / OA-23113 (소규모정비사업) sheet CSV
         -> web/public/data/redev.json
 
-Environment: KAKAO_REST_KEY (optional) geocodes redev rows that have no coordinates yet;
-results are cached in data/raw/geocode_redev.json keyed by row id.
+Environment: VWORLD_API_KEY (optional) places redev rows by their 지번 (else 도로명, else the 법정동 center);
+results are cached in data/raw/vworld_geo.json by address.
 
 A source that fails (site down, layout change, suspiciously few rows) is skipped with a
 warning and its previous output is left untouched; the script still exits 0.
@@ -202,7 +202,9 @@ def run_cost(keep):
         if not keep: os.remove(path)
     if not months: raise RuntimeError("K-apt: no 관리비정보 file for this year or last")
     basic = {b["kaptCode"]: b for b in load(os.path.join(STATIC, "apt_basic.json"), []) or []}
-    geo = load(os.path.join(RAW, "geocode_kapt.json"), {}) or {}
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from vgeo import kapt_geo
+    geo = kapt_geo(list(basic.values()))
     out, reg = {}, collections.defaultdict(list)
     for code, ms in months.items():
         b = basic.get(code); hh = (b or {}).get("households")
@@ -377,40 +379,20 @@ def _pos(v):
         x = float(v); return x if x > 0 else None
     except (TypeError, ValueError): return None
 
-def kakao_search(path, q, key):
-    url = f"https://dapi.kakao.com/v2/local/search/{path}.json?" + urllib.parse.urlencode({"query": q, "size": 5})
-    req = urllib.request.Request(url, headers={"Authorization": "KakaoAK " + key})
-    for a in range(3):
-        try:
-            with urllib.request.urlopen(req, timeout=15) as r: return json.load(r).get("documents", [])
-        except Exception: time.sleep(1 + a)
-    return []
-
-def geocode_redev(rows, key):
-    cp = os.path.join(RAW, "geocode_redev.json"); cache = load(cp, {}) or {}
-    prev = {r["id"]: r for r in load(os.path.join(OUT, "redev.json"), []) or [] if r.get("lon") is not None}
-    for i, r in prev.items():  # seed the cache from the coordinates already published
-        cache.setdefault(i, {"lon": r["lon"], "lat": r["lat"], "geo": r.get("geo"), "address": r.get("address")})
-    looked = 0
+def geocode_redev(rows):
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from vgeo import Geo
+    G = Geo(); looked = 0
     for r in rows:
-        c = cache.get(r["id"])
-        if c is not None and c.get("address") not in (None, r.get("address")): c = None  # address changed: look it up again
-        if c is None and key:
-            addr = r.get("address") or ""
-            q = addr if addr.startswith("서울") else f"서울 {r['gu']} {addr}"
-            d = next((x for x in kakao_search("address", q, key) if r["gu"] in x.get("address_name", "")), None); how = "address"
-            if not d:
-                d = next((x for x in kakao_search("keyword", f"{r['gu']} {r.get('dong') or ''} {r['name']}", key) if r["gu"] in x.get("address_name", "")), None); how = "keyword"
-            if not d:
-                docs = kakao_search("address", f"서울 {r['gu']} {r.get('dong') or ''}", key); d = docs[0] if docs else None; how = "dong"
-            c = {"lon": round(float(d["x"]), 6), "lat": round(float(d["y"]), 6), "geo": how, "address": r.get("address")} if d else {"lon": None, "lat": None, "geo": None, "address": r.get("address")}
-            cache[r["id"]] = c; looked += 1; time.sleep(0.05)
-        if c and c.get("lon") is not None:
-            r["lon"], r["lat"], r["geo"] = c["lon"], c["lat"], c.get("geo")
-    save(cp, cache)
+        addr = re.sub(r"\s*(일대|일원|외\s*\d+필지).*$", "", (r.get("address") or "").strip())
+        q = addr if addr.startswith("서울") else f"서울특별시 {r['gu']} {addr}"
+        d, how = G.parcel(q) if addr else None, "address"
+        if not d and addr: d = G.road(q)
+        if not d and r.get("dong"): d, how = G.district(f"서울특별시 {r['gu']} {r['dong']}"), "dong"
+        looked += 1
+        if d: r["lon"], r["lat"], r["geo"] = d["lon"], d["lat"], how
+    G.save()
     missing = sum(1 for r in rows if r.get("lon") is None)
-    pending = sum(1 for r in rows if r["id"] not in cache)
-    if pending and not key: log(f"  redev: {pending} new rows left without coordinates (KAKAO_REST_KEY not set)")
     return looked, missing
 
 def run_redev(keep):
@@ -423,7 +405,7 @@ def run_redev(keep):
     rows = build_redev(sheets, dt.date.today())
     p = os.path.join(OUT, "redev.json"); old = load(p, []) or []
     guard("redev", len(rows), len(old))
-    looked, missing = geocode_redev(rows, os.environ.get("KAKAO_REST_KEY"))
+    looked, missing = geocode_redev(rows)
     save(p, rows)
     as_of = max((r["updated"] for r in rows if r.get("updated")), default="?")
     return (f"redev: {len(rows)} rows in {len(set(r['gu'] for r in rows))} 구, {len(rows)-missing} with coordinates "

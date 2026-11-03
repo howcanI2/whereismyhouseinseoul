@@ -3,7 +3,7 @@
     python scripts/fetch_edu.py
 
 - 학원: 나이스 교육정보 개방 포털 학원교습소정보 (NEIS_API_KEY), 서울·경기, 개원 중인 입시·검정·보습 and 국제화(어학) academies.
-  Each is placed once by its road address with Kakao (KAKAO_REST_KEY; cached in data/raw/geocode_academy.json) to get
+  Each is placed once by its road address with 브이월드 (VWORLD_API_KEY; cached in data/raw/vworld_geo.json) to get
   its 행정동, then counted per 구 / 법정동 / 행정동 / 시군구, and per 1,000 residents aged 10–19 where population is known.
 - 학교: 학교알리미 OpenAPI (SCHOOLINFO_API_KEY), 초·중학교 학년별·학급별 학생수 (09) and 전·출입 학생 수 (10) for the latest
   공시 year; matched to the 학구도 school ids in school.json by name within the same 시도.
@@ -13,6 +13,8 @@ import datetime as dt, json, os, re, sys, time, urllib.parse, urllib.request
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from vgeo import Geo
 # keys for local runs live in <repo>/.env (gitignored); CI passes them as real environment variables
 if os.path.exists(os.path.join(ROOT, ".env")):
     for _l in open(os.path.join(ROOT, ".env"), encoding="utf-8-sig"):
@@ -47,24 +49,17 @@ def academies(key):
             page += 1
     return out
 
-def place(rows, kk):
-    """road address → (lon, lat, 행정동 code, 법정동 name) via Kakao, cached by address"""
-    p = os.path.join(RAW, "geocode_academy.json"); cache = load(p, {})
-    new = 0
+def place(rows, G):
+    """road address → [lon, lat, 행정동 code, 법정동 name] via 브이월드 (cached in data/raw/vworld_geo.json)"""
+    out = {}
     for r in rows:
         a = (r.get("FA_RDNMA") or "").strip()
-        if not a or a in cache or not kk: continue
-        req = urllib.request.Request("https://dapi.kakao.com/v2/local/search/address.json?" + urllib.parse.urlencode({"query": a, "size": 1}), headers={"Authorization": "KakaoAK " + kk})
-        try:
-            with urllib.request.urlopen(req, timeout=15) as res: d = (json.load(res).get("documents") or [None])[0]
-        except Exception: d = None
-        ad = (d or {}).get("address") or {}
-        cache[a] = [round(float(d["x"]), 5), round(float(d["y"]), 5), ad.get("h_code"), ad.get("region_3depth_name")] if d else None
-        new += 1
-        if new % 1000 == 0: json.dump(cache, open(p, "w", encoding="utf-8"), ensure_ascii=False); print(f"edu: {new} academy addresses placed", flush=True)
-        time.sleep(0.03)
-    json.dump(cache, open(p, "w", encoding="utf-8"), ensure_ascii=False)
-    return cache
+        if not a or a in out: continue
+        d = G.safe(G.road, a)
+        out[a] = [round(d["lon"], 5), round(d["lat"], 5), d.get("hcode"), d.get("bdong")] if d else None
+        if G.calls and G.calls % 1000 == 0: print(f"edu: {G.calls} academy addresses placed", flush=True)
+    G.save()
+    return out
 
 # ---------------- 학교알리미 ----------------
 def schoolinfo(key):
@@ -92,7 +87,7 @@ def pct_rank(vals):
     return {k: round(sum(x <= v for x in xs) / len(xs) * 100) for k, v in vals.items() if v is not None}
 
 def main():
-    nk, sk, kk = os.environ.get("NEIS_API_KEY"), os.environ.get("SCHOOLINFO_API_KEY"), os.environ.get("KAKAO_REST_KEY")
+    nk, sk = os.environ.get("NEIS_API_KEY"), os.environ.get("SCHOOLINFO_API_KEY"); G = Geo()
     school = load(os.path.join(OUT, "school.json"))
     if not school: sys.exit("edu: run fetch_school.py first")
     pop = (load(os.path.join(STATIC, "population_age.json"), {}) or {})
@@ -103,7 +98,7 @@ def main():
     # 학원 counts per region
     acad = defaultdict(lambda: defaultdict(int))
     if nk:
-        rows = academies(nk); cache = place(rows, kk)
+        rows = academies(nk); cache = place(rows, G)
         for r in rows:
             g = cache.get((r.get("FA_RDNMA") or "").strip())
             seoul = r["ATPT_OFCDC_SC_CODE"] == "B10"
