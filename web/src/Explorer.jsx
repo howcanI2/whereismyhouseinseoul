@@ -5,7 +5,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
-import { annuity, DSR, estCommute, fmt, kmTo, loanCap, LTV, palette, STRESS, useIsDark, useLazyFile, useWatch, won } from "./lib.js";
+import { DSR, LTV, STRESS, annuity, buyPlan, estCommute, fmt, kmTo, loanCap, palette, useIsDark, useLazyFile, useWatch, won } from "./lib.js";
 
 // the map's ◆ marker: the viewer's workplace
 export const refOf = (w) => [{ n: w?.name || "직장", lon: w?.lon, lat: w?.lat }].filter((r) => r.lon != null);
@@ -402,6 +402,45 @@ export function ZoneDetail({ zone, apts, onClose, P, budget }) {
   );
 }
 
+// 이 집을 사면: the loan check, then every cost — once at purchase, the loan's interest, and what it costs each month and year
+export function BuyCosts({ plan: p, price, cash, rate, cost, sale }) {
+  if (!p) return null;
+  const propMon = p.prop.total / 12, monthly = p.mon + (cost ? cost[0] : 0) + propMon;
+  const row = (l, v, sub) => (
+    <div className="flex items-baseline justify-between gap-2 py-0.5"><span className="text-default-600">{l}</span><span className="text-right num"><b>{v}</b>{sub && <span className="block text-[10px] font-normal text-default-400">{sub}</span>}</span></div>
+  );
+  return (
+    <div className="flex flex-col gap-2 text-small">
+      <div className="flex flex-wrap items-center gap-2">
+        <Chip color={p.ok ? "success" : "danger"} variant="flat" size="sm">{p.ok ? "대출 가능" : `대출 ${won(p.need - p.maxLoan)} 부족`}</Chip>
+        <span className="text-default-500 num">필요 대출 {won(p.need)} · 최대 {won(p.maxLoan)} ({p.bind})</span>
+      </div>
+      <div className="rounded-medium bg-default-50 px-3 py-2">
+        <div className="text-tiny font-semibold text-default-500">살 때 한 번</div>
+        {row("집값", won(price))}
+        {row("취득세 (지방교육세 포함)", won(p.acq.total), `세율 ${p.acq.rate}%${p.acq.farm ? " · 85㎡ 초과 농특세" : ""}${p.acq.cut ? ` · 생애최초 ${won(p.acq.cut)} 감면` : ""}`)}
+        {row("중개보수", won(p.fee.total), `법정 상한 ${p.fee.rate}%, 부가세 별도`)}
+        <div className="mt-1 flex items-baseline justify-between border-t border-default-200 pt-1"><span className="font-semibold">필요한 돈</span><b className="num">{won(price + p.upfront)}</b></div>
+        <div className="text-[10px] text-default-400 num">가진 돈 {won(cash)}{sale ? ` (지금 집 판 돈 ${won(sale.net)} 포함)` : ""} → 나머지 {won(p.need)}을 대출</div>
+      </div>
+      <div className="rounded-medium bg-default-50 px-3 py-2">
+        <div className="text-tiny font-semibold text-default-500">대출 {won(p.loan)} · 금리 {rate}% · 30년 원리금균등</div>
+        {row("월 상환", `${won(p.mon)}원`, `첫 달 이자 ${won(p.int1)} + 원금 ${won(Math.max(0, p.mon - p.int1))}`)}
+        {row("30년 총 이자", `${won(p.totalInt)}원`)}
+      </div>
+      <div className="rounded-medium bg-default-50 px-3 py-2">
+        <div className="text-tiny font-semibold text-default-500">사는 동안 매달</div>
+        {row("대출 상환", `${won(p.mon)}원`)}
+        {cost && row("관리비", `${cost[0]}만원`, "K-apt 최근 12개월 평균")}
+        {row("재산세 (월로 나눔)", `${won(propMon)}원`, `1년 약 ${won(p.prop.total)} · 공시가 약 ${won(p.prop.pub)} 가정`)}
+        <div className="mt-1 flex items-baseline justify-between border-t border-default-200 pt-1"><span className="font-semibold">월 주거비</span><b className="num text-primary">약 {won(monthly)}원</b></div>
+      </div>
+      {p.prop.comp && <p className="text-tiny text-warning-700">공시가격이 12억을 넘을 것으로 보여 종합부동산세가 따로 붙을 수 있어요 (위 계산에는 없음).</p>}
+      <p className="text-[10px] text-default-400">2026년 1주택 기준 추정치입니다. 취득세는 1주택 세율(종전 집을 3년 안에 파는 일시적 2주택 포함), 재산세는 공시가격을 시세의 69%로 보고 1주택 특례를 적용했습니다. 실제 세금은 공시가격·감면 요건에 따라 달라집니다.</p>
+    </div>
+  );
+}
+
 // 관리비 (K-apt, 세대당 최근 12개월 평균) and what is around the complex (Kakao 장소)
 const near = (m) => (m == null ? "—" : m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km`);
 function Living({ cost, inf }) {
@@ -495,7 +534,7 @@ function LandUse({ land, apt, bldg, hh }) {
 
 export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, fitText, fitColor }) {
   const rows = trades?.[apt.id];
-  const b = data.budget?.find((x) => x.scenario === scen), rate = data.rates?.at(-1)?.mortgage_pct ?? 4.66;
+  const b = data.budget?.find((x) => x.scenario === scen), rate = b?.rate ?? data.rates?.at(-1)?.mortgage_pct ?? 4.66;
   const f = fitOf(apt.median_price_10k);
   const near = useMemo(() => {
     if (!data.subway || apt.lon == null) return null;
@@ -505,10 +544,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
     return out;
   }, [apt, data.subway]);
   const price = apt.median_price_10k, cash = b?.cash_10k ?? 0, income = b?.income_10k ?? 0;
-  const need = Math.max(0, price - cash);
-  const lims = [["LTV 70%", price * LTV], ["주담대 상한", loanCap(price)], [`DSR 40%`, (income * DSR) / (annuity(rate + STRESS) * 12)]];
-  const maxLoan = Math.min(...lims.map((l) => l[1])), ok = need <= maxLoan, bind = lims.find((l) => l[1] === maxLoan)[0];
-  const mon = Math.min(need, maxLoan) * annuity(rate);
+  const plan = price != null ? buyPlan(price, { cash, income, rate, first: b ? b.first : true, area: apt.median_area_sqm }) : null;
   const pts = (rows || []).map(([d, a, fl, p]) => ({ t: Date.parse(d), p: p / 10000, a, d, fl }));
   const dong = data.dong_summary?.find((r) => r.id === `${apt.gu} ${apt.dong}`);
   const details = useLazyFile(apt.sido === "41" ? "apt_detail_gg" : "apt_detail"), basics = useLazyFile(apt.sido === "41" ? "apt_info_gg" : "apt_info");
@@ -598,12 +634,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
       {price != null && <><Divider />
       <div>
         <div className="mb-1 text-small font-semibold">{b?.label || "내 조건으로"} 이 집을 사면{apt.stale ? " (마지막 거래가 기준)" : ""}</div>
-        <div className="flex flex-wrap items-center gap-2 text-small">
-          <Chip color={ok ? "success" : "danger"} variant="flat" size="sm">{ok ? "대출 가능" : `대출 ${won(need - maxLoan)} 부족`}</Chip>
-          <span className="text-default-500">필요 대출 {won(need)} · 최대 {won(maxLoan)} ({bind})</span>
-        </div>
-        <div className="mt-1 text-small">월 상환 약 <b className="num">{won(mon)}원</b> <span className="text-tiny text-default-400">(금리 {rate}%, 30년)</span></div>
-        {cost && <div className="text-small num">+ 관리비 약 {cost[0]}만원 = <b>월 주거비 약 {won(Math.round(mon + cost[0]))}원</b></div>}
+        <BuyCosts plan={plan} price={price} cash={cash} rate={rate} cost={cost} sale={b?.sale} />
       </div></>}
       <Divider />
       <div>

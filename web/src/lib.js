@@ -169,7 +169,9 @@ export const LTV = 0.7, DSR = 0.4, STRESS = 3, YEARS = 30;
 
 /* ---------- 내 조건: each viewer's own numbers, kept only in their browser ---------- */
 // Example values a first-time visitor sees; nothing about the person who built the app.
-export const DEFAULT_PROFILE = { work: DEFAULT_WORK, household: "plan", income: 5000, cash: 10000, saving: 200, marry: 3, partnerIncome: 5000, partnerCash: 8000, partnerSaving: 150, firstHome: true, rate: null, example: true };
+// own*: a home the viewer already has and would sell to move (갈아타기); off by default
+export const DEFAULT_PROFILE = { work: DEFAULT_WORK, household: "plan", income: 5000, cash: 10000, saving: 200, marry: 3, partnerIncome: 5000, partnerCash: 8000, partnerSaving: 150, firstHome: true, rate: null,
+  own: false, ownValue: 80000, ownBought: 60000, ownYear: 2019, ownLived: 3, ownLoan: 30000, ownRepay: 80, ownGrowth: 2, example: true };
 const PKEY = "hb-profile-v1";
 export function useProfile() {
   const [p, setP] = useState(() => { try { return { ...DEFAULT_PROFILE, ...JSON.parse(localStorage.getItem(PKEY) || "{}") }; } catch (e) { return DEFAULT_PROFILE; } });
@@ -205,17 +207,70 @@ export function useWatch() {
   return [watchVal, toggle, set];
 }
 
-// Highest price the cash + allowed loan can cover, with 2.5% purchase costs (취득세·중개비 등).
-export const COSTS = 0.025;
+/* ---------- 집 살 때·가진 동안·팔 때 드는 돈 (만원). Rough 2026 rules for one home in Seoul; each screen says so. ---------- */
+// 취득세 + 지방교육세 (+ 농특세 over 85㎡), 1주택 세율. 일시적 2주택(종전 집을 3년 안에 팔면)도 같은 세율. 생애최초는 12억 이하면 200만원까지 감면.
+export function acqTax(P, { area = 84, first = false } = {}) {
+  const r = P <= 60000 ? 1 : P <= 90000 ? (P / 10000) * (2 / 3) - 3 : 3;  // %
+  const tax = (P * r) / 100, edu = tax * 0.1, farm = area > 85 ? P * 0.002 : 0;
+  const cut = first && P <= 120000 ? Math.min(200, tax) : 0;
+  return { total: Math.round(tax + edu + farm - cut), rate: Math.round(r * 100) / 100, tax: Math.round(tax), edu: Math.round(edu), farm: Math.round(farm), cut: Math.round(cut) };
+}
+// 중개보수 법정 상한 (매매, 부가세 별도)
+export function brokerFee(P) {
+  const [r, cap] = P < 5000 ? [0.006, 25] : P < 20000 ? [0.005, 80] : P < 90000 ? [0.004, Infinity] : P < 120000 ? [0.005, Infinity] : P < 150000 ? [0.006, Infinity] : [0.007, Infinity];
+  return { total: Math.round(Math.min(P * r, cap)), rate: Math.round(r * 1000) / 10 };
+}
+// 재산세 1년치: 공시가격 ≈ 시세 × 69%, 1주택 공정시장가액비율 43~45%, 공시 9억 이하는 1주택 특례세율. + 도시지역분 0.14% + 지방교육세 20%.
+export const PUBLIC_RATIO = 0.69;
+export function propTax(P) {
+  const pub = P * PUBLIC_RATIO, base = pub * (pub <= 30000 ? 0.43 : pub <= 60000 ? 0.44 : 0.45), special = pub <= 90000;
+  const steps = special ? [[6000, 0.0005, 0], [15000, 0.001, 3], [30000, 0.002, 12], [Infinity, 0.0035, 42]] : [[6000, 0.001, 0], [15000, 0.0015, 6], [30000, 0.0025, 19.5], [Infinity, 0.004, 57]];
+  let tax = 0, lo = 0;
+  for (const [hi, r, acc] of steps) { if (base <= hi) { tax = acc + (base - lo) * r; break; } lo = hi; }
+  return { total: Math.round(tax * 1.2 + base * 0.0014), pub: Math.round(pub), comp: pub > 120000 };  // comp: 종합부동산세 대상 (1주택 공시 12억 초과), not included
+}
+// 양도소득세 (+ 지방소득세 10%) on selling one home. 1세대1주택 비과세 = 2년 보유 + 2년 거주 (서울 조정지역 취득 기준), 12억 초과분만 과세.
+const PROG = [[1400, 0.06, 0], [5000, 0.15, 126], [8800, 0.24, 576], [15000, 0.35, 1544], [30000, 0.38, 1994], [50000, 0.4, 2594], [100000, 0.42, 3594], [Infinity, 0.45, 6594]];
+export function gainTax(sale, cost, hold, lived) {
+  const fee = brokerFee(sale).total, gain = sale - cost - fee;
+  if (gain <= 0) return { total: 0, gain: Math.round(gain), note: "차익 없음" };
+  const exempt = hold >= 2 && lived >= 2;
+  if (exempt && sale <= 120000) return { total: 0, gain: Math.round(gain), note: "1주택 비과세 (2년 보유·거주, 12억 이하)" };
+  const taxable = exempt ? (gain * (sale - 120000)) / sale : gain;
+  if (hold < 2) { const r = hold < 1 ? 0.7 : 0.6; return { total: Math.round(Math.max(0, taxable - 250) * r * 1.1), gain: Math.round(gain), note: `보유 ${hold < 1 ? "1년 미만 70%" : "2년 미만 60%"} 단일세율` }; }
+  const ded = hold < 3 ? 0 : exempt ? Math.min(0.8, Math.min(hold, 10) * 0.04 + Math.min(lived, 10) * 0.04) : Math.min(0.3, hold * 0.02);
+  const base = Math.max(0, taxable * (1 - ded) - 250), [, r, acc] = PROG.find(([hi]) => base <= hi);
+  return { total: Math.round(Math.max(0, base * r - acc) * 1.1), gain: Math.round(gain), note: `${exempt ? "12억 초과분만 과세" : "1주택 비과세 요건(2년 보유·거주) 미충족"}${ded ? ` · 장기보유공제 ${Math.round(ded * 100)}%` : ""}` };
+}
+// selling the home the viewer has, t years from now: what is left after the loan, 양도세 and 중개보수
+export function saleNet(p, t = 0) {
+  if (!p.own) return null;
+  const year = new Date().getFullYear(), g = (Number(p.ownGrowth) || 0) / 100;
+  const value = Math.round((p.ownValue || 0) * Math.pow(1 + g, t)), loan = Math.max(0, (p.ownLoan || 0) - (p.ownRepay || 0) * 12 * t);
+  const hold = Math.max(0, year + t - (Number(p.ownYear) || year)), lived = (Number(p.ownLived) || 0) > 0 ? Number(p.ownLived) + t : 0;
+  const tax = gainTax(value, p.ownBought || 0, hold, lived), fee = brokerFee(value).total;
+  return { value, loan, tax: tax.total, taxNote: tax.note, gain: tax.gain, fee, hold, lived, net: Math.max(0, value - loan - tax.total - fee) };
+}
+// everything up front for one purchase, the loan it needs, and the monthly / yearly costs after
+export function buyPlan(P, { cash = 0, income = 0, rate = 4.5, first = false, area = 84 } = {}) {
+  const acq = acqTax(P, { area, first }), fee = brokerFee(P), upfront = acq.total + fee.total;
+  const ltv = first ? LTV : 0.4, lims = [[`LTV ${Math.round(ltv * 100)}%${first ? " (생애최초)" : ""}`, P * ltv], ["주담대 상한", loanCap(P)], ["DSR 40%", (income * DSR) / (annuity(rate + STRESS) * 12)]];
+  const maxLoan = Math.min(...lims.map((l) => l[1])), need = Math.max(0, P + upfront - cash), loan = Math.min(need, maxLoan);
+  const mon = loan * annuity(rate), int1 = (loan * rate) / 1200, prop = propTax(P);
+  return { acq, fee, upfront, need, maxLoan, bind: lims.find((l) => l[1] === maxLoan)[0], ok: need <= maxLoan, loan, mon, int1, totalInt: mon * YEARS * 12 - loan, prop, lims };
+}
+
+// Highest price the cash + allowed loan can cover after 취득세·중개보수
 function maxPrice(cash, income, rate, firstHome) {
   const ltv = firstHome ? LTV : 0.4, dsrLoan = (income * DSR) / (annuity(rate + STRESS) * 12);
   const loanAt = (P) => Math.min(P * ltv, loanCap(P), dsrLoan);
-  for (let P = 300000; P >= 5000; P -= 500) if (P * (1 + COSTS) <= cash + loanAt(P)) {
+  const upfront = (P) => acqTax(P, { first: firstHome }).total + brokerFee(P).total;
+  for (let P = 300000; P >= 5000; P -= 500) if (P + upfront(P) <= cash + loanAt(P)) {
     const lims = [["LTV " + Math.round(ltv * 100) + "%" + (firstHome ? " (생애최초)" : ""), P * ltv], ["주담대 한도 " + won(loanCap(P)), loanCap(P)], ["스트레스 DSR 40%", dsrLoan]];
     const loan = Math.min(...lims.map((l) => l[1]));
-    return { P, loan: Math.round(Math.min(loan, P * (1 + COSTS) - cash > 0 ? P * (1 + COSTS) - cash : 0)), binding: lims.find((l) => l[1] === loan)[0], dsrLoan: Math.round(dsrLoan), ltvLoan: Math.round(P * ltv) };
+    return { P, loan: Math.round(Math.min(loan, Math.max(0, P + upfront(P) - cash))), binding: lims.find((l) => l[1] === loan)[0], dsrLoan: Math.round(dsrLoan), ltvLoan: Math.round(P * ltv) };
   }
-  return { P: Math.max(0, Math.round(cash / (1 + COSTS))), loan: 0, binding: "현금만", dsrLoan: Math.round(dsrLoan), ltvLoan: 0 };
+  return { P: Math.max(0, Math.round(cash / 1.015)), loan: 0, binding: "현금만", dsrLoan: Math.round(dsrLoan), ltvLoan: 0 };
 }
 // 가구 형태: 혼자 / 결혼 예정 (N년 뒤 합가) / 이미 기혼·맞벌이. Older saved profiles have no household: infer it from the plan.
 export const HOUSEHOLDS = [["single", "혼자"], ["plan", "결혼 예정"], ["married", "기혼·맞벌이"]];
@@ -226,16 +281,18 @@ export const householdOf = (p) => p.household || (Number(p.marry) ? "plan" : "si
 export function budgetsFrom(p, rate) {
   const r = p.rate || rate || 4.5, hh = householdOf(p);
   const yrs = Math.max(0, Number(p.marry) || 0), twoNow = hh === "married", twoLater = hh !== "single";
-  const cashN = p.cash + (twoNow ? p.partnerCash : 0), incomeN = p.income + (twoNow ? p.partnerIncome : 0);
-  const now = maxPrice(cashN, incomeN, r, p.firstHome);
-  const cashL = p.cash + p.saving * 12 * yrs + (twoLater ? p.partnerCash + p.partnerSaving * 12 * yrs : 0);
+  // a home they already have is sold first (갈아타기): what is left joins the cash, and 생애최초 no longer applies
+  const first = p.firstHome && !p.own, saleN = saleNet(p, 0), saleL = saleNet(p, yrs);
+  const cashN = p.cash + (twoNow ? p.partnerCash : 0) + (saleN?.net || 0), incomeN = p.income + (twoNow ? p.partnerIncome : 0);
+  const now = maxPrice(cashN, incomeN, r, first);
+  const cashL = p.cash + p.saving * 12 * yrs + (twoLater ? p.partnerCash + p.partnerSaving * 12 * yrs : 0) + (saleL?.net || 0);
   const incomeL = p.income + (twoLater ? p.partnerIncome : 0);
-  const later = maxPrice(cashL, incomeL, r, p.firstHome);
-  const note = (cash, n) => `현금 ${won(cash)}에서 취득 비용 2.5%를 빼고, 금리 ${r}% + 스트레스 3%p, 30년 상환으로 계산${n ? ` (저축 ${n}년 반영)` : ""}`;
+  const later = maxPrice(cashL, incomeL, r, first);
+  const note = (cash, n, sale) => `현금 ${won(cash)}${sale ? ` (지금 집 판 돈 ${won(sale.net)} 포함)` : ""}에서 취득세·중개보수를 빼고, 금리 ${r}% + 스트레스 3%p, 30년 상환으로 계산${n ? ` (저축 ${n}년 반영)` : ""}`;
   const who = (two) => (two ? " 둘이" : "");
   return [
-    { scenario: "now", label: `지금${who(twoNow)} 사면`, short: `지금${who(twoNow)}`, income_10k: incomeN, cash_10k: cashN, loan_10k: now.loan, max_price_10k: now.P, binding: now.binding, loan_dsr_10k: now.dsrLoan, note: note(cashN, 0) },
-    { scenario: "later", label: yrs ? `${yrs}년 뒤${who(twoLater)} 사면` : `지금${who(twoLater)} 사면`, short: yrs ? `${yrs}년 뒤${who(twoLater)}` : `지금${who(twoLater)}`, years: yrs, income_10k: incomeL, cash_10k: cashL, loan_10k: later.loan, max_price_10k: later.P, binding: later.binding, loan_dsr_10k: later.dsrLoan, note: note(cashL, yrs) },
+    { scenario: "now", label: `지금${who(twoNow)} 사면`, short: `지금${who(twoNow)}`, income_10k: incomeN, cash_10k: cashN, loan_10k: now.loan, max_price_10k: now.P, binding: now.binding, loan_dsr_10k: now.dsrLoan, note: note(cashN, 0, saleN), first, rate: r, sale: saleN },
+    { scenario: "later", label: yrs ? `${yrs}년 뒤${who(twoLater)} 사면` : `지금${who(twoLater)} 사면`, short: yrs ? `${yrs}년 뒤${who(twoLater)}` : `지금${who(twoLater)}`, years: yrs, income_10k: incomeL, cash_10k: cashL, loan_10k: later.loan, max_price_10k: later.P, binding: later.binding, loan_dsr_10k: later.dsrLoan, note: note(cashL, yrs, saleL), first, rate: r, sale: saleL },
   ];
 }
 // share of trades at or under a budget, from a region's 21-point price distribution

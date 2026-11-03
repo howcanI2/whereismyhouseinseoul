@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Slider, Switch, Textarea } from "@heroui/react";
 import { interstitialPending, interstitialState, preloadInterstitial, showInterstitialOnce } from "./TossInterstitial.js";
-import { budgetsFrom, DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, useBackToClose, useWatch, WORKPLACES, won } from "./lib.js";
+import { budgetsFrom, DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, saleNet, useBackToClose, useWatch, WORKPLACES, won } from "./lib.js";
 
 // 다른 기기로 옮길 때 쓰는 코드: 내 조건 + 관심 단지를 한 줄로. 서버나 링크에는 남지 않고 복사한 사람만 가집니다.
 const encode = (obj) => "HB1:" + btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
@@ -11,7 +11,7 @@ function decode(code) {
   if (!t.startsWith("HB1:")) throw new Error("형식이 맞지 않습니다");
   const o = JSON.parse(decodeURIComponent(escape(atob(t.slice(4)))));
   if (!o || typeof o.p !== "object") throw new Error("내용이 비어 있습니다");
-  const p = Object.fromEntries(Object.keys(DEFAULT_PROFILE).filter((k) => k !== "example" && k !== "work" && k in o.p).map((k) => [k, k === "firstHome" ? !!o.p[k] : k === "household" ? (HOUSEHOLDS.some(([h]) => h === o.p[k]) ? o.p[k] : "plan") : o.p[k] == null ? null : Number(o.p[k])]));
+  const p = Object.fromEntries(Object.keys(DEFAULT_PROFILE).filter((k) => k !== "example" && k !== "work" && k in o.p).map((k) => [k, k === "firstHome" || k === "own" ? !!o.p[k] : k === "household" ? (HOUSEHOLDS.some(([h]) => h === o.p[k]) ? o.p[k] : "plan") : o.p[k] == null ? null : Number(o.p[k])]));
   const w = o.w && typeof o.w === "object" ? o.w : {};
   const wk = o.p.work;
   if (wk && Number.isFinite(Number(wk.lon)) && Number.isFinite(Number(wk.lat))) p.work = { name: String(wk.name || "직장").slice(0, 40), lon: Number(wk.lon), lat: Number(wk.lat) };
@@ -42,6 +42,32 @@ function useVisibleHeight(on) {
 }
 // keeps the field above the on-screen keyboard once it has opened
 const keepVisible = (e) => { const el = e.target; setTimeout(() => el.scrollIntoView?.({ block: "center", behavior: "smooth" }), 300); };
+
+// a plain number field (연도, 년, %)
+function Num({ label, value, onChange, unit, hint }) {
+  return (
+    <Input size="sm" type="number" inputMode="decimal" label={label} value={value == null ? "" : String(value)} onFocus={keepVisible}
+      onValueChange={(v) => onChange(v === "" ? 0 : Number(v))} endContent={<span className="whitespace-nowrap text-tiny text-default-400">{unit}</span>} description={hint} />
+  );
+}
+// 지금 집을 팔면 손에 남는 돈, for the two buying moments
+function SaleSummary({ draft, yrs }) {
+  const rows = [[0, "지금 팔면"], ...(yrs ? [[yrs, `${yrs}년 뒤 팔면`]] : [])].map(([t, l]) => [l, saleNet(draft, t)]);
+  return (
+    <div className={`grid gap-2 ${rows.length > 1 ? "sm:grid-cols-2" : ""}`}>
+      {rows.map(([l, s]) => (
+        <div key={l} className="rounded-medium bg-default-100 px-3 py-2 text-tiny num">
+          <div className="font-semibold text-default-600">{l} (보유 {s.hold}년{s.lived ? ` · 거주 ${s.lived}년` : ""})</div>
+          {[["시세", won(s.value)], ["− 남은 대출", won(s.loan)], ["− 양도세 (지방세 포함)", s.tax ? won(s.tax) : "0원"], ["− 중개보수", won(s.fee)]].map(([k, v]) => (
+            <div key={k} className="flex justify-between"><span className="text-default-500">{k}</span><span>{v}</span></div>
+          ))}
+          <div className="mt-0.5 flex justify-between border-t border-default-200 pt-0.5 text-small"><span className="font-semibold">손에 남는 돈</span><b className="text-primary">{won(s.net)}</b></div>
+          <div className="text-[10px] text-default-400">{s.taxNote}{s.gain > 0 ? ` · 차익 ${won(s.gain)}` : ""}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // one money field in 만원, with the amount spelled out in 억/만 as you type
 function Money({ label, value, onChange, hint, isDisabled }) {
@@ -194,9 +220,28 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
               marks={[0, 2, 4, 6, 8, 10].map((v) => ({ value: v, label: v ? `${v}년` : "지금" }))} />
           </Step>
 
-          <Step n="5" title="대출 조건">
-            <Switch size="sm" isSelected={draft.firstHome} onValueChange={(v) => setDraft((d) => ({ ...d, firstHome: v }))}>
-              <span className="text-small">생애최초 구입</span> <span className="text-tiny text-default-500">{draft.firstHome ? "LTV 70%" : "LTV 40%"}{hh !== "single" ? " · 부부 모두 집을 가진 적이 없어야 해당" : ""}</span>
+          <Step n="5" title="지금 가진 집" sub={draft.own ? "이 집을 팔고 새 집으로 옮긴다고 보고, 판 돈을 모은 돈에 더합니다." : "집이 있다면 켜 주세요. 팔 때 남는 돈과 세금을 계산해 예산에 더합니다."}
+            right={<Switch size="sm" isSelected={!!draft.own} onValueChange={(v) => setDraft((d) => ({ ...d, own: v }))} aria-label="지금 가진 집 있음" />}>
+            {draft.own && (
+              <>
+                <div className="grid grid-cols-2 gap-2">
+                  <Money label="지금 시세" value={draft.ownValue} onChange={num("ownValue")} />
+                  <Money label="산 가격" value={draft.ownBought} onChange={num("ownBought")} hint="양도세 계산용" />
+                  <Num label="산 해" value={draft.ownYear} onChange={num("ownYear")} unit="년" />
+                  <Num label="직접 거주한 기간" value={draft.ownLived} onChange={num("ownLived")} unit="년" hint="세입자를 줬다면 0" />
+                  <Money label="남은 대출" value={draft.ownLoan} onChange={num("ownLoan")} />
+                  <Money label="매달 갚는 원금" value={draft.ownRepay} onChange={num("ownRepay")} hint="이자 빼고" />
+                  <Num label="집값 상승 예상 (연)" value={draft.ownGrowth} onChange={num("ownGrowth")} unit="%" hint="팔 때 시세 = 지금 × (1+상승률)^년" />
+                </div>
+                <SaleSummary draft={draft} yrs={yrs} />
+                <p className="text-[10px] text-default-400">양도세는 1세대 1주택 기준 추정입니다 (2년 보유·거주면 12억까지 비과세, 넘는 부분은 장기보유특별공제 후 누진세율). 집이 2채 이상이거나 일시적 2주택 기한을 넘기면 달라집니다. 매달 갚는 원금이 월 저축액과 따로라면 저축액에서 빼고 입력하세요.</p>
+              </>
+            )}
+          </Step>
+
+          <Step n="6" title="대출 조건">
+            <Switch size="sm" isSelected={draft.firstHome && !draft.own} isDisabled={!!draft.own} onValueChange={(v) => setDraft((d) => ({ ...d, firstHome: v }))}>
+              <span className="text-small">생애최초 구입</span> <span className="text-tiny text-default-500">{draft.own ? "집이 있으면 해당 없음 · LTV 40%" : draft.firstHome ? "LTV 70%" : "LTV 40%"}{!draft.own && hh !== "single" ? " · 부부 모두 집을 가진 적이 없어야 해당" : ""}</span>
             </Switch>
             <Input size="sm" type="number" label="대출 금리 (비우면 최신 평균)" placeholder={rate ? `최신 평균 ${rate}%` : ""} className="max-w-xs"
               value={draft.rate == null ? "" : String(draft.rate)} onFocus={keepVisible} onValueChange={(v) => setDraft((d) => ({ ...d, rate: v === "" ? null : Number(v) }))}

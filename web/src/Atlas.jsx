@@ -5,7 +5,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { Bar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { annuity, estCommute, kmTo, workState, attachCommute, attachGrowth, attachRegions, regionFilesOf, CAP_SVG, dday, DSR, pendingFocus, SCHOOL_COLOR, shortSchool, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
+import { annuity, buyPlan, estCommute, kmTo, workState, attachCommute, attachGrowth, attachRegions, regionFilesOf, CAP_SVG, dday, DSR, pendingFocus, SCHOOL_COLOR, shortSchool, fitState, fmt, futureShare, futureState, GROWTH, growthMult, loanCap, LTV, palette, shareBelow, STRESS, useIsDark, useLazyFile, won } from "./lib.js";
 import SearchBox from "./Search.jsx";
 import { AGES, ageOk, AptDetail, AREAS, areaOk, dist, LINE_COLOR, polysOf, refOf, STAGE_COLOR, STAGE_GROUPS, STAGES, stageOk, ZoneDetail } from "./Explorer.jsx";
 
@@ -769,9 +769,9 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
   const title = TOP(lv) ? r.name : `${r.gu} ${r.name}`;
   const price84 = d.p84 ?? (d.ppp ? Math.round(d.ppp * 25.4) : null);
   const b = data.budget?.find((x) => x.scenario === scen), rate = data.rates?.at(-1)?.mortgage_pct ?? 4.66;
-  const need = price84 ? Math.max(0, price84 - (b?.cash_10k ?? 0)) : 0;
-  const maxLoan = price84 ? Math.min(price84 * LTV, loanCap(price84), ((b?.income_10k ?? 0) * DSR) / (annuity(rate + STRESS) * 12)) : 0;
-  const mon = Math.min(need, maxLoan) * annuity(rate);
+  // same check as a complex's 이 집을 사면: 취득세·중개보수 on top of the price, LTV by 생애최초 or not
+  const bp = price84 ? buyPlan(price84, { cash: b?.cash_10k ?? 0, income: b?.income_10k ?? 0, rate: b?.rate ?? rate, first: b ? b.first : true, area: 84 }) : null;
+  const need = bp?.need ?? 0, maxLoan = bp?.maxLoan ?? 0, mon = bp?.mon ?? 0;
   const inRegion = (a) => (lv === "gu" ? a.gu === rkey : lv === "sgg" ? a.sgg === rkey : lv === "bdong" ? `${a.gu} ${a.dong}` === rkey : a.hcode === rkey);
   const topApts = apts.filter((a) => inRegion(a) && a.median_area_sqm >= 40).sort((a, b2) => b2.trades_6m - a.trades_6m).slice(0, 6);
   const rz = zones.filter((z) => (lv === "gu" ? z.gu === rkey : lv === "sgg" ? z.gu === r.name : lv === "bdong" ? `${z.gu} ${z.dong}` === rkey : false));
@@ -880,7 +880,8 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
               <Chip size="sm" variant="flat" color={need <= maxLoan ? "success" : "danger"}>{need <= maxLoan ? "대출 가능" : `대출 ${won(need - maxLoan)} 부족`}</Chip>
               <span className="text-default-500">필요 {won(need)} · 최대 {won(maxLoan)}</span>
             </div>
-            <div className="num">월 상환 약 <b>{won(mon)}원</b> <span className="text-tiny text-default-400">금리 {rate}% · 30년</span></div>
+            <div className="num text-tiny text-default-500">필요한 돈에 취득세 {won(bp.acq.total)} · 중개보수 {won(bp.fee.total)} 포함</div>
+            <div className="num">월 상환 약 <b>{won(mon)}원</b> <span className="text-tiny text-default-400">금리 {b?.rate ?? rate}% · 30년 · 재산세 연 약 {won(bp.prop.total)}</span></div>
             <div className="num text-tiny text-default-500">이 지역 거래 중 내 예산({won(budget)}) 이하 {fmt.share(shareBelow(d.q, budget))}</div>
           </div>
         ) : <p className="text-tiny text-default-400">이 기간 거래가 적어 기준가를 낼 수 없습니다.</p>}

@@ -3,7 +3,7 @@ import { SOURCE_LINKS } from "./TossLinks.js";
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Input, Link, Select, SelectItem, Skeleton, Slider, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { GrowthPick } from "./Atlas.jsx";
-import { annuity, attachGrowth, DSR, estCommute, kmTo, fmt, GROWTH, growthMult, loanCap, LTV, palette, STRESS, dday, focusApply, useIsDark, useLazyFile, won, YEARS } from "./lib.js";
+import { annuity, buyPlan, attachGrowth, DSR, estCommute, kmTo, fmt, GROWTH, growthMult, loanCap, LTV, palette, STRESS, dday, focusApply, useIsDark, useLazyFile, won, YEARS } from "./lib.js";
 
 const Box = ({ title, sub, children, className = "", right }) => (
   <Card shadow="sm" className={className}>
@@ -186,10 +186,10 @@ export function LoanTab({ data }) {
   const val = (k, d) => (over[scen]?.[k] ?? d);
   const set = (k) => (v) => setOver((o) => ({ ...o, [scen]: { ...o[scen], [k]: v } }));
   const price = val("price", base?.max_price_10k ?? 60000), cash = val("cash", base?.cash_10k ?? 0), income = val("income", base?.income_10k ?? 0), rate = val("rate", last?.mortgage_pct ?? 4.5);
-  const need = Math.max(0, price - cash);
-  const lims = [["LTV 70% (생애최초)", price * LTV], ["주담대 상한", loanCap(price)], [`DSR 40% (금리+${STRESS}%p)`, (income * DSR) / (annuity(rate + STRESS) * 12)]];
-  const maxLoan = Math.min(...lims.map((l) => l[1])), bind = lims.find((l) => l[1] === maxLoan), ok = need <= maxLoan;
-  const loan = Math.min(need, maxLoan), mon = loan * annuity(rate);
+  // 취득세·중개보수 come out of the cash first; LTV follows 생애최초 (off once there is a home to sell)
+  const bp = buyPlan(price, { cash, income, rate, first: base ? base.first : true });
+  const need = bp.need, lims = bp.lims.map(([l, v]) => [l.startsWith("DSR") ? `DSR 40% (금리+${STRESS}%p)` : l, v]);
+  const maxLoan = bp.maxLoan, bind = lims.find((l) => l[1] === maxLoan), ok = bp.ok, loan = bp.loan, mon = bp.mon;
   const barMax = Math.max(need, ...lims.map((l) => l[1])) || 1;
   const rates = (data.rates || []).map((r) => ({ ...r, label: r.month.slice(2).replace("-", ".") }));
   const facts = (g) => (data.loan_market || []).filter((r) => r.group === g);
@@ -224,8 +224,9 @@ export function LoanTab({ data }) {
                 ))}
               </div>
               <div className="grid grid-cols-3 gap-3">
-                {[["월 상환", won(mon) + "원"], ["연소득 대비", income ? `${((mon * 12) / income * 100).toFixed(1)}%` : "—"], ["30년 총이자", won(mon * YEARS * 12 - loan) + "원"]].map(([l, v]) => (
-                  <div key={l} className="rounded-medium bg-default-100 px-3 py-2"><div className="text-tiny text-default-500">{l}</div><div className="text-large font-semibold num">{v}</div></div>
+                {[["월 상환", won(mon) + "원", `첫 달 이자 ${won(bp.int1)}`], ["연소득 대비", income ? `${((mon * 12) / income * 100).toFixed(1)}%` : "—", "원리금 기준"], ["30년 총이자", won(mon * YEARS * 12 - loan) + "원", `대출 ${won(loan)}`],
+                  ["취득세", won(bp.acq.total), `세율 ${bp.acq.rate}%${bp.acq.cut ? ` · 생애최초 감면 ${won(bp.acq.cut)}` : ""}`], ["중개보수", won(bp.fee.total), `상한 ${bp.fee.rate}%, 부가세 별도`], ["재산세 (1년)", won(bp.prop.total), bp.prop.comp ? "종부세 별도 가능" : `공시가 약 ${won(bp.prop.pub)} 가정`]].map(([l, v, sub]) => (
+                  <div key={l} className="rounded-medium bg-default-100 px-3 py-2"><div className="text-tiny text-default-500">{l}</div><div className="text-large font-semibold num">{v}</div><div className="text-[10px] text-default-400 num">{sub}</div></div>
                 ))}
               </div>
             </div>
