@@ -22,16 +22,74 @@ export const METRICS = [
   { id: "vol", l: "거래량 변화", get: (r, p) => r[p]?.vol_chg, f: fmt.pct, div: true },
   { id: "jeonse", l: "전세가율", get: (r) => r.jeonse_ratio, f: fmt.share, tone: "amber" },
   { id: "future", get l() { return `${futureState.years || 3}년 뒤 내 예산 이하`; }, get: (r, p) => futureShare(r, p), f: fmt.share },
-  { id: "high", l: "신고가 비율", get: (r, p) => r[p]?.high_share, f: fmt.share, tone: "rose" },
-  { id: "dip", l: "급매 비율", get: (r, p) => r[p]?.dip_share, f: fmt.share, tone: "indigo" },
+  { id: "high", l: "신고가 비율", get: (r, p) => r[p]?.high_share, f: fmt.share, tone: "rose", rule: "최근 3개월 안에 신고가 거래가 있는 단지",
+    apt: (a) => ({ on: a.sig === "high", note: a.sig === "high" ? "최근 3개월 신고가 거래 있음" : "최근 3개월 신고가 없음" }) },
+  { id: "dip", l: "급매 비율", get: (r, p) => r[p]?.dip_share, f: fmt.share, tone: "indigo", rule: "최근 3개월 안에 시세보다 10% 넘게 싼 거래가 있는 단지",
+    apt: (a) => ({ on: a.sig === "dip", note: a.sig === "dip" ? "최근 3개월 급매 거래 있음" : "최근 3개월 급매 없음" }) },
   { id: "edu", l: "학군 지표", get: (r) => r.edu?.score, f: (v) => (v == null ? "—" : `${v}점`), tone: "indigo" },
   { id: "acad", l: "학원 밀도", get: (r) => r.edu?.acad_per1k, f: (v) => (v == null ? "—" : `${v}곳`), tone: "indigo" },
   { id: "cost", l: "관리비", get: (r) => r.cost?.med, f: (v) => (v == null ? "—" : `${v}만`), inv: true, tone: "amber" },
-  { id: "room", l: "재건축 여유 큰 구축", get: (r) => r.bldg?.room50, f: fmt.share, tone: "rose" },
+  { id: "room", get l() { return `재건축 여유 큰 구축 ${roomState.age}년+`; }, get: (r) => (roomState.age === 25 ? r.bldg?.room50 : r.bldg?.[`room50_${roomState.age}`]), f: fmt.share, tone: "rose", flags: true,
+    get rule() { return `준공 ${roomState.age}년 넘고 상한 용적률까지 50%p 이상 남은 단지`; },
+    apt: (a, f) => {
+      const v = f[a.id]?.[0], yr = f[a.id]?.[3] || a.build_year;  // 사용승인 연도 (K-apt) first: the same year the region share counts
+      if (yr && YEAR - yr < roomState.age) return { on: false, note: `${yr}년 준공 · ${roomState.age}년 미만이라 대상 아님` };
+      if (v != null) return { on: v >= 50, note: `${yr ? yr + "년 준공 · " : ""}상한까지 ${v > 0 ? "+" : ""}${v}%p`, v };
+      return null;
+    } },
   { id: "hosp", l: "병·의원 밀도", get: (r) => r.infra?.hosp, f: (v) => (v == null ? "—" : `${Math.round(v)}곳`) },
-  { id: "school", l: "초등학교 가까운 단지", get: (r) => r.sch?.near, f: fmt.share },
-  { id: "zone", l: "3종·준주거 이상", get: (r) => r.lu?.high, f: fmt.share, tone: "amber" },
+  { id: "school", l: "초등학교 가까운 단지", get: (r) => r.sch?.near, f: fmt.share, flags: true, rule: "배정 초등학교까지 400m 이내 단지",
+    apt: (a, f) => { const d = f[a.id]?.[2]; return d == null ? null : { on: d <= 400, note: `배정 초등학교까지 ${d.toLocaleString()}m`, v: -d }; } },
+  { id: "zone", l: "3종·준주거 이상", get: (r) => r.lu?.high, f: fmt.share, tone: "amber", flags: true, rule: "제3종일반주거·준주거·상업지역 단지",
+    apt: (a, f) => { const z = f[a.id]?.[1]; return z ? { on: z === "3종" || z === "준주거·상업", note: z === "기타" ? "준공업 등 기타 용도지역" : `${z} 지역` } : null; } },
 ];
+const YEAR = new Date().getFullYear();
+// 재건축 여유: which 연한 counts as 구축 (picked in the map toolbar)
+export const roomState = { age: 25 };
+export function RoomAgePick({ roomAge, setRoomAge }) {
+  return <div className="flex flex-wrap items-center gap-1"><span className="text-tiny text-default-500">준공</span>{[25, 30, 35].map((y) => <Button key={y} size="sm" radius="full" className="h-7" color={roomAge === y ? "secondary" : "default"} variant={roomAge === y ? "solid" : "flat"} onPress={() => setRoomAge(y)}>{y}년+</Button>)}</div>;
+}
+// pins that a yes/no metric counts get this outline; the rest fade (or hide with 해당 단지만)
+export const HIT = "#6E56CF";
+// metrics with an apt rule answer per complex: judge(a) → { on, note, v } or null when there is no data for it
+export function useAptJudge(m, roomAge) {
+  const flags = useLazyFile("apt_flags", !!m?.apt && !!m.flags);
+  return useMemo(() => (m?.apt && (!m.flags || flags) ? (a) => m.apt(a, flags?.items || {}) : null), [m, flags, roomAge]);
+}
+// what the current metric says about the open complex, above its detail
+export function AptVerdict({ apt, m, judge }) {
+  if (!judge || !apt) return null;
+  const v = judge(apt);
+  return (
+    <div className="flex items-start gap-2 rounded-large px-4 py-2.5 text-small shadow-small" style={{ background: v?.on ? HIT + "1A" : "hsl(var(--heroui-content1))", border: `1.5px solid ${v?.on ? HIT : "hsl(var(--heroui-default-200))"}` }}>
+      <span className="shrink-0 font-bold" style={{ color: v?.on ? HIT : "hsl(var(--heroui-default-500))" }}>{v?.on ? "✓ 해당" : v ? "해당 없음" : "자료 없음"}</span>
+      <span className="min-w-0 text-default-600">‘{m.l}’ · {v ? v.note : "이 단지는 판정에 쓸 자료가 없습니다"}<span className="block text-tiny text-default-400">기준: {m.rule}. 지도 색은 지역 안 해당 단지 비율입니다.</span></span>
+    </div>
+  );
+}
+// the complexes in a region the current metric counts
+function HitList({ m, judge, apts, onApt }) {
+  const [all, setAll] = useState(false);
+  if (!judge) return null;
+  const rows = apts.map((a) => ({ a, v: judge(a) })).filter((x) => x.v), hit = rows.filter((x) => x.v.on).sort((x, y) => (y.v.v ?? 0) - (x.v.v ?? 0) || (y.a.trades_6m || 0) - (x.a.trades_6m || 0));
+  const shown = all ? hit : hit.slice(0, 8);
+  return (
+    <div className="rounded-large bg-content1 p-4 shadow-small" style={{ borderLeft: `4px solid ${HIT}` }}>
+      <div className="flex items-baseline justify-between gap-2"><span className="text-small font-semibold">‘{m.l}’ 해당 단지</span><span className="text-tiny text-default-500 num">{hit.length} / {rows.length}곳</span></div>
+      <p className="mb-1.5 text-tiny text-default-400">기준: {m.rule}</p>
+      {hit.length === 0 ? <p className="text-tiny text-default-500">이 지역에는 해당하는 단지가 없습니다.</p> : (
+        <div className="flex flex-col">
+          {shown.map(({ a, v }) => (
+            <button key={a.id} type="button" className="flex items-baseline justify-between gap-2 rounded-medium px-1.5 py-1 text-left hover:bg-default-100" onClick={() => onApt(a)}>
+              <span className="min-w-0 truncate text-small font-medium">{a.apt}</span><span className="shrink-0 text-tiny text-default-500 num">{v.note}</span>
+            </button>
+          ))}
+          {hit.length > 8 && <Button size="sm" variant="light" className="mt-1" onPress={() => setAll((x) => !x)}>{all ? "접기" : `${hit.length - 8}곳 더 보기`}</Button>}
+        </div>
+      )}
+    </div>
+  );
+}
 // metric colour: rising-to-tone ramp for one-sided metrics
 export const toneOf = (m, P) => (m.tone ? P[m.tone] : P.primary);
 // N년 뒤 controls, shown in the map toolbar while that metric is on
@@ -77,6 +135,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const [period, setPeriod] = useState("p6");
   const [metricId, setMetricId] = useState("chg");
   const [growth, setGrowth] = useState("half");
+  const [roomAge, setRoomAge] = useState(25);
   const [area, setArea] = useState("all");
   const [age, setAge] = useState("all");
   const [sel, setSel] = useState(null);
@@ -87,6 +146,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const trades = useMemo(() => (tS || tG ? { ...(tS || {}), ...(tG || {}) } : null), [tS, tG]);
   const [showLines, setShowLines] = useState(true);
   const [maxMin, setMaxMin] = useState(0);  // 통근시간으로 거르기: 0 = off
+  const [onlyHit, setOnlyHit] = useState(false);  // yes/no metrics: hide the complexes it does not count
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
   const [showSchools, setShowSchools] = useState(true);
@@ -99,6 +159,8 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const [size, setSize] = useState({ w: 0, h: 0 });
   const wrapRef = useRef(null), svgRef = useRef(null), zoomRef = useRef(null), k0Ref = useRef(1), raf = useRef(0), moved = useRef(false);
   const m = METRICS.find((x) => x.id === metricId);
+  roomState.age = roomAge;
+  const judge = useAptJudge(m, roomAge);
   fitState.budget = budget;
   Object.assign(futureState, { growth, years: later?.years || 3, budget: later?.max_price_10k ?? budget, label: later?.label });
 
@@ -186,7 +248,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
     if (m.div) { const a = Math.max(Math.abs(lo), Math.abs(hi), 1); return { lo: -a, hi: a, color: (v) => (v >= 0 ? mixc(P.faint, UP, v / a) : mixc(P.faint, DOWN, -v / a)) }; }
     const base = toneOf(m, P);
     return { lo, hi, color: (v) => { const t = hi > lo ? (v - lo) / (hi - lo) : 0.5; return mixc(P.faint, base, m.inv ? 1 - t : t); } };
-  }, [ins, regionLevel, period, metricId, scen, dark, budget, growth]);
+  }, [ins, regionLevel, period, metricId, scen, dark, budget, growth, roomAge]);
   const polyPaths = useMemo(() => {
     if (!geoms || !scale) return (geoms?.[regionLevel] || []).map((g) => ({ k: g.key, d: g.d, fill: P.none, op: 1 }));
     const tbl = ins[regionLevel] || {};
@@ -215,16 +277,17 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const apts = useMemo(() => (data.apts || []).filter((a) => a.lon != null), [data.apts]);
   const visibleApts = useMemo(() => {
     if (!t || !world) return [];
-    return apts.filter((a) => areaOk(a.median_area_sqm, area) && ageOk(a.build_year, age)).map((a) => ({ ...a, x: sx(a.lon), y: sy(a.lat), f: fitOf(a.median_price_10k) })).filter((a) => inView(a.x, a.y, 0) && !tooFar(a));
-  }, [apts, t, world, area, age, budget, size, maxMin, data.work]);
+    return apts.filter((a) => areaOk(a.median_area_sqm, area) && ageOk(a.build_year, age)).map((a) => ({ ...a, x: sx(a.lon), y: sy(a.lat), f: fitOf(a.median_price_10k), hit: judge ? !!judge(a)?.on : null }))
+      .filter((a) => inView(a.x, a.y, 0) && !tooFar(a) && !(onlyHit && a.hit === false));
+  }, [apts, t, world, area, age, budget, size, maxMin, data.work, judge, onlyHit]);
   const pins = useMemo(() => {
     if (!showPins) return { labels: [], dots: [] };
     const placed = [], labels = [], dots = [];
     // recent sales first, then stale (older sale, grey with its date), then no sale in two years (dot only)
-    const rank = (a) => (a.trades_6m ? 2e6 + a.trades_6m : a.stale ? 1e6 + (a.trades_24m || 0) : 0);
+    const rank = (a) => (a.hit ? 3e6 : 0) + (a.trades_6m ? 2e6 + a.trades_6m : a.stale ? 1e6 + (a.trades_24m || 0) : 0);  // counted complexes get labels first
     [...visibleApts].sort((a, b) => rank(b) - rank(a)).forEach((a) => {
       if (a.median_price_10k == null) { dots.push(a); return; }
-      const txt = (SIG[a.sig]?.[0] || "") + won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), w = txt.length * 7 + 14, bx = { x0: a.x - w / 2, x1: a.x + w / 2, y0: a.y - 26, y1: a.y - 4 };
+      const txt = (a.hit ? "✓" : "") + (SIG[a.sig]?.[0] || "") + won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), w = txt.length * 7 + 14, bx = { x0: a.x - w / 2, x1: a.x + w / 2, y0: a.y - 26, y1: a.y - 4 };
       if (labels.length < 140 && placed.every((p) => bx.x1 < p.x0 || bx.x0 > p.x1 || bx.y1 < p.y0 || bx.y0 > p.y1)) { placed.push(bx); labels.push({ ...a, txt, w }); } else dots.push(a);
     });
     return { labels, dots };
@@ -273,9 +336,10 @@ export default function Atlas({ data: base, scope = "seoul" }) {
           </div>
         </div>
         <TossBanner />
+        {selApt && <AptVerdict apt={selApt} m={m} judge={judge} />}
         {selApt ? <AptDetail apt={selApt} trades={trades} budget={budget} scen={scen} data={data} onClose={() => setSel(null)} P={P} fitOf={fitOf} fitText={fitText} fitColor={fitColor} />
           : selZone ? <ZoneDetail zone={zones.find((x) => x.id === selZone)} apts={apts} onClose={() => setSelZone(null)} P={P} budget={budget} />
-          : selRegion && ins?.[selRegion.level]?.[selRegion.key] ? <RegionPanel lv={selRegion.level} rkey={selRegion.key} r={ins[selRegion.level][selRegion.key]} period={period} data={data} apts={apts} zones={zones} budget={budget} scen={scen} P={P} fitOf={fitOf} fitColor={fitColor} onClose={() => setSelRegion(null)} onApt={pickApt} />
+          : selRegion && ins?.[selRegion.level]?.[selRegion.key] ? <RegionPanel lv={selRegion.level} rkey={selRegion.key} r={ins[selRegion.level][selRegion.key]} period={period} data={data} apts={apts} zones={zones} budget={budget} scen={scen} P={P} fitOf={fitOf} fitColor={fitColor} onClose={() => setSelRegion(null)} onApt={pickApt} m={m} judge={judge} />
           : <Overview data={data} ins={ins} period={period} level={regionLevel} m={m} scen={scen} onPick={(key) => pickRegion(regionLevel, key)} P={P} onApt={(id) => { const a = (data.apts || []).find((x) => x.id === id); if (a) pickApt(a); }} />}
       </aside>
 
@@ -288,6 +352,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
           <Divider orientation="vertical" className="hidden h-6 sm:block" />
           <div className="-mx-1 flex w-full gap-1 overflow-x-auto px-1 pb-0.5 lg:mx-0 lg:w-auto lg:flex-wrap lg:overflow-visible lg:px-0">{METRICS.map((x) => <Chip key={x.id} size="sm" variant={metricId === x.id ? "solid" : "flat"} color={metricId === x.id ? "primary" : "default"} className="shrink-0 cursor-pointer" onClick={() => setMetricId(x.id)}>{x.l}</Chip>)}</div>
           {m.id === "future" && <GrowthPick growth={growth} setGrowth={setGrowth} />}
+          {m.id === "room" && <RoomAgePick roomAge={roomAge} setRoomAge={setRoomAge} />}
           <CommuteFilter name={work.name} odsay={odsay} maxMin={maxMin} setMaxMin={setMaxMin} />
           <span className="ml-auto text-tiny text-default-500">지금 보는 단위: <b>{LEVEL_NAME[eff]}</b> · {PERIOD_NOTE[period]}</span>
         </div>
@@ -339,12 +404,12 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                     </g>
                   );
                 })}
-                {showPins && pins.dots.filter((a) => a.id !== sel).map((a) => <circle key={a.id} cx={a.x} cy={a.y} r={a.median_price_10k == null ? 3 : 4} fill={a.median_price_10k == null ? "hsl(var(--heroui-content1))" : a.trades_6m ? fitColor[a.f] : P.muted} stroke={a.median_price_10k == null ? P.axis : "hsl(var(--heroui-content1))"} strokeWidth={a.median_price_10k == null ? 1.5 : 1} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}><title>{a.median_price_10k == null ? `${a.apt} · 최근 2년 실거래 없음` : a.apt}</title></circle>)}
+                {showPins && pins.dots.filter((a) => a.id !== sel).map((a) => <circle key={a.id} cx={a.x} cy={a.y} r={a.hit ? 5 : a.median_price_10k == null ? 3 : 4} opacity={a.hit === false ? 0.3 : 1} fill={a.median_price_10k == null ? "hsl(var(--heroui-content1))" : a.trades_6m ? fitColor[a.f] : P.muted} stroke={a.hit ? HIT : a.median_price_10k == null ? P.axis : "hsl(var(--heroui-content1))"} strokeWidth={a.hit ? 2.5 : a.median_price_10k == null ? 1.5 : 1} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}><title>{a.median_price_10k == null ? `${a.apt} · 최근 2년 실거래 없음` : a.apt}</title></circle>)}
                 {showPins && pins.labels.filter((a) => a.id !== sel).map((a) => {
                   const quiet = !a.trades_6m, on = a.id === sel || a.id === hover, fill = quiet ? P.none : a.f === "over" ? "hsl(var(--heroui-content1))" : fitColor[a.f];
                   return (
-                    <g key={a.id} transform={`translate(${a.x},${a.y})`} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}>
-                      <path d={`M${-a.w / 2},-26h${a.w}v18h${-a.w / 2 + 5}l-5,6l-5,-6h${-a.w / 2 + 5}z`} fill={fill} stroke={on ? P.fg : quiet || a.f === "over" ? P.axis : "none"} strokeDasharray={quiet && !on ? "3 2" : undefined} strokeWidth={on ? 2 : 1} />
+                    <g key={a.id} transform={`translate(${a.x},${a.y})`} opacity={a.hit === false && !on ? 0.35 : 1} className="cursor-pointer" onClick={() => pickApt(a)} onMouseEnter={() => setHover(a.id)} onMouseLeave={() => setHover(null)}>
+                      <path d={`M${-a.w / 2},-26h${a.w}v18h${-a.w / 2 + 5}l-5,6l-5,-6h${-a.w / 2 + 5}z`} fill={fill} stroke={on ? P.fg : a.hit ? HIT : quiet || a.f === "over" ? P.axis : "none"} strokeDasharray={quiet && !on && !a.hit ? "3 2" : undefined} strokeWidth={on ? 2 : a.hit ? 2.5 : 1} />
                       <text y={-13} textAnchor="middle" fontSize={quiet ? 11 : 12} fontWeight={quiet ? 500 : 700} fill={quiet ? P.text : a.f === "over" ? P.fg : "#fff"} className="num">{a.txt}</text>
                       {on && <text y={14} textAnchor="middle" className="map-label" style={{ fontWeight: 600 }}>{a.apt}</text>}
                     </g>
@@ -392,6 +457,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
                   {scale && <div className="flex items-center gap-2 num"><span>{m.f(scale.lo)}</span><span className="h-2 flex-1 rounded-full" style={{ background: m.div ? `linear-gradient(90deg,${DOWN},${P.faint},${UP})` : `linear-gradient(90deg,${P.faint},${toneOf(m, P)})` }} /><span>{m.f(scale.hi)}</span></div>}
                   {m.div && <span className="text-default-500">빨강 = 상승, 파랑 = 하락</span>}
                   <MetricNote m={m} />
+                  {judge && <HitLegend m={m} onlyHit={onlyHit} setOnlyHit={setOnlyHit} pins={showPins} />}
                   {showPins && ["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: fitColor[f] }} />{fitText[f]}</span>)}
                   {showPins && <span className="text-default-500">가격 앞 ▲ 최근 3개월 신고가 · ▼ 급매</span>}
                   <span className="inline-flex items-center gap-1.5"><span className="text-[10px]">◆</span>{data.work?.name || "직장"} (직장)</span>
@@ -422,6 +488,15 @@ export default function Atlas({ data: base, scope = "seoul" }) {
 }
 
 // one line under the legend for metrics that need explaining
+// legend lines for a yes/no metric: how counted pins look, and the 해당 단지만 switch
+export function HitLegend({ m, onlyHit, setOnlyHit, pins }) {
+  return (
+    <>
+      <span className="inline-flex items-start gap-1.5"><span className="mt-0.5 h-3 w-3 shrink-0 rounded-full border-[2.5px]" style={{ borderColor: HIT }} />✓ {m.rule}{pins ? "" : " (단지 단위로 확대하면 핀에 표시)"}</span>
+      <Switch size="sm" isSelected={onlyHit} onValueChange={setOnlyHit}>해당 단지만 보기</Switch>
+    </>
+  );
+}
 export function MetricNote({ m }) {
   const t = {
     future: `${futureState.years}년 뒤 가격 = 지금 거래가 × 그 지역 최근 1년 상승률(같은 단지·평형)로 키운 값. 예산은 내 조건의 '${futureState.label || "나중에"}' 기준 ${won(futureState.budget)}.`,
@@ -431,7 +506,7 @@ export function MetricNote({ m }) {
     acad: "10대 인구 1,000명당 입시·보습·어학 학원·교습소 수 (나이스 학원교습소정보). 법정동은 인구가 없어 표시되지 않습니다.",
     cost: "단지별 세대당 월평균 관리비(K-apt, 최근 12개월)의 중위값. 연한 색일수록 관리비가 적습니다. 법정동은 표시되지 않습니다.",
     hosp: "단지 반경 1km 안 병·의원 수의 중위값 (카카오 장소 검색).",
-    room: "준공 25년 넘은 단지 중 용도지역 상한 용적률까지 50%p 이상 남은 단지 비율 (건축물대장 지금 용적률 기준). 높을수록 재건축으로 더 지을 여지가 큰 구축이 많습니다.",
+    room: `준공 ${roomState.age}년 넘은 단지 중 용도지역 상한 용적률까지 50%p 이상 남은 단지 비율 (건축물대장 지금 용적률 기준). 높을수록 재건축으로 더 지을 여지가 큰 구축이 많습니다. 구축이 3곳 미만인 지역은 비워 둡니다.`,
     school: "단지에서 배정 초등학교(통학구역 기준)까지 직선 400m(도보 5~6분) 이내인 단지 비율. 교육부 학구도 기준.",
     zone: "아파트 세대 중 제3종일반주거·준주거·상업지역 단지에 사는 비중. 높을수록 용적률 상한이 높아 재건축 때 더 지을 여지가 큽니다. 브이월드 토지이용계획, 단지 대표 필지 기준.",
   }[m.id];
@@ -688,7 +763,7 @@ export function RegionStats({ s, asOf, lv }) {
 }
 
 /* --- region analysis: price & change, 평형 mix, trend, jeonse, my loan, redevelopment, busiest complexes --- */
-export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, scen, P, fitOf, fitColor, onClose, onApt }) {
+export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, scen, P, fitOf, fitColor, onClose, onApt, m, judge }) {
   const d = r[period] || {};
   const gu = lv === "gu" ? rkey : lv === "sgg" ? r.name : r.gu;
   const title = TOP(lv) ? r.name : `${r.gu} ${r.name}`;
@@ -726,6 +801,7 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
         {d.high_share != null && <div className="text-tiny num">신고가 비율 <b style={{ color: UP }}>{fmt.share(d.high_share)}</b> · 시세보다 10% 넘게 싼 거래 <b style={{ color: DOWN }}>{d.dip_n}건</b> ({fmt.share(d.dip_share)})</div>}
         <p className="text-tiny text-default-400">평당가는 전용 3.3㎡ 기준 중위값. 변화율은 직전 같은 기간 대비, 거래 5건 이상일 때만.</p>
       </div>
+      <HitList m={m} judge={judge} apts={apts.filter(inRegion)} onApt={onApt} />
       <FutureCard r={r} period={period} data={data} />
 
       {(r.sch || r.edu) && (

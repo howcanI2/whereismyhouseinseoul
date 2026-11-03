@@ -116,10 +116,15 @@ def main():
             keys = [("sgg", sgg), ("hdong", (geo.get(b["kaptCode"]) or {}).get("hcode"))]
             if b.get("sido", "11") == "11": keys += [("gu", b.get("gu")), ("bdong", f"{b.get('gu')} {b.get('dong')}")]
             for lv, k in keys:
-                if k: reg[(lv, k)].append(cap - v["far"])
+                if k: reg[(lv, k)].append((cap - v["far"], age))
     region = {lv: {} for lv in ("gu", "bdong", "hdong", "sgg")}
     for (lv, k), ms in reg.items():
-        if len(ms) >= 3: region[lv][k] = {"old": len(ms), "room50": round(sum(m >= 50 for m in ms) / len(ms) * 100, 1), "room": round(sorted(ms)[len(ms) // 2], 1)}
+        if len(ms) < 3: continue
+        rs = [m for m, _ in ms]
+        region[lv][k] = {"old": len(ms), "room50": round(sum(m >= 50 for m in rs) / len(rs) * 100, 1), "room": round(sorted(rs)[len(rs) // 2], 1)}
+        for yrs in (30, 35):  # the same share among 30년+ / 35년+ complexes (the map's 연한 picker)
+            sub = [m for m, a in ms if a >= yrs]
+            if len(sub) >= 3: region[lv][k][f"room50_{yrs}"] = round(sum(m >= 50 for m in sub) / len(sub) * 100, 1)
     json.dump({"as_of": dt.date.today().isoformat(), "fields": ["용적률", "건폐율", "연면적㎡", "대지면적㎡", "주차대수", "승강기", "최고층", "용적률 추정(구대장)"], "items": out, "region": region},
               open(os.path.join(OUT, "bldg.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     left = sum(1 for b in basic if pnus.get(b["kaptCode"]) and b["kaptCode"] not in cache)
