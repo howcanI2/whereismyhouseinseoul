@@ -550,8 +550,11 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         : "최근 2년 동안 이 단지의 아파트 매매 신고가 없습니다."}{det?.rent_only ? " 대신 최근 전세 계약을 아래에 보여줍니다." : " 아래는 K-apt 단지 기본정보입니다."}</p>}
       {apt.stale && <p className="rounded-medium bg-default-100 px-3 py-2 text-tiny text-default-600">최근 6개월 매매가 없어 <b>마지막 거래({apt.last_trade}, {apt.median_area_sqm}㎡)</b> 가격을 보여줍니다. 지금 시세와 다를 수 있습니다.</p>}
       {!apt.no_trade && <div className="grid grid-cols-3 gap-2">
-        {[[apt.stale ? "마지막 거래가" : "중위가", won(price)], ["가격 범위", `${won(apt.min_price_10k)}~${won(apt.max_price_10k)}`], [apt.stale ? "그 거래 면적" : "대표 면적", `${apt.median_area_sqm}㎡`]].map(([l, v]) => (
-          <div key={l} className="rounded-medium bg-default-100 px-2.5 py-2"><div className="text-tiny text-default-500">{l}</div><div className="text-small font-semibold num">{v}</div></div>
+        {/* 전세 sits up here too: in the 평형 table it is the last column, which narrow phones push off screen */}
+        {[[apt.stale ? "마지막 거래가" : "중위가", won(price), `${apt.stale ? "그 거래" : "대표"} ${apt.median_area_sqm}㎡`],
+          ["전세 중위", main?.jeonse ? won(main.jeonse) : "—", main?.jeonse ? `${main.a}㎡ · 전세가율 ${main.jeonse_ratio}%` : "최근 전세 거래 없음"],
+          ["가격 범위", `${won(apt.min_price_10k)}~${won(apt.max_price_10k)}`, "최근 6개월"]].map(([l, v, sub]) => (
+          <div key={l} className="rounded-medium bg-default-100 px-2.5 py-2"><div className="text-tiny text-default-500">{l}</div><div className="text-small font-semibold num">{v}</div><div className="text-[10px] text-default-400 num">{sub}</div></div>
         ))}
       </div>}
       {!hi && basics && smallF && <p className="rounded-medium bg-default-50 px-3 py-2 text-tiny text-default-500">세대수·동수·시공사 같은 단지 정보가 없습니다. K-apt(공동주택관리정보)에 등록되지 않은 단지예요. 대개 의무관리 대상이 아닌 소규모 단지(약 150세대 미만)이거나, 실거래 단지명과 K-apt 이름이 달라 연결하지 못한 경우입니다.</p>}
@@ -576,13 +579,12 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         ) : !det ? <p className="text-tiny text-default-400">평형별 정보가 없습니다.</p> : (
           <div className="overflow-x-auto">
             <table className="w-full text-tiny num">
-              <thead className="text-default-500"><tr><th className="py-1 text-left font-medium">전용</th><th className="text-right font-medium">6개월 중위</th><th className="text-right font-medium">최근 거래</th><th className="text-right font-medium">2년 최고</th><th className="text-right font-medium">전세 (전세가율)</th></tr></thead>
+              <thead className="text-default-500"><tr><th className="py-1 text-left font-medium">전용</th><th className="text-right font-medium">6개월 중위</th><th className="text-right font-medium">2년 최고</th><th className="text-right font-medium">전세 (전세가율)</th></tr></thead>
               <tbody>
                 {det.areas.map((a) => (
                   <tr key={a.a} className="border-t border-default-100 align-top">
                     <td className="py-1.5 font-medium">{a.a}㎡<div className="text-[10px] font-normal text-default-400">{(a.a / 3.3058).toFixed(0)}평 · {a.n}건</div></td>
-                    <td className="text-right">{a.med ? won(a.med) : "—"}</td>
-                    <td className="text-right">{won(a.last)}<div className="text-[10px] text-default-400">{a.last_date.slice(2)} · {a.last_floor ?? "—"}층</div></td>
+                    <td className="text-right">{a.med ? won(a.med) : "—"}<div className="text-[10px] text-default-400">최근 {won(a.last)} · {a.last_date.slice(2)} · {a.last_floor ?? "—"}층</div></td>
                     <td className="text-right" style={{ color: a.high ? "#E5484D" : undefined }}>{won(a.max)}{a.high && " ▲"}<div className="text-[10px] text-default-400">{a.max_date.slice(2)}</div></td>
                     <td className="text-right">{a.jeonse ? won(a.jeonse) : "—"}<div className="text-[10px] text-default-400">{a.jeonse_ratio ? `${a.jeonse_ratio}% · ${a.jeonse_n}건` : "전세 거래 없음"}</div></td>
                   </tr>
