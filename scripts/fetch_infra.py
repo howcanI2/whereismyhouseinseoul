@@ -1,12 +1,19 @@
-"""생활 인프라 around every complex (서울·경기) via Kakao Local → web/public/data/infra.json + infra_region.json.
+"""생활 인프라 around every complex (서울·경기) from public data → web/public/data/infra.json + infra_region.json.
 
-    python scripts/fetch_infra.py [--limit 70000]
+    python scripts/fetch_infra.py
 
-For each located complex: the nearest 대형마트 (MT1), 병·의원 (HP8) count within 1 km, 어린이집·유치원 (PS3) count within
-500 m, and the nearest 공원 (keyword) — one Kakao call each, cached per ~10 m point in data/raw/infra_cache.json and
-refreshed after 180 days. KAKAO_REST_KEY required.
+For each located complex: the nearest 마트 (대형마트·SSM), 병·의원 within 1 km, 어린이집 within 500 m, and the nearest 공원.
+Sources (each list is downloaded whole, kept in data/raw/infra_src.json and refreshed after 30 days; distances are worked
+out here, so no per-complex API calls):
+  병·의원  건강보험심사평가원_병원정보서비스 getHospBasisList (공공데이터포털, DATA_GO_KR_API_KEY; 공공누리 1유형 출처표시)
+  어린이집 전국어린이집표준데이터 (공공데이터포털 표준데이터 API, same key; 이용허락범위 제한 없음), 운영 중인 곳만
+  공원    전국도시공원정보표준데이터 (same; 제한 없음): 근린·체육·수변·문화·역사·묘지공원 등, 어린이공원·소공원 제외.
+          Distance is to the park's edge, estimated as its center minus the radius of a circle of the park's area.
+  마트    행정안전부_생활_대규모점포 조회서비스 (same key; 제한 없음): 영업 중인 대형마트·백화점·쇼핑센터, plus the
+          SSM brands (GS더프레시, 롯데슈퍼, 홈플러스익스프레스 …) from OpenStreetMap (Overpass; © OpenStreetMap contributors, ODbL)
+A source that fails keeps its previous download. Replaces the Kakao Local version, whose results may not be stored.
 """
-import argparse, datetime as dt, json, os, statistics as st, time, urllib.parse, urllib.request
+import datetime as dt, json, math, os, re, statistics as st, time, urllib.parse, urllib.request
 from collections import defaultdict
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,82 +22,152 @@ if os.path.exists(os.path.join(ROOT, ".env")):
     for _l in open(os.path.join(ROOT, ".env"), encoding="utf-8-sig"):
         if "=" in _l and not _l.lstrip().startswith("#"): os.environ.setdefault(*[s.strip() for s in _l.split("=", 1)])
 OUT, RAW = os.path.join(ROOT, "web", "public", "data"), os.path.join(ROOT, "data", "raw")
-CACHE = os.path.join(RAW, "infra_cache.json")
-# (key, kind, query, radius m): nearest one within radius, plus how many
-ASKS = [("mart", "category", "MT1", 3000), ("hosp", "category", "HP8", 1000), ("kids", "category", "PS3", 500), ("park", "keyword", "공원", 2000)]
+SRC = os.path.join(RAW, "infra_src.json")
+BBOX = (36.85, 126.35, 38.32, 127.90)  # 서울 + 경기 (S, W, N, E)
+MART = re.compile(r"이마트|홈플러스|롯데마트|롯데슈퍼|GS\s?더\s?프레시|GS\s?수퍼|코스트코|트레이더스|하나로마트|노브랜드|킴스클럽|메가마트|탑마트|농협마트|홈마트|빅마켓")
 
-def is_park(d):
-    """a real park: Kakao's 공원 category and a name ending in 공원, so not a 어린이공원 playground or a facility inside a park (음수대, 화장실, 관리사무소)"""
-    n = d["place_name"].replace(" ", "")
-    return "> 공원" in (d.get("category_name") or "") and n.endswith("공원") and "어린이" not in n
-
-def kakao(kind, q, lon, lat, radius, key):
-    params = {"x": lon, "y": lat, "radius": radius, "sort": "distance", "size": 15 if q == "공원" else 1}
-    params["category_group_code" if kind == "category" else "query"] = q
-    req = urllib.request.Request(f"https://dapi.kakao.com/v2/local/search/{kind}.json?" + urllib.parse.urlencode(params), headers={"Authorization": "KakaoAK " + key})
-    for t in range(3):
+def get(url, data=None, tries=4, timeout=60):
+    for t in range(tries):
         try:
-            with urllib.request.urlopen(req, timeout=15) as r: j = json.load(r)
-            docs = j.get("documents") or []
-            if q == "공원": docs = [x for x in docs if is_park(x)]
-            d = (docs or [None])[0]
-            return [int(d["distance"]) if d and d.get("distance") else None, d["place_name"] if d else None, (j.get("meta") or {}).get("total_count", 0)]
+            req = urllib.request.Request(url, data=data, headers={"User-Agent": "whereismyhouseinseoul/1.0"})
+            with urllib.request.urlopen(req, timeout=timeout) as r: return r.read().decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
-            if e.code in (401, 403, 429): raise RuntimeError(f"Kakao {e.code}: quota or key")
-            time.sleep(1 + t)
+            if e.code in (401, 403): raise RuntimeError(f"HTTP {e.code} (활용신청 or key)")
+            time.sleep(3 * (t + 1))
         except Exception:
-            time.sleep(1 + t)
+            time.sleep(3 * (t + 1))
+    raise RuntimeError(f"no answer from {url.split('?')[0]}")
+
+num = lambda v: float(v) if v not in (None, "") and re.fullmatch(r"-?\d+(\.\d+)?", str(v).strip()) else None
+inside = lambda lon, lat: lon is not None and lat is not None and BBOX[0] <= lat <= BBOX[2] and BBOX[1] <= lon <= BBOX[3]
+
+def hira(key):
+    """병·의원 (서울 110000, 경기 310000): [lon, lat, name]"""
+    out = []
+    for sido in ("110000", "310000"):
+        page = 1
+        while True:
+            j = json.loads(get("https://apis.data.go.kr/B551182/hospInfoServicev2/getHospBasisList?" + urllib.parse.urlencode(
+                {"serviceKey": key, "sidoCd": sido, "numOfRows": 1000, "pageNo": page, "_type": "json"})))
+            body = j["response"]["body"]; it = (body.get("items") or {}).get("item") or []
+            it = it if isinstance(it, list) else [it]
+            out += [[num(x.get("XPos")), num(x.get("YPos")), x.get("yadmNm")] for x in it]
+            if page * 1000 >= int(body.get("totalCount") or 0) or not it: break
+            page += 1; time.sleep(0.1)
+    return [r for r in out if inside(r[0], r[1])]
+
+def standard(api, key, keep):
+    """a 공공데이터포털 표준데이터 API, all pages; keep(row) -> [lon, lat, name, extra] or None"""
+    out, page = [], 1
+    while True:
+        j = json.loads(get(f"http://api.data.go.kr/openapi/{api}?" + urllib.parse.urlencode({"serviceKey": key, "pageNo": page, "numOfRows": 1000, "type": "json"})))
+        body = (j.get("response") or {}).get("body") or {}; it = body.get("items") or []
+        it = it.get("item", []) if isinstance(it, dict) else it
+        out += [r for r in (keep(x) for x in it) if r and inside(r[0], r[1])]
+        if page * 1000 >= int(body.get("totalCount") or 0) or not it: break
+        page += 1; time.sleep(0.1)
+    return out
+
+def pick(x, *names):
+    for n in names:
+        if x.get(n) not in (None, ""): return x[n]
     return None
 
+def kids_row(x):
+    if "폐지" in (pick(x, "crStatusNm", "crstatusname", "operSttus", "운영현황") or "") or "휴지" in (pick(x, "crStatusNm", "crstatusname", "operSttus", "운영현황") or ""): return None
+    return [num(pick(x, "longitude", "lo", "lot", "경도")), num(pick(x, "latitude", "la", "lat", "위도")), pick(x, "crNm", "crname", "fcltyNm", "어린이집명")]
+
+def park_row(x):
+    kind = pick(x, "parkSe", "공원구분") or ""
+    if "어린이" in kind or kind == "소공원": return None
+    area = num(pick(x, "parkAr", "공원면적")) or 0
+    return [num(pick(x, "longitude", "경도")), num(pick(x, "latitude", "위도")), pick(x, "parkNm", "공원명"), round(math.sqrt(area / math.pi))]
+
+def large_stores(key):
+    """대규모점포 (LOCALDATA via 공공데이터포털): 영업 중인 대형마트·백화점·쇼핑센터·복합쇼핑몰, 좌표 EPSG:5174 → WGS84"""
+    from pyproj import Transformer
+    tf = Transformer.from_crs("EPSG:5174", "EPSG:4326", always_xy=True)
+    out, page = [], 1
+    while True:
+        j = json.loads(get("https://apis.data.go.kr/1741000/large_scale_retail_stores/info?" + urllib.parse.urlencode({"serviceKey": key, "pageNo": page, "numOfRows": 1000, "type": "json"})))
+        body = (j.get("response") or {}).get("body") or j.get("body") or {}
+        it = body.get("items") or []; it = it.get("item", []) if isinstance(it, dict) else it
+        for x in it:
+            state, kind = pick(x, "SALS_STTS_NM", "salsSttsNm", "DTL_SALS_STTS_NM", "영업상태명") or "", pick(x, "UPTAE_NM", "uptaeNm", "업태구분명") or ""
+            if "폐업" in state or "휴업" in state or not re.search(r"대형마트|백화점|쇼핑센터|복합쇼핑몰", kind): continue
+            xx, yy = num(pick(x, "CRD_INFO_X", "crdInfoX", "X", "좌표정보(X)")), num(pick(x, "CRD_INFO_Y", "crdInfoY", "Y", "좌표정보(Y)"))
+            if xx and yy: lon, lat = tf.transform(xx, yy); out.append([round(lon, 6), round(lat, 6), pick(x, "BPLC_NM", "bplcNm", "사업장명")])
+        if page * 1000 >= int(body.get("totalCount") or 0) or not it: break
+        page += 1; time.sleep(0.1)
+    return [r for r in out if inside(r[0], r[1])]
+
+def osm_marts():
+    s, w, n, e = BBOX
+    q = f'[out:json][timeout:180];(nwr["shop"~"supermarket|department_store|wholesale"]({s},{w},{n},{e}););out center tags;'
+    j = json.loads(get("https://overpass-api.de/api/interpreter", data=urllib.parse.urlencode({"data": q}).encode(), timeout=240))
+    out = []
+    for el in j.get("elements", []):
+        t = el.get("tags") or {}; name = t.get("name:ko") or t.get("name") or ""
+        if not MART.search(name + " " + (t.get("brand") or "")): continue
+        c = el.get("center") or el
+        out.append([c.get("lon"), c.get("lat"), name])
+    return out
+
+def load_sources():
+    src = json.load(open(SRC, encoding="utf-8")) if os.path.exists(SRC) else {}
+    key, stale = os.environ.get("DATA_GO_KR_API_KEY"), (dt.date.today() - dt.timedelta(days=30)).isoformat()
+    jobs = {"hosp": lambda: hira(key), "kids": lambda: standard("tn_pubr_public_child_house_api", key, kids_row),
+            "park": lambda: standard("tn_pubr_public_cty_park_info_api", key, park_row), "store": lambda: large_stores(key), "osm": osm_marts}
+    for name, job in jobs.items():
+        if src.get(name, {}).get("at", "") >= stale: continue
+        if name != "osm" and not key: print(f"infra: DATA_GO_KR_API_KEY not set; {name} kept"); continue
+        try:
+            rows = job()
+            if len(rows) < (50 if name in ("osm", "store") else 500): raise RuntimeError(f"only {len(rows)} rows")
+            src[name] = {"at": dt.date.today().isoformat(), "rows": rows}; print(f"infra: {name} {len(rows):,} places")
+        except (RuntimeError, KeyError, ValueError) as e:
+            print(f"infra: {name} not refreshed ({e}); {len(src.get(name, {}).get('rows', [])):,} kept")
+    os.makedirs(RAW, exist_ok=True); json.dump(src, open(SRC, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    rows = {k: v.get("rows", []) for k, v in src.items()}
+    rows["mart"] = rows.get("store", []) + rows.get("osm", []) if rows.get("store") else []  # SSMs alone would miss the big stores
+    return rows
+
+class Grid:
+    """places bucketed by ~1 km cells, for nearest / within-radius lookups"""
+    def __init__(self, rows, cell=0.01):
+        self.cell, self.b = cell, defaultdict(list)
+        for r in rows: self.b[(int(r[0] / cell), int(r[1] / cell))].append(r)
+    def around(self, lon, lat, m):
+        k = math.ceil(m / 800) + 1; cx, cy = int(lon / self.cell), int(lat / self.cell); kx = math.cos(math.radians(lat))
+        for dx in range(-k, k + 1):
+            for dy in range(-k, k + 1):
+                for r in self.b.get((cx + dx, cy + dy), ()):
+                    d = 6371000 * math.hypot(math.radians(r[0] - lon) * kx, math.radians(r[1] - lat))
+                    if d <= m: yield d, r
+
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("--limit", type=int, default=70000)
-    ap.add_argument("--only", help="re-query just this field for every cached point (e.g. park)"); args = ap.parse_args()
-    key = os.environ.get("KAKAO_REST_KEY")
-    cache = json.load(open(CACHE, encoding="utf-8")) if os.path.exists(CACHE) else {}
+    src = load_sources()
     apts = {}
     for f in ("metro_apts.json", "apts.json"):  # metro rows carry sido and sgg too
         p = os.path.join(OUT, f)
         if os.path.exists(p):
             for a in json.load(open(p, encoding="utf-8")):
                 if a.get("lon") is not None: apts.setdefault(a["id"], a)
-    stale = (dt.date.today() - dt.timedelta(days=180)).isoformat()
-    pt = lambda a: f"{a['lon']:.4f},{a['lat']:.4f}"
-    todo = [a for a in apts.values() if cache.get(pt(a), {}).get("at", "") < stale]
-    todo.sort(key=lambda a: (a.get("sido", "11") != "11", -(a.get("trades_6m") or 0)))  # Seoul and busy complexes first
-    calls = 0
-    if args.only and key:  # refresh one field everywhere, e.g. after changing how parks are picked
-        ask = next(x for x in ASKS if x[0] == args.only); done = set()
-        for a in sorted(apts.values(), key=lambda a: a.get("sido", "11") != "11"):
-            k = pt(a)
-            if k in done or k not in cache or calls >= args.limit: continue
-            cache[k][ask[0]] = kakao(ask[1], ask[2], a["lon"], a["lat"], ask[3], key); calls += 1; done.add(k); time.sleep(0.03)
-            if calls % 2000 == 0: json.dump(cache, open(CACHE, "w", encoding="utf-8"), ensure_ascii=False); print(f"infra: {args.only} {calls}", flush=True)
-        todo = []
-    if not key: print(f"infra: KAKAO_REST_KEY not set; {len(todo)} points left")
-    try:
-        for a in todo if key else []:
-            if calls + len(ASKS) > args.limit: break
-            k = pt(a)
-            if cache.get(k, {}).get("at", "") >= stale: continue  # another complex at the same point
-            row = {"at": dt.date.today().isoformat()}
-            for name, kind, q, radius in ASKS:
-                row[name] = kakao(kind, q, a["lon"], a["lat"], radius, key); calls += 1; time.sleep(0.03)
-            cache[k] = row
-            if calls % 4000 < len(ASKS): json.dump(cache, open(CACHE, "w", encoding="utf-8"), ensure_ascii=False); print(f"infra: {calls} calls", flush=True)
-    except RuntimeError as e:
-        print("infra: stopped:", e)
-    json.dump(cache, open(CACHE, "w", encoding="utf-8"), ensure_ascii=False)
-
-    # per complex: [마트 m, 마트 이름, 병의원 1km 수, 어린이집·유치원 500m 수, 공원 m, 공원 이름]
+    if not all(src.get(k) for k in ("hosp", "kids", "park", "mart")):
+        missing = [k for k in ("hosp", "kids", "park", "mart") if not src.get(k)]
+        print(f"infra: no data yet for {', '.join(missing)}; infra.json left as it is"); return
+    G = {k: Grid(src[k]) for k in ("hosp", "kids", "park", "mart")}
+    near = lambda g, a, m, edge=False: min(((max(0, d - (r[3] if edge else 0)), r) for d, r in G[g].around(a["lon"], a["lat"], m)), default=(None, None), key=lambda x: x[0])
+    # per complex: [마트 m, 마트 이름, 병의원 1km 수, 어린이집 500m 수, 공원 m, 공원 이름]
     out = {}
     for aid, a in apts.items():
-        c = cache.get(pt(a))
-        if not c: continue
-        g = lambda n, i: (c.get(n) or [None, None, None])[i]
-        out[aid] = [g("mart", 0), g("mart", 1), g("hosp", 2), g("kids", 2), g("park", 0), g("park", 1)]
-    json.dump({"as_of": dt.date.today().isoformat(), "fields": ["마트 거리", "마트", "병·의원 1km", "어린이집·유치원 500m", "공원 거리", "공원"], "apts": out},
+        md, mr = near("mart", a, 3000); pd, pr = near("park", a, 3000, edge=True)
+        out[aid] = [round(md) if md is not None else None, mr[2] if mr else None, sum(1 for _ in G["hosp"].around(a["lon"], a["lat"], 1000)),
+                    sum(1 for _ in G["kids"].around(a["lon"], a["lat"], 500)), round(pd) if pd is not None else None, pr[2] if pr else None]
+    json.dump({"as_of": dt.date.today().isoformat(), "fields": ["마트 거리", "마트", "병·의원 1km", "어린이집 500m", "공원 거리", "공원"],
+               "source": "건강보험심사평가원 병원정보서비스, 전국어린이집·도시공원정보 표준데이터 (공공데이터포털), 마트 © OpenStreetMap contributors (ODbL)", "apts": out},
               open(os.path.join(OUT, "infra.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    # per region: share of complexes with a 대형마트 within 1 km and a 공원 within 500 m, median 병·의원 count
+    # per region: share of complexes with a 마트 within 1 km and a 공원 within 500 m, median 병·의원 and 어린이집 counts
     acc = {lv: defaultdict(list) for lv in ("gu", "bdong", "hdong", "sgg")}
     for aid, r in out.items():
         a = apts[aid]
@@ -104,8 +181,7 @@ def main():
                           "park500": round(sum(1 for r in v if r[4] is not None and r[4] <= 500) / len(v) * 100, 1),
                           "hosp": st.median([r[2] or 0 for r in v]), "kids": st.median([r[3] or 0 for r in v])} for k, v in tbl.items() if len(v) >= 3}
     json.dump(region, open(os.path.join(OUT, "infra_region.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    left = sum(1 for a in apts.values() if not cache.get(pt(a)))
-    print(f"infra: {calls} Kakao calls this run, {len(out):,} of {len(apts):,} complexes covered, {left:,} left")
+    print(f"infra: {len(out):,} complexes; " + ", ".join(f"{k} {len(v):,}" for k, v in src.items()))
 
 if __name__ == "__main__":
     main()

@@ -441,7 +441,7 @@ export function BuyCosts({ plan: p, price, cash, rate, cost, sale }) {
   );
 }
 
-// 관리비 (K-apt, 세대당 최근 12개월 평균) and what is around the complex (Kakao 장소)
+// 관리비 (K-apt, 세대당 최근 12개월 평균) and what is around the complex (공공데이터 + OpenStreetMap)
 const near = (m) => (m == null ? "—" : m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km`);
 function Living({ cost, inf }) {
   return (
@@ -457,10 +457,11 @@ function Living({ cost, inf }) {
       {inf && (
         <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-tiny num">
           <span><span className="text-default-500">마트</span> {inf[1] ? `${inf[1]} ${near(inf[0])}` : "3km 안 없음"}</span>
-          <span><span className="text-default-500">공원</span> {inf[5] ? `${inf[5]} ${near(inf[4])}` : "2km 안 없음"}</span>
+          <span><span className="text-default-500">공원</span> {inf[5] ? `${inf[5]} ${near(inf[4])}` : "3km 안 없음"}</span>
           <span><span className="text-default-500">병·의원 1km</span> {inf[2] ?? "—"}곳</span>
-          <span><span className="text-default-500">어린이집·유치원 500m</span> {inf[3] ?? "—"}곳</span>
+          <span><span className="text-default-500">어린이집 500m</span> {inf[3] ?? "—"}곳</span>
         </div>
+        <p className="mt-1 text-[10px] text-default-400">병·의원: 건강보험심사평가원 · 어린이집·공원: 공공데이터포털 표준데이터 · 마트: 행정안전부 대규모점포, © OpenStreetMap contributors. 단지 위치에서 직선거리.</p>
       )}
     </div>
   );

@@ -519,7 +519,7 @@ export function MetricNote({ m }) {
     edu: "학원 밀도·초등학교 가까운 단지 비율·배정 초등학교 순전입률을 각각 같은 단위 지역 안 백분위로 바꿔 평균 낸 상대 점수(0~100). 학업성취도는 공개되지 않아 들어 있지 않습니다.",
     acad: "10대 인구 1,000명당 입시·보습·어학 학원·교습소 수 (나이스 학원교습소정보). 법정동은 인구가 없어 표시되지 않습니다.",
     cost: "단지별 세대당 월평균 관리비(K-apt, 최근 12개월)의 중위값. 연한 색일수록 관리비가 적습니다. 법정동은 표시되지 않습니다.",
-    hosp: "단지 반경 1km 안 병·의원 수의 중위값 (카카오 장소 검색).",
+    hosp: "단지 반경 1km 안 병·의원 수의 중위값 (건강보험심사평가원 병원정보).",
     room: `준공 ${roomState.age}년 넘은 단지 중 용도지역 상한 용적률까지 50%p 이상 남은 단지 비율 (건축물대장 지금 용적률 기준). 높을수록 재건축으로 더 지을 여지가 큰 구축이 많습니다. 구축이 3곳 미만인 지역은 비워 둡니다.`,
     school: "단지에서 배정 초등학교(통학구역 기준)까지 직선 400m(도보 5~6분) 이내인 단지 비율. 교육부 학구도 기준.",
     zone: "아파트 세대 중 제3종일반주거·준주거·상업지역 단지에 사는 비중. 높을수록 용적률 상한이 높아 재건축 때 더 지을 여지가 큽니다. 브이월드 토지이용계획, 단지 대표 필지 기준.",
@@ -838,11 +838,11 @@ export function RegionPanel({ lv, rkey, r, period, data, apts, zones, budget, sc
           <div className="grid grid-cols-2 gap-2 text-tiny num">
             {[["관리비 (세대당 월, 중위)", r.cost ? `${r.cost.med}만원` : "—", r.cost ? `${r.cost.n}단지` : ""],
               ["병·의원 1km 안 (중위)", r.infra ? `${Math.round(r.infra.hosp)}곳` : "—", "단지 반경"],
-              ["어린이집·유치원 500m 안 (중위)", r.infra ? `${Math.round(r.infra.kids)}곳` : "—", "단지 반경"]].map(([l, v, s]) => (
+              ["어린이집 500m 안 (중위)", r.infra ? `${Math.round(r.infra.kids)}곳` : "—", "단지 반경"]].map(([l, v, s]) => (
               <div key={l} className="rounded-medium bg-default-100 px-2.5 py-1.5"><div className="text-default-500">{l}</div><div className="text-small font-semibold">{v}</div><div className="text-[10px] text-default-400">{s}</div></div>
             ))}
           </div>
-          <p className="mt-1 text-[10px] text-default-400">관리비: K-apt 관리비 공개 단지(최근 12개월). 생활 편의: 카카오 장소 검색, 단지 위치 기준. 마트·공원은 거의 모든 단지 가까이에 있어 단지 상세에서 가장 가까운 곳을 보여줍니다.</p>
+          <p className="mt-1 text-[10px] text-default-400">관리비: K-apt 관리비 공개 단지(최근 12개월). 생활 편의: 건강보험심사평가원 병원정보, 어린이집·도시공원 표준데이터, 행정안전부 대규모점포, © OpenStreetMap contributors (단지 위치 기준). 마트·공원은 거의 모든 단지 가까이에 있어 단지 상세에서 가장 가까운 곳을 보여줍니다.</p>
         </div>
       )}
       <ZoningCard lu={r.lu} sido={lv === "sgg" ? rkey.slice(0, 2) : r.sido || "11"} />
