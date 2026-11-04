@@ -1,6 +1,6 @@
 name: Deploy to GitHub Pages
 
-# Static export of web/ to https://howcani2.github.io/whereismyhouseinseoul/.
+# Static export of web/ to https://whereismyhouse.kr/ (the custom domain set in Settings → Pages; howcani2.github.io/whereismyhouseinseoul/ redirects there).
 # Runs on app/data pushes to main (incl. the PC refresh task) and after the morning Actions refresh,
 # whose own commit cannot trigger push workflows (GITHUB_TOKEN pushes don't).
 on:
@@ -38,7 +38,7 @@ jobs:
       - run: npm run build
         working-directory: web
         env:
-          PAGES_BASE_PATH: /${{ github.event.repository.name }}
+          PAGES_BASE_PATH: "/"  # served at the root of whereismyhouse.kr
           # Kakao JS keys are public by design (they only work on domains registered in the Kakao console)
           NEXT_PUBLIC_KAKAO_JS_KEY: ${{ secrets.NEXT_PUBLIC_KAKAO_JS_KEY }}
       - run: touch web/.next-pages/.nojekyll

@@ -59,7 +59,7 @@ export function attachRegions(ins, files) {
 // Where data files come from. The website serves its own data/ next to the page. The 앱인토스 bundle reads the
 // website's copy (refreshed every morning) so new data needs no app update, and falls back to the copy packed in the
 // bundle when the site is slow or unreachable.
-const REMOTE = typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS === "1" ? "https://howcani2.github.io/whereismyhouseinseoul/data/" : null;
+const REMOTE = typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS === "1" ? "https://whereismyhouse.kr/data/" : null;
 export function getData(name) {
   const local = () => fetch(`data/${name}.json`).then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); });
   if (!REMOTE) return local();
