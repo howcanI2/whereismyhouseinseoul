@@ -41,7 +41,14 @@ jobs:
           PAGES_BASE_PATH: "/"  # served at the root of whereismyhouse.kr
           # Kakao JS keys are public by design (they only work on domains registered in the Kakao console)
           NEXT_PUBLIC_KAKAO_JS_KEY: ${{ secrets.NEXT_PUBLIC_KAKAO_JS_KEY }}
+          # Google AdSense publisher id (ca-pub-…) and display unit id, from Settings → Variables; empty = no ads
+          NEXT_PUBLIC_ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
+          NEXT_PUBLIC_ADSENSE_SLOT: ${{ vars.ADSENSE_SLOT }}
       - run: touch web/.next-pages/.nojekyll
+      # ads.txt at the site root: AdSense checks it to confirm the site may sell this publisher's ads
+      - run: if [ -n "$CLIENT" ]; then echo "google.com, ${CLIENT#ca-}, DIRECT, f08c47fec0942fa0" > web/.next-pages/ads.txt; fi
+        env:
+          CLIENT: ${{ vars.ADSENSE_CLIENT }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/.next-pages

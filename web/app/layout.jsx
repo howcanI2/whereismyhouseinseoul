@@ -9,6 +9,7 @@ export const metadata = {
 // The 앱인토스 bundle is light-mode only and keeps the page from pinch-zooming (the map still zooms itself), per the
 // mini-app checklist; the website follows the system theme and allows zoom.
 const TOSS = process.env.NEXT_PUBLIC_TOSS === "1";
+const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "";  // read here, not from WebAd.jsx: a client module's exports are references on the server
 export const viewport = TOSS
   ? { width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false, viewportFit: "cover" }
   : { width: "device-width", initialScale: 1, viewportFit: "cover" };
@@ -26,6 +27,9 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {/* Google AdSense (website only): the site check and the ad units both need this script */}
+        {!TOSS && ADSENSE_CLIENT && <meta name="google-adsense-account" content={ADSENSE_CLIENT} />}
+        {!TOSS && ADSENSE_CLIENT && <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`} crossOrigin="anonymous" />}
       </head>
       <body>
         <Providers>{children}</Providers>

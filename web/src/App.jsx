@@ -146,6 +146,7 @@ export default function App() {
 
       <footer className="flex flex-col gap-1.5 text-tiny leading-relaxed text-default-400">
         <p>예산은 내 조건(이 브라우저에만 저장)과 최신 주담대 금리, 스트레스 금리 3%p, 30년 상환으로 계산한 추정이며 투자 조언이 아닙니다. 통근 시간은 직선거리로 낸 대략값입니다.</p>
+        {process.env.NEXT_PUBLIC_TOSS !== "1" && <p><a href="privacy/" className="underline">개인정보처리방침</a> · 광고는 Google AdSense가 쿠키를 사용해 게재합니다.</p>}
         <details>
           <summary className="cursor-pointer text-default-500">데이터 출처</summary>
           <ul className="mt-1 list-disc pl-4">

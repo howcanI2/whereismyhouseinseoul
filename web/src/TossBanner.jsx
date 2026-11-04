@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { interstitialState } from "./TossInterstitial.js";
+import WebAd from "./WebAd.jsx";
 
-// 앱인토스 배너 광고 (WebView). Only the Toss build (NEXT_PUBLIC_TOSS=1) loads the SDK; on the website this renders nothing.
+// 앱인토스 배너 광고 (WebView). Only the Toss build (NEXT_PUBLIC_TOSS=1) loads the SDK; on the website the same spot shows a
+// Google AdSense unit (WebAd), so every screen keeps one ad place for both.
 // One banner per screen, away from buttons, never before the content (토스 애즈 SSP 정책).
 // NEXT_PUBLIC_TOSS_AD_DEBUG=1 (npm run build:toss -- --debug) prints the ad state in place of a missing banner, for QR testing.
 const IS_TOSS = typeof process !== "undefined" && process.env.NEXT_PUBLIC_TOSS === "1";
@@ -29,7 +31,11 @@ function initAds() {
   return sdkReady;
 }
 
-export default function TossBanner() {
+export default function AdBanner() {
+  return IS_TOSS ? <TossBanner /> : <WebAd />;
+}
+
+function TossBanner() {
   const ref = useRef(null);
   const [state, setState] = useState(IS_TOSS && AD_GROUP_ID ? "loading" : "off");  // loading | shown | <reason it is not shown>
   const [inter, setInter] = useState(interstitialState.text);
