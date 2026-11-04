@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const FILES = ["strategy", "gu_summary", "monthly", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region", "apt_cost", "bldg"];
+export const FILES = ["strategy", "gu_summary", "monthly", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "landuse_region", "school_region", "edu_region", "apt_cost", "bldg"];
 
 /* ---------- 직장: each viewer picks their own (saved with 내 조건) ---------- */
 export const WORKPLACES = [["광화문", 126.9769, 37.5759], ["시청·을지로", 126.9849, 37.5663], ["강남역", 127.0276, 37.4979], ["삼성·코엑스", 127.0592, 37.5121],

@@ -1,9 +1,11 @@
-"""Subway line shapes from OpenStreetMap (Overpass), one stroke per line.
+"""Subway line shapes and stations from OpenStreetMap (Overpass; © OpenStreetMap contributors, ODbL), one stroke per line.
 
 OSM maps each direction's track as its own way, so a line comes back as two parallel strokes a few
 metres apart. Segments that mostly retrace an already kept segment of the same line are dropped.
 
-    python scripts/subway_lines.py   # writes web/public/data/subway_lines.json
+    python scripts/subway_lines.py   # writes web/public/data/subway_lines.json and subway.json
+
+Stations are the 'stop' members of the same route relations, one row per station and line, named "<역명>역".
 """
 import json, os, re, urllib.parse, urllib.request
 from collections import Counter, defaultdict
@@ -58,6 +60,26 @@ def main():
         if cells and sum(near(c, taken[ln]) for c in cells) / len(cells) > 0.6: continue  # the other direction's track
         taken[ln].update(cells)
         out.append({"line": ln, "coords": [[round(x, 5), round(y, 5)] for x, y in simplify(pts)]})
+    # stations: the stop nodes of those routes, named from their own tags
+    stops = {}
+    for e in rel:
+        ln = line_of(e.get("tags", {}))
+        for m in e.get("members", []) if ln else []:
+            if m.get("type") == "node" and (m.get("role") or "").startswith("stop") and "lat" in m: stops.setdefault(m["ref"], set()).add(ln)
+    q = f'[out:json][timeout:240];relation["route"~"subway|light_rail|train"]({BBOX[0]},{BBOX[1]},{BBOX[2]},{BBOX[3]});node(r:"stop");out tags center;'
+    req = urllib.request.Request("https://overpass-api.de/api/interpreter", data=urllib.parse.urlencode({"data": q}).encode(), headers={"User-Agent": "whereismyhouseinseoul/1.0"})
+    with urllib.request.urlopen(req, timeout=300) as r: nodes = {n["id"]: n for n in json.load(r)["elements"]}
+    seen, stations = set(), []
+    for nid, lines in stops.items():
+        n = nodes.get(nid); t = (n or {}).get("tags") or {}
+        nm = re.sub(r"\s*\(.*?\)|역$", "", (t.get("name:ko") or t.get("name") or "").strip())
+        if not n or not nm or not (BBOX[0] <= n["lat"] <= BBOX[2] and BBOX[1] <= n["lon"] <= BBOX[3]): continue
+        for ln in sorted(lines):
+            if (nm, ln) in seen: continue
+            seen.add((nm, ln)); stations.append({"station": nm + "역", "line": ln, "lon": round(n["lon"], 6), "lat": round(n["lat"], 6)})
+    stations.sort(key=lambda x: (x["line"], x["station"]))
+    json.dump(stations, open(os.path.join(ROOT, "web", "public", "data", "subway.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    print(len(stations), "stations |", Counter(x["line"] for x in stations).most_common(6))
     path = os.path.join(ROOT, "web", "public", "data", "subway_lines.json")
     json.dump(out, open(path, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(len(out), "segments kept of", len(ways), "|", Counter(o["line"] for o in out).most_common(8), "|", os.path.getsize(path), "bytes")
