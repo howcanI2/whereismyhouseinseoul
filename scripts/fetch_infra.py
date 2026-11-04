@@ -1,6 +1,6 @@
 """생활 인프라 around every complex (서울·경기) from public data → web/public/data/infra.json + infra_region.json.
 
-    python scripts/fetch_infra.py
+    python scripts/fetch_infra.py   # not in the daily refresh for now: the map shows no 생활 인프라 until these sources are set up
 
 For each located complex: the nearest 마트 (대형마트·SSM), 병·의원 within 1 km, 어린이집 within 500 m, and the nearest 공원.
 Sources (each list is downloaded whole, kept in data/raw/infra_src.json and refreshed after 30 days; distances are worked
@@ -153,17 +153,17 @@ def main():
         if os.path.exists(p):
             for a in json.load(open(p, encoding="utf-8")):
                 if a.get("lon") is not None: apts.setdefault(a["id"], a)
-    if not all(src.get(k) for k in ("hosp", "kids", "park", "mart")):
-        missing = [k for k in ("hosp", "kids", "park", "mart") if not src.get(k)]
+    if not all(src.get(k) for k in ("hosp", "park", "mart")):  # 어린이집 is optional: its count is left empty without a source
+        missing = [k for k in ("hosp", "park", "mart") if not src.get(k)]
         print(f"infra: no data yet for {', '.join(missing)}; infra.json left as it is"); return
-    G = {k: Grid(src[k]) for k in ("hosp", "kids", "park", "mart")}
+    G = {k: Grid(src[k]) for k in ("hosp", "kids", "park", "mart") if src.get(k)}
     near = lambda g, a, m, edge=False: min(((max(0, d - (r[3] if edge else 0)), r) for d, r in G[g].around(a["lon"], a["lat"], m)), default=(None, None), key=lambda x: x[0])
     # per complex: [마트 m, 마트 이름, 병의원 1km 수, 어린이집 500m 수, 공원 m, 공원 이름]
     out = {}
     for aid, a in apts.items():
         md, mr = near("mart", a, 3000); pd, pr = near("park", a, 3000, edge=True)
         out[aid] = [round(md) if md is not None else None, mr[2] if mr else None, sum(1 for _ in G["hosp"].around(a["lon"], a["lat"], 1000)),
-                    sum(1 for _ in G["kids"].around(a["lon"], a["lat"], 500)), round(pd) if pd is not None else None, pr[2] if pr else None]
+                    sum(1 for _ in G["kids"].around(a["lon"], a["lat"], 500)) if "kids" in G else None, round(pd) if pd is not None else None, pr[2] if pr else None]
     json.dump({"as_of": dt.date.today().isoformat(), "fields": ["마트 거리", "마트", "병·의원 1km", "어린이집 500m", "공원 거리", "공원"],
                "source": "건강보험심사평가원 병원정보서비스, 전국어린이집·도시공원정보 표준데이터 (공공데이터포털), 마트 © OpenStreetMap contributors (ODbL)", "apts": out},
               open(os.path.join(OUT, "infra.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
@@ -179,7 +179,7 @@ def main():
     for lv, tbl in acc.items():
         region[lv] = {k: {"n": len(v), "mart1k": round(sum(1 for r in v if r[0] is not None and r[0] <= 1000) / len(v) * 100, 1),
                           "park500": round(sum(1 for r in v if r[4] is not None and r[4] <= 500) / len(v) * 100, 1),
-                          "hosp": st.median([r[2] or 0 for r in v]), "kids": st.median([r[3] or 0 for r in v])} for k, v in tbl.items() if len(v) >= 3}
+                          "hosp": st.median([r[2] or 0 for r in v]), "kids": st.median([r[3] or 0 for r in v]) if "kids" in G else None} for k, v in tbl.items() if len(v) >= 3}
     json.dump(region, open(os.path.join(OUT, "infra_region.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(f"infra: {len(out):,} complexes; " + ", ".join(f"{k} {len(v):,}" for k, v in src.items()))
 

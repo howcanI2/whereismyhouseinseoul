@@ -441,27 +441,17 @@ export function BuyCosts({ plan: p, price, cash, rate, cost, sale }) {
   );
 }
 
-// 관리비 (K-apt, 세대당 최근 12개월 평균) and what is around the complex (공공데이터 + OpenStreetMap)
-const near = (m) => (m == null ? "—" : m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km`);
-function Living({ cost, inf }) {
+// 관리비 (K-apt, 세대당 최근 12개월 평균)
+function Living({ cost }) {
   return (
     <div className="rounded-medium bg-default-50 px-3 py-2">
-      <div className="text-small font-semibold">관리비·생활</div>
+      <div className="text-small font-semibold">관리비</div>
       {cost && (
         <div className="mt-1 text-tiny num">
           <span className="text-default-500">관리비 (세대당 월평균)</span> <b className="text-small">{cost[0]}만원</b>
           <span className="text-default-500"> · 공용 {cost[1]}만 · 가장 많은 달 {cost[2]}만</span>
           <div className="text-[10px] text-default-400">K-apt 최근 {cost[3]}개월(~{String(cost[4]).slice(0, 4)}.{String(cost[4]).slice(4)}) 단지 부과액 ÷ 세대수. 큰 평형일수록 더 나옵니다.</div>
         </div>
-      )}
-      {inf && (
-        <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-tiny num">
-          <span><span className="text-default-500">마트</span> {inf[1] ? `${inf[1]} ${near(inf[0])}` : "3km 안 없음"}</span>
-          <span><span className="text-default-500">공원</span> {inf[5] ? `${inf[5]} ${near(inf[4])}` : "3km 안 없음"}</span>
-          <span><span className="text-default-500">병·의원 1km</span> {inf[2] ?? "—"}곳</span>
-          <span><span className="text-default-500">어린이집 500m</span> {inf[3] ?? "—"}곳</span>
-        </div>
-        <p className="mt-1 text-[10px] text-default-400">병·의원: 건강보험심사평가원 · 어린이집·공원: 공공데이터포털 표준데이터 · 마트: 행정안전부 대규모점포, © OpenStreetMap contributors. 단지 위치에서 직선거리.</p>
       )}
     </div>
   );
@@ -555,7 +545,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   // complexes K-apt does not list: 세대수 etc. from the 건축물대장 of the parcel under the map point
   const smallF = useLazyFile("apt_small", !!basics && !info), small = !info ? smallF?.items?.[apt.id] : null, hi = info || small;
   const landuse = useLazyFile("landuse"), land = info?.kaptCode ? landuse?.items?.[info.kaptCode] : null;
-  const school = useLazyFile("school"), sstats = useLazyFile("school_stats"), infra = useLazyFile("infra");
+  const school = useLazyFile("school"), sstats = useLazyFile("school_stats");
   const cost = info?.kaptCode ? data.apt_cost?.items?.[info.kaptCode] : null;
   const bldg = info?.kaptCode ? data.bldg?.items?.[info.kaptCode] : null;  // 건축물대장 [용적률, 건폐율, 연면적, 대지, 주차, 승강기, 최고층]  // [월평균, 공용, 최고 달, 개월, 마지막 달] 만원/세대
   const [watch, toggleWatch] = useWatch(), saved = watch[apt.id];
@@ -603,7 +593,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
           {small && <div className="col-span-3 text-[10px] text-default-400">K-apt에 없는 단지라 건축물대장 기준입니다{small.name ? ` (대장 건물명: ${small.name})` : ""}. 여러 필지에 걸친 단지는 세대수가 적게 나올 수 있어요.</div>}
         </div>
       )}
-      {(cost || infra?.apts?.[apt.id]) && <Living cost={cost} inf={infra?.apts?.[apt.id]} />}
+      {cost && <Living cost={cost} />}
       {school?.apts?.[apt.id] && <Schools sc={school} row={school.apts[apt.id]} apt={apt} stats={sstats?.schools} />}
       {land && <LandUse land={land} apt={apt} bldg={bldg} hh={info?.households} />}
       <div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const FILES = ["strategy", "gu_summary", "monthly", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region", "infra_region", "apt_cost", "bldg"];
+export const FILES = ["strategy", "gu_summary", "monthly", "seoul_geo", "dong_geo", "dong_summary", "apts", "rates", "loan_market", "policy", "subway", "subway_lines", "redev", "insights", "hdong_geo", "market", "region_stats", "commute", "landuse_region", "school_region", "edu_region", "apt_cost", "bldg"];
 
 /* ---------- 직장: each viewer picks their own (saved with 내 조건) ---------- */
 export const WORKPLACES = [["광화문", 126.9769, 37.5759], ["시청·을지로", 126.9849, 37.5663], ["강남역", 127.0276, 37.4979], ["삼성·코엑스", 127.0592, 37.5121],
@@ -41,8 +41,8 @@ export function attachCommute(ins, apts, commute, work = workState) {
 
 // Zoning mix of each region's apartment complexes (households-weighted), from landuse_region.json
 // Per-region extras from their own files, put on each region record under a short name:
-// lu = 용도지역 mix, sch = 초등학교 거리, edu = 학원·학군, cost = 관리비, infra = 생활 인프라
-export const regionFilesOf = (d) => ({ lu: d.landuse_region, sch: d.school_region, edu: d.edu_region, cost: d.apt_cost?.region, infra: d.infra_region, bldg: d.bldg?.region });
+// lu = 용도지역 mix, sch = 초등학교 거리, edu = 학원·학군, cost = 관리비
+export const regionFilesOf = (d) => ({ lu: d.landuse_region, sch: d.school_region, edu: d.edu_region, cost: d.apt_cost?.region, bldg: d.bldg?.region });
 export function attachRegions(ins, files) {
   if (!ins) return ins;
   const seen = ins.__files || {};

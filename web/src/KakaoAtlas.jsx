@@ -38,7 +38,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const S = SCOPES[scope], metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
   // one data object per scope; the panels read insights/apts from it
-  const data = useMemo(() => (metro ? { ...base, insights: attachRegions(attachGrowth(attachCommute(mIns, mApts, base.commute, base.work)), regionFilesOf(base)), apts: mApts, scope } : { ...base, insights: attachRegions(attachGrowth(attachCommute(base.insights, base.apts, base.commute, base.work)), regionFilesOf(base)), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region, base.edu_region, base.infra_region, base.apt_cost, base.work]);
+  const data = useMemo(() => (metro ? { ...base, insights: attachRegions(attachGrowth(attachCommute(mIns, mApts, base.commute, base.work)), regionFilesOf(base)), apts: mApts, scope } : { ...base, insights: attachRegions(attachGrowth(attachCommute(base.insights, base.apts, base.commute, base.work)), regionFilesOf(base)), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region, base.edu_region, base.apt_cost, base.work]);
   const [maxMin, setMaxMin] = useState(0);
   const [onlyHit, setOnlyHit] = useState(false);  // yes/no metrics: hide the complexes it does not count
   const [showQuiet, setShowQuiet] = useState(true);
