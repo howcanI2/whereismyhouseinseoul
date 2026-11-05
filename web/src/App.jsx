@@ -12,6 +12,7 @@ import NewBuildTab from "./NewBuild.jsx";
 import TossBanner from "./TossBanner.jsx";
 import { installExternalLinks } from "./TossLinks.js";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
+import TierRank from "./TierRank.jsx";
 import { budgetsFrom, DEFAULT_WORK, derive, fmt, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
 
 // every outside source the screens draw on, with the credit its licence asks for
@@ -128,6 +129,7 @@ export default function App() {
             {k === "money" && (
               <div className="flex flex-col gap-4">
                 <PlanTab data={data} dv={dv} part="budget" />
+                <TierRank data={data} />
                 <TossBanner />
                 <LoanTab data={data} />
               </div>
