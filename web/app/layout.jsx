@@ -9,7 +9,7 @@ const NAVER_VERIFY = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION || "";  // 
 // Naver Search Advisor / Google read these from the static HTML: title, description, canonical, robots, Open Graph
 export const metadata = {
   metadataBase: new URL(SITE),
-  title: TITLE,
+  title: `${TITLE} - 내 예산으로 살 수 있는 서울 아파트 실거래가 지도`,
   description: DESC,
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
