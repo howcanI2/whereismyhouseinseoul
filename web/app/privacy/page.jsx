@@ -1,5 +1,5 @@
 // 개인정보처리방침: what the site keeps (nothing on a server), and what the ads and the map load from Google and Kakao.
-export const metadata = { title: "개인정보처리방침 · 서울 내집마련 전략판" };
+export const metadata = { title: "개인정보처리방침 · 서울 내집마련 전략판", description: "서울 내집마련 전략판의 개인정보처리방침: 수집하는 정보, 광고 쿠키, 지도와 외부 서비스", alternates: { canonical: "/privacy/" } };
 
 const Section = ({ title, children }) => (
   <section className="flex flex-col gap-1.5">

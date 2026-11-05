@@ -1,9 +1,32 @@
 import "./globals.css";
 import Providers from "./providers";
 
+const SITE = "https://whereismyhouse.kr";
+const TITLE = "서울 내집마련 전략판";
+const DESC = "내 소득·모은 돈으로 살 수 있는 서울 아파트를 실거래가 지도에서 찾고, 대출·취득세·3년 뒤 예산까지 계산해 보는 무료 도구";
+const NAVER_VERIFY = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION || "";  // 네이버 서치어드바이저 사이트 소유확인 (HTML 태그 방식)
+
+// Naver Search Advisor / Google read these from the static HTML: title, description, canonical, robots, Open Graph
 export const metadata = {
-  title: "서울 내집마련 전략판",
-  description: "광화문 출퇴근 기준으로 예산에 맞는 서울 아파트를 지도에서 찾고 대출·로드맵을 보는 앱",
+  metadataBase: new URL(SITE),
+  title: TITLE,
+  description: DESC,
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
+  openGraph: { type: "website", siteName: TITLE, title: TITLE, description: DESC, url: "/", locale: "ko_KR",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: TITLE }] },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESC, images: ["/og.png"] },
+  ...(NAVER_VERIFY ? { verification: { other: { "naver-site-verification": NAVER_VERIFY } } } : {}),
+};
+
+// structured data: what the site is (Naver/Google site info)
+const JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: TITLE,
+  url: SITE + "/",
+  description: DESC,
+  inLanguage: "ko-KR",
 };
 
 // The 앱인토스 bundle is light-mode only and keeps the page from pinch-zooming (the map still zooms itself), per the
@@ -27,6 +50,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {!TOSS && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }} />}
         {/* Google AdSense (website only): the site check and the ad units both need this script */}
         {!TOSS && ADSENSE_CLIENT && <meta name="google-adsense-account" content={ADSENSE_CLIENT} />}
         {!TOSS && ADSENSE_CLIENT && <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`} crossOrigin="anonymous" />}

@@ -44,6 +44,7 @@ jobs:
           # Google AdSense publisher id (ca-pub-…) and display unit id, from Settings → Variables; empty = no ads
           NEXT_PUBLIC_ADSENSE_CLIENT: ${{ vars.ADSENSE_CLIENT }}
           NEXT_PUBLIC_ADSENSE_SLOT: ${{ vars.ADSENSE_SLOT }}
+          NEXT_PUBLIC_NAVER_SITE_VERIFICATION: ${{ vars.NAVER_SITE_VERIFICATION }}
       - run: touch web/.next-pages/.nojekyll
       # ads.txt at the site root: AdSense checks it to confirm the site may sell this publisher's ads
       - run: if [ -n "$CLIENT" ]; then echo "google.com, ${CLIENT#ca-}, DIRECT, f08c47fec0942fa0" > web/.next-pages/ads.txt; fi
