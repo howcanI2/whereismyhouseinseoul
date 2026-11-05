@@ -1,5 +1,6 @@
 import "./globals.css";
 import Providers from "./providers";
+import { FeedbackFab } from "../src/Feedback.jsx";
 
 const SITE = "https://whereismyhouse.kr";
 const TITLE = "서울 내집마련 전략판";
@@ -60,8 +61,9 @@ export default function RootLayout({ children }) {
         {!TOSS && ADSENSE_CLIENT && <meta name="google-adsense-account" content={ADSENSE_CLIENT} />}
         {!TOSS && ADSENSE_CLIENT && <script async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`} crossOrigin="anonymous" />}
       </head>
-      <body>
+      <body className={!TOSS && process.env.NEXT_PUBLIC_FEEDBACK_URL ? "pb-20" : undefined}>
         <Providers>{children}</Providers>
+        <FeedbackFab />
       </body>
     </html>
   );

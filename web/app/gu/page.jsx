@@ -1,6 +1,5 @@
 // /gu/: all 25 구 with their 84㎡ median and 1-year change, linking to each 구 page.
 import { GU, guData, won, pct } from "./data";
-import Feedback from "../../src/Feedback.jsx";
 
 export const metadata = {
   title: "서울 구별 아파트 실거래가·시세 · 서울 내집마련 전략판",
@@ -32,7 +31,6 @@ export default function GuIndex() {
         </table>
       </div>
       <a href="/" className="rounded-large bg-primary px-4 py-3 text-center font-semibold text-primary-foreground">내 예산으로 살 수 있는 동네 지도에서 보기 →</a>
-      <Feedback />
       <footer className="text-tiny text-default-400">자료: 국토교통부 실거래가 공개시스템(공공데이터포털). 참고용 정보이며 투자 조언이 아닙니다.</footer>
     </main>
   );

@@ -1,7 +1,6 @@
 // One static page per 서울 구: 시세 요약, 동별·단지별 거래, 최근 신고가·급매. Plain server-rendered HTML (no app JS needed),
 // so Naver/Google can index "마포구 아파트 실거래가" style searches; the app link takes visitors to the budget tools.
 import { GU, guData, nameOf, slugOf, won, pct } from "../data";
-import Feedback from "../../../src/Feedback.jsx";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -123,8 +122,6 @@ export default function GuPage({ params }) {
           {idx < GU.length - 1 && <a href={`/gu/${GU[idx + 1][1]}/`} className="text-primary">{GU[idx + 1][0]} →</a>}
         </div>
       </nav>
-
-      <Feedback />
 
       <footer className="text-tiny text-default-400">
         자료: 국토교통부 실거래가 공개시스템(공공데이터포털), 공동주택관리정보시스템(K-apt). 신고 기한(계약 후 30일) 때문에 최근 달은 거래가 덜 잡힙니다.
