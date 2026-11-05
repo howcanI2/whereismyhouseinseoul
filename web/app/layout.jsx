@@ -5,6 +5,7 @@ const SITE = "https://whereismyhouse.kr";
 const TITLE = "서울 내집마련 전략판";
 const DESC = "내 소득·모은 돈으로 살 수 있는 서울 아파트를 실거래가 지도에서 찾고, 대출·취득세·3년 뒤 예산까지 계산해 보는 무료 도구";
 const NAVER_VERIFY = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION || "";  // 네이버 서치어드바이저 사이트 소유확인 (HTML 태그 방식)
+const GOOGLE_VERIFY = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "";  // Google Search Console 소유확인 (HTML 태그 방식)
 
 // Naver Search Advisor / Google read these from the static HTML: title, description, canonical, robots, Open Graph
 export const metadata = {
@@ -17,7 +18,10 @@ export const metadata = {
     images: [{ url: "/og.png", width: 1200, height: 630, alt: TITLE }] },
   twitter: { card: "summary_large_image", title: TITLE, description: DESC, images: ["/og.png"] },
   other: { "twitter:domain": TITLE },
-  ...(NAVER_VERIFY ? { verification: { other: { "naver-site-verification": NAVER_VERIFY } } } : {}),
+  verification: {
+    ...(GOOGLE_VERIFY ? { google: GOOGLE_VERIFY } : {}),
+    ...(NAVER_VERIFY ? { other: { "naver-site-verification": NAVER_VERIFY } } : {}),
+  },
 };
 
 // structured data: what the site is (Naver/Google site info)
