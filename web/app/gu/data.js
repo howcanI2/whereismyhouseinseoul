@@ -16,6 +16,7 @@ export const nameOf = (slug) => (GU.find(([, s]) => s === slug) || [])[0];
 const DATA = path.join(process.cwd(), "public", "data");
 const cache = {};
 const read = (f) => (cache[f] ??= JSON.parse(fs.readFileSync(path.join(DATA, f), "utf-8")));
+export const readJson = read;
 
 // 만원 → "11.8억" / "9,500만"
 export const won = (v) => {

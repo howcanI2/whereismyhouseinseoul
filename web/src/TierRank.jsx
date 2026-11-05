@@ -5,19 +5,11 @@
 import { useMemo, useState } from "react";
 import { Button, ButtonGroup, Card, CardBody, CardHeader, Chip, Select, SelectItem, Skeleton, Tab, Tabs } from "@heroui/react";
 import { estCommute, kmTo, shareBelow, won } from "./lib.js";
+import { buildTiers, man, median, MIN_YEAR, tierRange } from "./tiers.js";
 
-const MIN_YEAR = 30, MIN_6M = 10, SHOW = 15;
+const MIN_6M = 10, SHOW = 15;
 const TIER_TONE = ["", "danger", "warning", "success", "primary", "default"];
 const COMMUTE = [["all", "통근 전체"], ["30", "30분 이내"], ["45", "45분 이내"], ["60", "60분 이내"]];
-
-// rank by 평당가 and cut into five equal groups: 1급지 = top fifth
-function grade(rows) {
-  const s = [...rows].sort((a, b) => b.ppp - a.ppp), n = s.length, tier = new Map();
-  s.forEach((r, i) => tier.set(r.key, Math.min(5, 1 + Math.floor((i * 5) / n))));
-  const cut = [1, 2, 3, 4, 5].map((k) => { const m = s.filter((r) => tier.get(r.key) === k); return { k, lo: m.at(-1)?.ppp, hi: m[0]?.ppp }; });
-  return { tier, cut };
-}
-const man = (v) => (v == null ? "–" : `${Math.round(v).toLocaleString("ko-KR")}만`);
 
 export default function TierRank({ data }) {
   const [view, setView] = useState("dong");
@@ -28,29 +20,7 @@ export default function TierRank({ data }) {
   const budget = data.budget?.find((b) => b.scenario === scen);
   const ins = data.insights, ds = data.dong_summary, gs = data.gu_summary;
 
-  const base = useMemo(() => {
-    if (!ins?.bdong || !ins?.gu || !ds || !gs) return null;
-    const dsum = new Map(ds.map((r) => [r.id, r]));
-    const dongs = Object.entries(ins.bdong)
-      .filter(([, r]) => (r.p12?.n || 0) >= MIN_YEAR && r.p12?.ppp)
-      .map(([key, r]) => {
-        const s = dsum.get(key) || {};
-        return { key, name: r.name, gu: r.gu, ppp: r.p12.ppp, n6: s.trades_6m ?? r.p6?.n ?? 0, m84: s.median_84_10k, m59: s.median_59_10k, q: r.p6?.q, center: r.center };
-      });
-    // 구 centre for the commute filter: the mean of its graded 동 centres
-    const cen = {};
-    dongs.forEach((d) => { if (!d.center) return; const c = (cen[d.gu] ||= [0, 0, 0]); c[0] += d.center[0]; c[1] += d.center[1]; c[2]++; });
-    const gsum = new Map(gs.map((r) => [r.gu, r]));
-    const gus = Object.entries(ins.gu).filter(([, r]) => r.p12?.ppp).map(([key, r]) => {
-      const s = gsum.get(key) || {}, c = cen[key];
-      return { key, name: key, gu: key, ppp: r.p12.ppp, n6: r.p6?.n || 0, m84: s.median_84_10k ?? r.p6?.p84, m59: s.median_59_10k, q: r.p6?.q, center: c ? [c[0] / c[2], c[1] / c[2]] : null };
-    });
-    // one scale for both: the 동 cut-offs also grade the 구, so "아현동 1급지 · 마포구 3급지" read on the same ruler
-    const dg = grade(dongs), byPrice = (ppp) => (dg.cut.find((c) => c.lo != null && ppp >= c.lo) || { k: 5 }).k;
-    const gtier = new Map(gus.map((g) => [g.key, byPrice(g.ppp)]));
-    const gcut = [1, 2, 3, 4, 5].map((k) => ({ k, lo: dg.cut[k - 1].lo, hi: dg.cut[k - 1].hi }));
-    return { dong: { rows: dongs, ...dg }, gu: { rows: gus, tier: gtier, cut: gcut } };
-  }, [ins, ds, gs]);
+  const base = useMemo(() => buildTiers(ins, ds, gs), [ins, ds, gs]);
 
   const work = data.work || {};
   const list = useMemo(() => {
@@ -66,10 +36,9 @@ export default function TierRank({ data }) {
   // 급지 기준: each grade's 평당가 range today, its typical 59/84㎡ price, how many 동, the busiest 동, and which 구 sit there
   const table = useMemo(() => {
     if (!base) return null;
-    const med = (xs) => { const v = xs.filter(Boolean).sort((a, b) => a - b); return v.length ? v[Math.floor(v.length / 2)] : null; };
     return base.dong.cut.map((c) => {
       const ds = base.dong.rows.filter((r) => base.dong.tier.get(r.key) === c.k);
-      return { ...c, n: ds.length, ds, m84: med(ds.map((r) => r.m84)), m59: med(ds.map((r) => r.m59)),
+      return { ...c, n: ds.length, ds, m84: median(ds.map((r) => r.m84)), m59: median(ds.map((r) => r.m59)),
         top: [...ds].sort((a, b) => b.n6 - a.n6).slice(0, 4).map((r) => `${r.gu.replace(/구$/, "")} ${r.name}`),
         gus: base.gu.rows.filter((g) => base.gu.tier.get(g.key) === c.k).sort((a, b) => b.ppp - a.ppp).map((g) => g.name) };
     });
@@ -116,7 +85,7 @@ export default function TierRank({ data }) {
                 <li key={t.k} className={`flex flex-col gap-1 border-b border-default-100 py-2.5 text-small num last:border-0 ${reach ? "" : "opacity-60"}`}>
                   <div className="flex flex-wrap items-center gap-2">
                     <Chip size="sm" variant="flat" color={TIER_TONE[t.k]}>{t.k}급지</Chip>
-                    <b>평당 {t.k === 5 ? `${man(t.hi)} 이하` : t.k === 1 ? `${man(t.lo)} 이상` : `${man(t.lo)}~${man(t.hi)}`}</b>
+                    <b>평당 {tierRange(t)}</b>
                     <span className="text-default-500">{area}㎡ 대략 {won(price)}</span>
                     {reach > 0 && <Chip size="sm" color="primary" variant="solid">내 예산으로 닿는 동 {reach}곳</Chip>}
                   </div>

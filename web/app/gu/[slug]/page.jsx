@@ -1,6 +1,7 @@
 // One static page per 서울 구: 시세 요약, 동별·단지별 거래, 최근 신고가·급매. Plain server-rendered HTML (no app JS needed),
 // so Naver/Google can index "마포구 아파트 실거래가" style searches; the app link takes visitors to the budget tools.
-import { GU, guData, nameOf, slugOf, won, pct } from "../data";
+import { GU, guData, nameOf, readJson, slugOf, won, pct } from "../data";
+import { buildTiers } from "../../../src/tiers.js";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -47,6 +48,8 @@ const Deal = (d) => [`${d.dong} ${d.apt}`, `${d.area}㎡ · ${d.floor}층`, won(
 export default function GuPage({ params }) {
   const name = nameOf(params.slug);
   const { g, sum, dongs, apts, highs, dips, meta } = guData(name);
+  const tiers = buildTiers(readJson("insights.json"), readJson("dong_summary.json"), readJson("gu_summary.json"));
+  const guTier = tiers.gu.tier.get(name), dongTier = (d) => tiers.dong.tier.get(`${name} ${d}`);
   const [p3, p12] = [g.p3, g.p12];
   const idx = GU.findIndex(([n]) => n === name);
   return (
@@ -66,6 +69,12 @@ export default function GuPage({ params }) {
           : ""}
       </p>
 
+      <p className="text-small text-default-600">
+        실거래 평당가로 본 {name} 평균은 <a href="/tiers/" className="font-semibold text-primary">{guTier}급지</a>
+        {(() => { const ts = dongs.map((d) => dongTier(d.dong)).filter(Boolean), lo = Math.min(...ts), hi = Math.max(...ts);
+          return !ts.length ? " 수준입니다." : lo === hi ? ` 수준이고, 동별로도 모두 ${lo}급지입니다.` : ` 수준이고, 동별로는 ${lo}~${hi}급지로 나뉩니다.`; })()}
+      </p>
+
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Stat label="84㎡ 중위가" value={won(sum.median_84_10k ?? g.p6.p84)} sub="최근 6개월" />
         <Stat label="59㎡ 중위가" value={won(sum.median_59_10k)} sub="최근 6개월" />
@@ -83,8 +92,8 @@ export default function GuPage({ params }) {
 
       {dongs.length > 0 && (
         <Card title={`${name} 동별 시세`}>
-          <T head={["동", "84㎡ 중위가(6개월)", "59㎡ 중위가(6개월)", "1년 거래"]}
-            rows={dongs.map((d) => [d.dong, won(d.median_84_10k), won(d.median_59_10k), `${d.trades_12m}건`])} />
+          <T head={["동", "급지", "84㎡ 중위가(6개월)", "59㎡ 중위가(6개월)", "1년 거래"]}
+            rows={dongs.map((d) => [d.dong, dongTier(d.dong) ? `${dongTier(d.dong)}급지` : "–", won(d.median_84_10k), won(d.median_59_10k), `${d.trades_12m}건`])} />
         </Card>
       )}
 
@@ -113,6 +122,7 @@ export default function GuPage({ params }) {
       </a>
 
       <nav className="flex flex-col gap-1 text-small">
+        <a href="/tiers/" className="text-primary underline">서울 아파트 급지 순위 보기</a>
         <span className="text-default-500">다른 구 시세</span>
         <div className="flex flex-wrap gap-x-3 gap-y-1">
           {GU.map(([n, s]) => (n === name ? null : <a key={s} href={`/gu/${s}/`} className="text-primary">{n}</a>))}

@@ -30,6 +30,7 @@ export default function GuIndex() {
           </tbody>
         </table>
       </div>
+      <a href="/tiers/" className="text-small text-primary underline">동네별 급지 순위 (1~5급지) 보기 →</a>
       <a href="/" className="rounded-large bg-primary px-4 py-3 text-center font-semibold text-primary-foreground">내 예산으로 살 수 있는 동네 지도에서 보기 →</a>
       <footer className="text-tiny text-default-400">자료: 국토교통부 실거래가 공개시스템(공공데이터포털). 참고용 정보이며 투자 조언이 아닙니다.</footer>
     </main>
