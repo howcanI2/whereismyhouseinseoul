@@ -1,0 +1,43 @@
+name: Blog draft
+
+# Every Monday 08:00 KST: build a blog draft from https://whereismyhouse.kr/data/ and open it as an Issue.
+# The owner adds a line of their own view and pastes it into Naver blog / Tistory by hand (neither has a posting API).
+on:
+  schedule:
+    - cron: "0 23 * * 0"  # Sunday 23:00 UTC = Monday 08:00 KST
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "Second topic (blank = this week's rotation)"
+        required: false
+        default: ""
+        type: choice
+        options: ["", gu, budget, jeonse]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TZ: Asia/Seoul
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build draft
+        env:
+          TOPIC: ${{ inputs.topic }}
+        run: python blog/make_draft.py ${TOPIC:+--topic "$TOPIC"}
+      - name: Open issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create blog-draft --color 1D76DB --description "주간 블로그 초안" --force
+          gh issue create --label blog-draft \
+            --title "[블로그 초안] $(date +%F) $(cat blog/out/title.txt)" \
+            --body-file blog/out/draft.md
