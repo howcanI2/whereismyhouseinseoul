@@ -30,8 +30,9 @@ export default function Privacy() {
         <p>글꼴은 Google Fonts에서 불러옵니다.</p>
       </Section>
       <Section title="4. 의견 보내기 (Google Forms)">
-        <p>‘의견 보내기’는 Google Forms로 연결되며, 이용자가 직접 적어 제출한 내용만 운영자에게 전달됩니다. 이메일 주소는 자동으로 수집하지 않으며, 연락처는 답변을 원하는 경우에만 선택해서 적을 수 있습니다.</p>
-        <p>제출된 의견은 서비스 개선과 답변에만 사용하며, 요청하면 삭제합니다. 입력 과정에서 Google이 처리하는 정보는 <a className="text-primary underline" href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google 개인정보처리방침</a>을 따릅니다.</p>
+        <p>‘의견 보내기’는 Google Forms로 연결되며, 이용자가 직접 적어 제출한 내용만 운영자에게 전달됩니다. 이메일 주소는 자동으로 수집하지 않습니다.</p>
+        <p>연락처(이메일 등)는 답변을 원하시는 경우에만 개인정보 수집·이용에 동의한 뒤 적을 수 있습니다. 수집 목적은 남겨 주신 의견에 대한 답변이며, 답변을 마치면 바로 삭제합니다(최대 1년 보관). 동의하지 않아도 의견은 보낼 수 있습니다.</p>
+        <p>의견 내용은 서비스 개선에 사용하며, 요청하면 삭제합니다. 입력 과정에서 Google이 처리하는 정보는 <a className="text-primary underline" href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google 개인정보처리방침</a>을 따릅니다.</p>
       </Section>
       <Section title="5. 정보의 정확성">
         <p>실거래가·대출·세금 등은 공공데이터를 가공한 참고 정보이며 실제와 다를 수 있습니다. 투자·대출 결정에 대한 조언이 아닙니다.</p>
