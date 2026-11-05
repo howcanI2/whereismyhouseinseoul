@@ -54,7 +54,7 @@ export default function TierRank({ data }) {
 
   const work = data.work || {};
   const list = useMemo(() => {
-    if (!base || !budget) return null;
+    if (!base || !budget || view === "tiers") return null;
     const B = budget.max_price_10k, lv = base[view], guTier = base.gu.tier;
     return lv.rows
       .map((r) => ({ ...r, tier: lv.tier.get(r.key), guTier: guTier.get(r.gu), price: area === "84" ? r.m84 : r.m59,
@@ -63,7 +63,18 @@ export default function TierRank({ data }) {
       .sort((a, b) => a.tier - b.tier || b.n6 - a.n6);
   }, [base, budget, view, area, commute, work.lon, work.lat]);
 
-  const cut = base?.[view]?.cut;
+  // 급지 기준: each grade's 평당가 range today, its typical 59/84㎡ price, how many 동, the busiest 동, and which 구 sit there
+  const table = useMemo(() => {
+    if (!base) return null;
+    const med = (xs) => { const v = xs.filter(Boolean).sort((a, b) => a - b); return v.length ? v[Math.floor(v.length / 2)] : null; };
+    return base.dong.cut.map((c) => {
+      const ds = base.dong.rows.filter((r) => base.dong.tier.get(r.key) === c.k);
+      return { ...c, n: ds.length, ds, m84: med(ds.map((r) => r.m84)), m59: med(ds.map((r) => r.m59)),
+        top: [...ds].sort((a, b) => b.n6 - a.n6).slice(0, 4).map((r) => `${r.gu.replace(/구$/, "")} ${r.name}`),
+        gus: base.gu.rows.filter((g) => base.gu.tier.get(g.key) === c.k).sort((a, b) => b.ppp - a.ppp).map((g) => g.name) };
+    });
+  }, [base]);
+  const cut = base?.[view === "tiers" ? "dong" : view]?.cut;
   const rows = list ? (more ? list : list.slice(0, SHOW)) : null;
   const unit = view === "dong" ? "동" : "구", eul = view === "dong" ? "동을" : "구를", iga = view === "dong" ? "동이" : "구가";
 
@@ -73,13 +84,14 @@ export default function TierRank({ data }) {
         <div className="flex flex-col gap-1">
           <h3 className="text-medium font-semibold">내 예산으로 갈 수 있는 동네, 급지 좋은 순</h3>
           <p className="text-small text-default-500">
-            {budget ? `${budget.label} 예산 ${won(budget.max_price_10k)} 안에 ${area}㎡ 중위가가 드는 ${eul} 급지 높은 순으로, 같은 급지 안에서는 최근 6개월 거래가 많은 순으로 보여 줍니다.` : "내 조건을 불러오는 중입니다."}
+            {view === "tiers" ? `지금 시세로 본 급지 기준입니다. 급지마다 평당가 범위와 ${area}㎡ 대략 가격, 대표 동네를 보여 주고, ${budget ? `${budget.label} 예산 ${won(budget.max_price_10k)}으로 닿는 급지를 표시합니다.` : ""}` : budget ? `${budget.label} 예산 ${won(budget.max_price_10k)} 안에 ${area}㎡ 중위가가 드는 ${eul} 급지 높은 순으로, 같은 급지 안에서는 최근 6개월 거래가 많은 순으로 보여 줍니다.` : "내 조건을 불러오는 중입니다."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Tabs aria-label="단위" size="sm" radius="full" selectedKey={view} onSelectionChange={(k) => { setView(String(k)); setMore(false); }}>
             <Tab key="dong" title="동" />
             <Tab key="gu" title="구" />
+            <Tab key="tiers" title="급지 기준" />
           </Tabs>
           <ButtonGroup size="sm" radius="full">
             {[["now", data.budget?.[0]?.short || "지금"], ["later", data.budget?.[1]?.short || "나중에"]].map(([k, l]) => (
@@ -89,13 +101,32 @@ export default function TierRank({ data }) {
           <ButtonGroup size="sm" radius="full">
             {["59", "84"].map((a) => <Button key={a} color={area === a ? "primary" : "default"} variant={area === a ? "solid" : "flat"} onPress={() => setArea(a)}>{a}㎡</Button>)}
           </ButtonGroup>
-          <Select aria-label="통근" size="sm" className="w-36" selectedKeys={[commute]} onSelectionChange={(s) => setCommute(String([...s][0] || "all"))}>
+          {view !== "tiers" && <Select aria-label="통근" size="sm" className="w-36" selectedKeys={[commute]} onSelectionChange={(s) => setCommute(String([...s][0] || "all"))}>
             {COMMUTE.map(([k, l]) => <SelectItem key={k}>{k === "all" ? l : `${work.name || "직장"} ${l}`}</SelectItem>)}
-          </Select>
+          </Select>}
         </div>
       </CardHeader>
       <CardBody className="pt-0">
-        {!rows ? <Skeleton className="h-48 w-full rounded-large" /> : rows.length === 0 ? (
+        {view === "tiers" ? (!table ? <Skeleton className="h-48 w-full rounded-large" /> : (
+          <ul className="flex flex-col">
+            {table.map((t) => {
+              const price = area === "84" ? t.m84 : t.m59, B = budget?.max_price_10k;
+              const reach = B ? t.ds.filter((r) => { const p = area === "84" ? r.m84 : r.m59; return p && p <= B && r.n6 >= MIN_6M; }).length : 0;
+              return (
+                <li key={t.k} className={`flex flex-col gap-1 border-b border-default-100 py-2.5 text-small num last:border-0 ${reach ? "" : "opacity-60"}`}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Chip size="sm" variant="flat" color={TIER_TONE[t.k]}>{t.k}급지</Chip>
+                    <b>평당 {t.k === 5 ? `${man(t.hi)} 이하` : t.k === 1 ? `${man(t.lo)} 이상` : `${man(t.lo)}~${man(t.hi)}`}</b>
+                    <span className="text-default-500">{area}㎡ 대략 {won(price)}</span>
+                    {reach > 0 && <Chip size="sm" color="primary" variant="solid">내 예산으로 닿는 동 {reach}곳</Chip>}
+                  </div>
+                  <span className="text-tiny text-default-500">동 {t.n}곳 · 거래 많은 곳: {t.top.join(", ")}</span>
+                  {t.gus.length > 0 && <span className="text-tiny text-default-400">구 평균이 이 급지인 곳: {t.gus.join(", ")}</span>}
+                </li>
+              );
+            })}
+          </ul>
+        )) : !rows ? <Skeleton className="h-48 w-full rounded-large" /> : rows.length === 0 ? (
           <p className="text-small text-default-500">이 조건에 맞는 {iga} 없습니다. 면적을 59㎡로 바꾸거나, 통근 조건을 풀거나, '내 조건'에서 예산·매수 시점을 바꿔 보세요.</p>
         ) : (
           <ol className="flex flex-col">
