@@ -81,14 +81,14 @@ def deals_section(deals, as_of):
     n = deals.get("n", {}).get("11", {})
     since = deals["since"]
     parts = []
-    parts.append(f"## 1. 신고가: 2년 최고가를 크게 넘긴 서울 거래 (계약일 {mmdd(cutoff)}~{mmdd(as_of)})\n")
+    parts.append(f"## 1. 어디서 신고가가 나왔을까? 2년 최고가를 크게 넘긴 서울 거래 (계약일 {mmdd(cutoff)}~{mmdd(as_of)})\n")
     if highs:
         parts.append(table(["구", "동", "단지", "면적", "층", "계약일", "거래가", "직전 2년 최고가", "차이"],
                            [[h["gu"], h["dong"], h["apt"], f"{h['area']:.0f}㎡", f"{h['floor']}층", mmdd(h["date"]), won(h["price"]), won(h["ref"]), pct(h["gap_pct"])] for h in highs]))
     else:
         parts.append("이 기간에 집계된 신고가 거래가 없습니다.")
     parts.append(f"\n※ 같은 단지·같은 평형의 직전 2년 최고가 대비. {since[:4]}.{since[5:7]} 이후 서울 신고가 거래는 모두 {n.get('high', 0):,}건이고, 위 표는 그중 상승 폭이 큰 거래입니다.\n")
-    parts.append(f"## 2. 급매로 보이는 거래: 직전 6개월 중위가보다 싸게 팔린 서울 거래 (계약일 {mmdd(cutoff)}~{mmdd(as_of)})\n")
+    parts.append(f"## 2. 급매는 어디에? 직전 6개월 중위가보다 싸게 팔린 서울 거래 (계약일 {mmdd(cutoff)}~{mmdd(as_of)})\n")
     if dips:
         parts.append(table(["구", "동", "단지", "면적", "층", "계약일", "거래가", "직전 6개월 중위가", "차이"],
                            [[d["gu"], d["dong"], d["apt"], f"{d['area']:.0f}㎡", f"{d['floor']}층", mmdd(d["date"]), won(d["price"]), won(d["ref"]), pct(d["gap_pct"])] for d in dips]))
@@ -103,7 +103,7 @@ def topic_gu(ins, gus, dongs):
     note = ins["meta"]["notes"]["p3"]
     rows = sorted(((g["name"], g["p3"]) for g in ins["gu"].values() if g["p3"].get("chg") is not None), key=lambda r: -r[1]["chg"])
     gs = {g["gu"]: g for g in gus}
-    body = [f"## 3. 서울 25개 구 가격 변화 ({note})\n",
+    body = [f"## 3. 어느 구가 올랐을까? 서울 25개 구 가격 변화 ({note})\n",
             table(["구", "가격 변화", "평당 중위가", "거래량", "거래량 변화", "84㎡ 중위가(최근 6개월)"],
                   [[name, pct(p["chg"]), won(p["ppp"]), f"{p['n']:,}건", pct(p.get("vol_chg")), won(gs.get(name, {}).get("median_84_10k"))] for name, p in rows]),
             "\n※ 가격 변화는 두 기간에 모두 거래된 같은 단지·같은 평형끼리 가격을 비교한 값의 중위값입니다. 그래서 거래된 단지 구성이 바뀌어도 흔들리지 않습니다."
@@ -117,7 +117,7 @@ BUDGETS = [60000, 90000, 120000]
 
 
 def topic_budget(ins, gus, dongs):
-    body = ["## 3. 예산별로 84㎡를 살 수 있는 동네 (최근 6개월 실거래 중위가 기준)\n"]
+    body = ["## 3. 내 예산이면 어디? 84㎡를 살 수 있는 동네 (최근 6개월 실거래 중위가 기준)\n"]
     first = None
     for b in BUDGETS:
         lo = BUDGETS[BUDGETS.index(b) - 1] if BUDGETS.index(b) else 0
@@ -138,7 +138,7 @@ def topic_budget(ins, gus, dongs):
 
 def topic_jeonse(ins, gus, dongs):
     rows = sorted((g for g in gus if g.get("jeonse_ratio_pct") is not None), key=lambda g: -g["jeonse_ratio_pct"])
-    body = ["## 3. 구별 전세가율 (84㎡, 최근 6개월 중위가 기준)\n",
+    body = ["## 3. 전세 끼면 얼마 필요할까? 구별 전세가율 (84㎡, 최근 6개월 중위가 기준)\n",
             table(["구", "전세가율", "84㎡ 매매 중위가", "59㎡ 매매 중위가"],
                   [[g["gu"], pct(g["jeonse_ratio_pct"], sign=False), won(g["median_84_10k"]), won(g.get("median_59_10k"))] for g in rows]),
             "\n※ 전세가율 = 84㎡(전용 75~90㎡) 순수 전세 보증금 중위값 ÷ 매매 중위값. 높을수록 매매가와 전세가 차이가 작습니다.\n"]
@@ -157,36 +157,46 @@ def build(data, today, topic=None):
     dsec, highs, dips = deals_section(deals, as_of)
     tname, tbody, tline, tgu = TOPIC_FN[topic](ins, data["gu_summary"], data["dong_summary"])
 
-    core = f"이번 주 서울 신고가·급매 단지 + {tname}"
-    title = f"{core} ({today:%Y.%m.%d})"
+    week = f"{today.month}월 {(today.day - 1) // 7 + 1}주"
+    h0, d0 = (highs or [None])[0], (dips or [None])[0]
+    # main search words first, then a number and the period, then the one concrete fact that makes people click
+    core = f"서울 아파트 신고가·급매 TOP{TOP_N} ({week})" + (f" | {h0['dong']} {h0['apt']} {pct(h0['gap_pct'])}" if h0 else "")
+    alt = [f"서울 아파트, 지금 어디서 신고가가 나올까? {week} 실거래 정리", f"{tname} ({week}) + 서울 신고가·급매 단지"]
+    n11, since = deals.get("n", {}).get("11", {}), deals["since"]
+    hook = (f"{since[:4]}년 {int(since[5:7])}월 이후 서울에서 직전 2년 최고가를 넘긴 아파트 거래는 {n11.get('high', 0):,}건, "
+            f"직전 6개월 시세보다 10% 이상 싸게 팔린 거래는 {n11.get('dip', 0):,}건입니다. 이번에는 어디였는지 실거래로만 정리했습니다.")
     summary = []
-    if highs:
-        h = highs[0]
-        summary.append(f"최근 {RECENT_DAYS}일 계약 중 신고가 폭이 가장 큰 곳은 {h['gu']} {h['dong']} {h['apt']} {h['area']:.0f}㎡로, {won(h['price'])}에 거래돼 직전 2년 최고가({won(h['ref'])})보다 {pct(h['gap_pct'])}입니다.")
-    if dips:
-        d = dips[0]
-        summary.append(f"같은 기간 가장 싸게 팔린 거래는 {d['gu']} {d['dong']} {d['apt']} {d['area']:.0f}㎡ {josa(won(d['price']), '으로', '로')}, 직전 6개월 중위가({won(d['ref'])})보다 {pct(d['gap_pct'])}입니다.")
+    if h0:
+        summary.append(f"최근 {RECENT_DAYS}일 계약 중 신고가 폭이 가장 큰 곳은 {h0['gu']} {h0['dong']} {h0['apt']} {h0['area']:.0f}㎡로, {won(h0['price'])}에 거래돼 직전 2년 최고가({won(h0['ref'])})보다 {pct(h0['gap_pct'])}입니다.")
+    if d0:
+        summary.append(f"같은 기간 가장 싸게 팔린 거래는 {d0['gu']} {d0['dong']} {d0['apt']} {d0['area']:.0f}㎡ {josa(won(d0['price']), '으로', '로')}, 직전 6개월 중위가({won(d0['ref'])})보다 {pct(d0['gap_pct'])}입니다.")
     if tline:
         summary.append(tline)
     vol = next((b["text"] for b in market.get("bullets", []) if b.get("tag") == "거래"), None)
-    while len(summary) < 3 and vol:
+    if len(summary) < 3 and vol:
         summary.append(vol)
-        vol = None
 
-    focus = [x for x in (highs[:1] + dips[:1])]
+    # Naver allows up to 30 tags: fixed search words first, then this week's places
+    places = [p for x in highs[:5] + dips[:3] for p in (x["gu"], x["dong"], x["apt"])] + ([tgu] if tgu else [])
+    tags = list(dict.fromkeys(["서울아파트", "아파트실거래가", "신고가", "급매", "내집마련", "서울부동산"] + [p.replace(" ", "") for p in places]))[:30]
+    build.alt_titles = alt
+    build.keywords = list(dict.fromkeys(x["dong"] for x in highs[:3] + dips[:2]))
+
+    focus = highs[:1] + dips[:1]
     links = [f"- [서울 내집마련 전략판 지도에서 직접 보기]({link(today.strftime('%Y%m%d'))})"]
     for x in focus:
         links.append(f"- {x['gu']} {x['dong']} {x['apt']}: 위 링크의 지도에서 {x['gu']} → {josa(x['dong'], '을', '를')} 누르면 단지별 실거래를 볼 수 있습니다.")
     if tgu:
         links.append(f"- {tgu}: 지도에서 {josa(tgu, '을', '를')} 누르면 동별 가격·거래량 변화를 볼 수 있습니다.")
 
-    md = [f"# {title}", "",
+    md = [f"# {core}", "",
+          hook, "",
           "**3줄 요약**", ""] + [f"{i}. {s}" for i, s in enumerate(summary[:3], 1)] + [
           "", "✍️ [여기에 내 의견 한두 줄]", "",
           dsec, tbody,
           "## 더 보기", "", *links, "",
           f"기준일 {as_of} · 출처: {SOURCES}. 실거래 신고는 계약 후 30일 안에 들어와 최근 거래는 더 늘어날 수 있습니다. 투자 권유가 아닙니다.",
-          ""]
+          "", "태그: " + " ".join("#" + t for t in tags), ""]
     return core, "\n".join(md)
 
 
@@ -204,6 +214,11 @@ def main():
         f.write(md)
     with open(os.path.join(a.out, "title.txt"), "w", encoding="utf-8") as f:
         f.write(title)
+    with open(os.path.join(a.out, "keywords.txt"), "w", encoding="utf-8") as f:
+        f.write(" ".join(build.keywords))
+    with open(os.path.join(a.out, "notes.md"), "w", encoding="utf-8") as f:
+        f.write("## 편집 메모\n\n제목 후보 (본문 첫 줄 제목 대신 골라 쓰세요)\n\n" + "\n".join(f"- {t}" for t in [title] + build.alt_titles)
+                + "\n\n올리기 전에: ✍️ 줄을 내 말로 바꾸기 · 표 아래 ※ 설명은 지우지 않기 · 태그 줄은 블로그 태그 칸에 옮기기\n")
     sys.stdout.reconfigure(encoding="utf-8")
     print(md)
 

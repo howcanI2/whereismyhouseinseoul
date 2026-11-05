@@ -33,11 +33,20 @@ jobs:
         env:
           TOPIC: ${{ inputs.topic }}
         run: python blog/make_draft.py ${TOPIC:+--topic "$TOPIC"}
+      - name: Naver keyword report (skipped without NAVER_API_ID / NAVER_API_KEY)
+        continue-on-error: true
+        env:
+          NAVER_API_ID: ${{ secrets.NAVER_API_ID }}
+          NAVER_API_KEY: ${{ secrets.NAVER_API_KEY }}
+        run: python blog/naver_research.py --extra $(cat blog/out/keywords.txt)
       - name: Open issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh label create blog-draft --color 1D76DB --description "주간 블로그 초안" --force
-          gh issue create --label blog-draft \
+          url=$(gh issue create --label blog-draft \
             --title "[블로그 초안] $(date +%F) $(cat blog/out/title.txt)" \
-            --body-file blog/out/draft.md
+            --body-file blog/out/draft.md)
+          # titles, checklist and this week's Naver keywords go in a comment so the issue body stays copy-paste clean
+          { cat blog/out/notes.md; echo; cat blog/out/research.md 2>/dev/null; } > blog/out/comment.md
+          gh issue comment "$url" --body-file blog/out/comment.md
