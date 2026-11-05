@@ -9,13 +9,14 @@ const NAVER_VERIFY = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION || "";  // 
 // Naver Search Advisor / Google read these from the static HTML: title, description, canonical, robots, Open Graph
 export const metadata = {
   metadataBase: new URL(SITE),
-  title: `${TITLE} - 내 예산으로 살 수 있는 서울 아파트 실거래가 지도`,
+  title: TITLE,  // Naver: the main page title is the brand name, short and stable
   description: DESC,
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
   openGraph: { type: "website", siteName: TITLE, title: TITLE, description: DESC, url: "/", locale: "ko_KR",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: TITLE }] },
   twitter: { card: "summary_large_image", title: TITLE, description: DESC, images: ["/og.png"] },
+  other: { "twitter:domain": TITLE },
   ...(NAVER_VERIFY ? { verification: { other: { "naver-site-verification": NAVER_VERIFY } } } : {}),
 };
 
