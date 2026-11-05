@@ -1,0 +1,18 @@
+Copyright (c) 2026 howcanI2 (whereismyhouse.kr). All rights reserved.
+
+이 저장소의 소스 코드, 데이터 가공 스크립트, 화면 디자인과 문구(이하 "저작물")의 저작권은 운영자에게 있습니다.
+저작물은 열람만 할 수 있도록 공개되어 있으며, 운영자의 사전 서면 허락 없이 저작물의 전부 또는 일부를
+복제, 수정, 배포, 재게시하거나 이를 이용한 서비스를 운영할 수 없습니다.
+
+This repository is published for viewing only. No permission is granted to copy, modify, distribute,
+republish, or operate a service using any part of this code, its data-processing scripts, or its design,
+without the prior written permission of the copyright holder.
+
+공공데이터 (Public data)
+web/public/data 의 원자료는 국토교통부 실거래가 공개시스템, 공동주택관리정보시스템(K-apt), 건축HUB,
+브이월드, 통계청 SGIS, OpenStreetMap 등 각 제공기관의 이용 조건을 따릅니다. 원자료에 대한 권리는 각
+제공기관에 있으며, 이 라이선스는 운영자가 가공·편집한 부분에만 적용됩니다.
+The underlying public data remains subject to each provider's own terms; this notice covers only the
+operator's own processing, selection, and presentation of it.
+
+문의 (Contact): https://github.com/howcanI2/whereismyhouseinseoul/issues
