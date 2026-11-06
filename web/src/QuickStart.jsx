@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button, Card, CardBody } from "@heroui/react";
 import { budgetsFrom, HOUSEHOLDS, won } from "./lib.js";
 import { Choice, Money } from "./Profile.jsx";
+import { buildTiers } from "./tiers.js";
 
 const WHEN = [[0, "지금"], [1, "1년 뒤"], [2, "2년 뒤"], [3, "3년 뒤"], [5, "5년 뒤"]];
 
@@ -70,6 +71,58 @@ export default function QuickStart({ profile, onSave, onMore, rate }) {
             <Button variant="flat" onPress={() => { onSave(mine); onMore(); }}>직장·가진 집까지 자세히</Button>
             <Button color="primary" isDisabled={!ready} onPress={() => onSave(mine)}>내 예산으로 보기</Button>
           </div>
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
+// Right after the quick start is saved: answer "where can I buy?" in one card instead of leaving it to the map.
+// Same rule as the 급지 순위 card: 동 whose 6-month 84㎡ (else 59㎡) median fits the budget, best 급지 first, busiest first.
+export function FirstResult({ data, onMap, onRank, onClose }) {
+  const yrs = Number(data.budget?.[1]?.years) || 0, b = data.budget?.[yrs ? 1 : 0];
+  const t = buildTiers(data.insights, data.dong_summary, data.gu_summary);
+  if (!b || !t) return null;
+  const B = b.max_price_10k;
+  const fit = (k) => t.dong.rows.filter((r) => r[k] && r[k] <= B && r.n6 >= 10).map((r) => ({ ...r, tier: t.dong.tier.get(r.key) })).sort((x, y) => x.tier - y.tier || y.n6 - x.n6);
+  const d84 = fit("m84"), d59 = fit("m59"), list = d84.length ? d84 : d59, area = d84.length ? "84㎡" : "59㎡";
+  const nApt = (data.apts || []).filter((a) => a.trades_6m && a.median_price_10k != null && a.median_price_10k <= B).length;
+  const top = list.slice(0, 3);
+  return (
+    <Card shadow="sm" className="border-2 border-primary-200">
+      <CardBody className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-large font-bold">내 예산 {won(B)}{yrs ? ` (${b.short})` : ""}으로 살 수 있는 곳</h2>
+            {list.length ? (
+              <p className="text-small text-default-600">
+                {area} 기준 <b>동 {list.length}곳</b>, 최근 6개월 거래가 있는 <b>단지 {nApt.toLocaleString("ko-KR")}곳</b>이 예산 안에 들어요.
+                {!d84.length && " (84㎡는 아직 예산 밖이라 59㎡로 봤어요)"}
+              </p>
+            ) : (
+              <p className="text-small text-default-600">
+                지금 예산으로는 59㎡·84㎡ 중위가가 드는 동이 아직 없어요. 최근 거래 기준 예산 안 단지는 {nApt.toLocaleString("ko-KR")}곳이에요(주로 소형).
+                &lsquo;내 조건&rsquo;에서 매수 시점을 늦추거나 저축액을 넣으면 달라져요.
+              </p>
+            )}
+          </div>
+          <button type="button" className="shrink-0 text-tiny text-default-400 underline" onClick={onClose}>닫기</button>
+        </div>
+        {top.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {top.map((r, i) => (
+              <button key={r.key} type="button" onClick={() => onMap(r.key)}
+                className="flex flex-col rounded-medium bg-default-100 px-3 py-2 text-left hover:bg-default-200">
+                <span className="text-tiny text-default-500">{i + 1}순위 · {r.tier}급지</span>
+                <span className="text-small font-semibold">{r.gu} {r.name}</span>
+                <span className="text-tiny text-default-500 num">{area} {won(area === "84㎡" ? r.m84 : r.m59)} · 6개월 {r.n6}건</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-2">
+          {top.length > 0 && <Button color="primary" onPress={() => onMap(top[0].key)}>지도에서 보기</Button>}
+          <Button variant="flat" onPress={onRank}>동네 순위 전체 보기</Button>
         </div>
       </CardBody>
     </Card>

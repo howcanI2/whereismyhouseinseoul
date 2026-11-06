@@ -192,6 +192,8 @@ export function useProfile() {
 // "지도에서 위치 보기": the 청약 card asks the map to open on a notice; the map may mount after the request, so it is kept here
 export const pendingFocus = { apply: null };
 export function focusApply(r) { pendingFocus.apply = r; window.dispatchEvent(new CustomEvent("hb:focus-apply", { detail: r })); }
+// "지도에서 보기" from the first-result card: open a region (and its pins) on whichever map is mounted
+export function focusRegion(lv, key) { pendingFocus.region = { lv, key }; window.dispatchEvent(new CustomEvent("hb:focus-region")); }
 // 학교 아이콘 (학사모) and colours: 초등학교 green, 중학교 indigo
 export const SCHOOL_COLOR = { e: "#2E9F86", m: "#4F63C9" };
 export const CAP_SVG = (size = 12) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path fill="#fff" d="M12 3 1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.2V16c0 1.9 3.1 3.5 7 3.5s7-1.6 7-3.5v-3.8l-7 3.8-7-3.8z"/></svg>`;

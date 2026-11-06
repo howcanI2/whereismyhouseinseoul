@@ -134,7 +134,7 @@ const Polys = memo(function Polys({ paths, guPaths, linePaths, showLines }) {
 
 const DRAWN_LEVELS = { seoul: LEVELS, metro: [["auto", "자동"], ["sgg", "시군구"], ["hdong", "행정동"]] };
 
-export default function Atlas({ data: base, scope = "seoul" }) {
+export default function Atlas({ data: base, scope = "seoul", mine = false }) {
   const metro = scope === "metro";
   const mIns = useLazyFile("metro_insights", metro), mApts = useLazyFile("metro_apts", metro), mHd = useLazyFile("metro_hdong_geo", metro), mSgg = useLazyFile("metro_sgg_geo", metro);
   const data = useMemo(() => (metro ? { ...base, insights: attachRegions(attachGrowth(attachCommute(mIns, mApts, base.commute, base.work)), regionFilesOf(base)), apts: mApts, scope } : { ...base, insights: attachRegions(attachGrowth(attachCommute(base.insights, base.apts, base.commute, base.work)), regionFilesOf(base)), scope }), [metro, base, mIns, mApts, base.landuse_region, base.school_region, base.edu_region, base.apt_cost, base.work]);
@@ -145,7 +145,9 @@ export default function Atlas({ data: base, scope = "seoul" }) {
   const [budget, setBudget] = useState(100000);
   const [level, setLevel] = useState("auto");
   const [period, setPeriod] = useState("p6");
-  const [metricId, setMetricId] = useState("chg");
+  const [metricId, setMetricIdRaw] = useState(mine ? "fit" : "chg");
+  const picked = useRef(false), setMetricId = (id) => { picked.current = true; setMetricIdRaw(id); };
+  useEffect(() => { if (mine && !picked.current) setMetricIdRaw("fit"); }, [mine]);
   const [growth, setGrowth] = useState("half");
   const [roomAge, setRoomAge] = useState(25);
   const [area, setArea] = useState("all");
@@ -329,6 +331,10 @@ export default function Atlas({ data: base, scope = "seoul" }) {
     if (r?.center) zoomTo(world.X(r.center[0]), world.Y(r.center[1]), lv === "gu" || lv === "sgg" ? 3.2 : lv === "bdong" ? 6 : 7);
   };
   const ready = world && data.dong_geo && ins;
+  useEffect(() => {
+    const go = () => { const f = pendingFocus.region; if (!f || !ready || !zoomRef.current || metro || !ins?.[f.lv]?.[f.key]) return; pendingFocus.region = null; pickRegion(f.lv, f.key); };
+    go(); window.addEventListener("hb:focus-region", go); return () => window.removeEventListener("hb:focus-region", go);
+  }, [ready, sized, metro]);
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
@@ -356,7 +362,7 @@ export default function Atlas({ data: base, scope = "seoul" }) {
           : <Overview data={data} ins={ins} period={period} level={regionLevel} m={m} scen={scen} onPick={(key) => pickRegion(regionLevel, key)} P={P} onApt={(id) => { const a = (data.apts || []).find((x) => x.id === id); if (a) pickApt(a); }} />}
       </aside>
 
-      <section className="order-1 flex min-w-0 flex-col gap-2 lg:order-2">
+      <section id="atlas-map" className="order-1 flex min-w-0 scroll-mt-2 flex-col gap-2 lg:order-2">
         <SearchBox ins={ins} apts={data.apts} onRegion={pickRegion} onApt={pickApt} />
         <div className="flex flex-wrap items-center gap-2 rounded-large bg-content1 px-3 py-2 shadow-small">
           <ButtonGroup size="sm" radius="full" variant="flat">{DRAWN_LEVELS[scope].map(([k, l]) => <Button key={k} color={level === k ? "primary" : "default"} variant={level === k ? "solid" : "flat"} onPress={() => setLevel(k)}>{l}</Button>)}</ButtonGroup>

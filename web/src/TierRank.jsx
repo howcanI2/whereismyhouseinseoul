@@ -48,7 +48,7 @@ export default function TierRank({ data }) {
   const unit = view === "dong" ? "동" : "구", eul = view === "dong" ? "동을" : "구를", iga = view === "dong" ? "동이" : "구가";
 
   return (
-    <Card shadow="sm">
+    <Card shadow="sm" id="tier-rank" className="scroll-mt-4">
       <CardHeader className="flex flex-col items-stretch gap-3">
         <div className="flex flex-col gap-1">
           <h3 className="text-medium font-semibold">내 예산으로 갈 수 있는 동네, 급지 좋은 순</h3>

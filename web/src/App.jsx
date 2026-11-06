@@ -13,8 +13,8 @@ import TossBanner from "./TossBanner.jsx";
 import { installExternalLinks } from "./TossLinks.js";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
 import TierRank from "./TierRank.jsx";
-import QuickStart from "./QuickStart.jsx";
-import { budgetsFrom, DEFAULT_WORK, derive, fmt, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
+import QuickStart, { FirstResult } from "./QuickStart.jsx";
+import { budgetsFrom, DEFAULT_WORK, derive, fmt, focusRegion, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
 
 // every outside source the screens draw on, with the credit its licence asks for
 const SOURCES = [
@@ -76,6 +76,7 @@ export default function App() {
   const failed = Object.keys(errors);
   const [kakaoError, setKakaoError] = useState(null);
   const [scope, setScope] = useState("seoul");
+  const [first, setFirst] = useState(false);  // the quick start was just saved: show where that budget reaches
   // a 청약 row's "지도에서 위치 보기": open the map (서울+경기 for a Gyeonggi site); the map then zooms to it
   useEffect(() => {
     const go = () => { const r = pendingFocus.apply; if (!r) return; if (r.sido !== "11") setScope("metro"); setTab("map"); window.scrollTo({ top: 0, behavior: "smooth" }); };
@@ -109,7 +110,12 @@ export default function App() {
       <WatchModal open={watchOpen} onClose={() => setWatchOpen(false)} data={data} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={saveProfile} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} apts={loaded.apts} insights={loaded.insights} />
 
-      {profile.example && <QuickStart profile={profile} onSave={saveProfile} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
+      {profile.example && <QuickStart profile={profile} onSave={(p) => { saveProfile(p); setFirst(true); }} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
+      {first && !profile.example && (
+        <FirstResult data={data} onClose={() => setFirst(false)}
+          onMap={(key) => { setScope("seoul"); setTab("map"); setTimeout(() => { focusRegion("bdong", key); document.getElementById("atlas-map")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80); }}
+          onRank={() => { setTab("money"); setTimeout(() => document.getElementById("tier-rank")?.scrollIntoView({ behavior: "smooth", block: "start" }), 300); }} />
+      )}
 
       <Tabs aria-label="화면" color="primary" variant="solid" radius="full" size="lg" selectedKey={tab} onSelectionChange={(k) => setTab(String(k))}
         classNames={{ base: "w-full", tabList: "bg-content1 shadow-small", tab: "px-5 h-11", panel: "px-0 pt-1" }}>
@@ -124,10 +130,10 @@ export default function App() {
                 <span className="text-tiny text-default-500">{scope === "metro" ? `서울 25개 구와 경기 시군구를 함께 봅니다. 통근시간으로 거르면 ${work.name} 출퇴근이 가능한 곳만 남습니다.` : "서울 구 · 법정동 · 행정동 단위로 봅니다."}</span>
               </div>
             )}
-            {k === "map" && (KAKAO_KEY && !kakaoError ? <KakaoAtlas data={data} appKey={KAKAO_KEY} onFail={setKakaoError} scope={scope} /> : (
+            {k === "map" && (KAKAO_KEY && !kakaoError ? <KakaoAtlas data={data} appKey={KAKAO_KEY} onFail={setKakaoError} scope={scope} mine={!profile.example} /> : (
               <div className="flex flex-col gap-2">
                 {kakaoError && (process.env.NEXT_PUBLIC_TOSS !== "1" || process.env.NEXT_PUBLIC_TOSS_AD_DEBUG === "1") && <p className="rounded-medium bg-warning-50 px-3 py-2 text-small text-warning-700">카카오맵을 불러오지 못해 기본 지도로 보여드립니다. 카카오 개발자 콘솔 &gt; 플랫폼 &gt; Web에 이 사이트 주소({typeof window !== "undefined" ? window.location.origin : ""})가 등록돼 있는지 확인하세요.</p>}
-                <Atlas data={data} scope={scope} />
+                <Atlas data={data} scope={scope} mine={!profile.example} />
               </div>
             ))}
             {k === "money" && (
