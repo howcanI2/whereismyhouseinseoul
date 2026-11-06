@@ -358,7 +358,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
           : <Overview data={data} ins={ins} period={period} level={regionLevel} m={m} scen={scen} onPick={(key) => pickRegion(regionLevel, key)} P={P} onApt={(id) => { const a = (data.apts || []).find((x) => x.id === id); if (a) pickApt(a); }} />}
       </aside>
 
-      <section id="atlas-map" className="order-1 flex min-w-0 scroll-mt-2 flex-col gap-2 lg:order-2">
+      <section id="atlas-map" className="order-1 flex min-w-0 scroll-mt-2 flex-col gap-2 lg:sticky lg:top-2 lg:order-2 lg:self-start">
         <SearchBox ins={ins} apts={data.apts} onRegion={pickRegion} onApt={pickApt} />
         <div className="flex flex-wrap items-center gap-2 rounded-large bg-content1 px-3 py-2 shadow-small">
           <ButtonGroup size="sm" radius="full" variant="flat">{S.levels.map(([k, l]) => <Button key={k} color={level === k ? "primary" : "default"} variant={level === k ? "solid" : "flat"} onPress={() => setLevel(k)}>{l}</Button>)}</ButtonGroup>
