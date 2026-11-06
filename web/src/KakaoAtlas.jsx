@@ -380,18 +380,11 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                 <span>{m.l} · {PERIODS.find((p) => p[0] === period)[1]}</span><span className="text-default-400">{legendOpen ? "접기 ▴" : "범례 ▾"}</span>
               </button>
               {mine && (
-                <div className="mt-1 flex flex-col gap-1 text-default-600">
-                  <p className="flex items-start gap-1.5">
-                    <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: fitColor.ok }} />
-                    <span>초록 = 내 예산 <b>{won(budget)}</b>으로 살 수 있는 단지{showPins ? "" : ". 확대하면 단지마다 초록 핀으로 보여요"}</span>
-                  </p>
-                  <p className="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[10.5px] text-default-500">
-                    <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: fitColor.near }} />15% 이내 초과</span>
-                    <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full border border-default-400 bg-white" />예산 초과</span>
-                    <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full border border-default-300" style={{ background: "#E3E8E6" }} />6개월 거래 없음</span>
-                    <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full border border-default-400 bg-white" />2년 거래 없음</span>
-                  </p>
-                </div>
+                <ul className="mt-1 grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-default-600">
+                  {[[fitColor.ok, "", `내 예산(${won(budget)}) 내`], [fitColor.near, "", "15% 이내 초과"], ["#ffffff", "border border-default-400", "예산 초과"], ["#E3E8E6", "border border-default-300", "기간 내 거래 없음"]].map(([bg, cls, l]) => (
+                    <li key={l} className="inline-flex items-center gap-1 whitespace-nowrap"><span className={`h-2.5 w-2.5 shrink-0 rounded-full ${cls}`} style={{ background: bg }} />{l}</li>
+                  ))}
+                </ul>
               )}
               {legendOpen && (
                 <div className="mt-1.5 flex flex-col gap-1.5">
