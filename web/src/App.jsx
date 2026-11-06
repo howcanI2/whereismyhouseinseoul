@@ -76,9 +76,9 @@ export default function App() {
   const failed = Object.keys(errors);
   const [kakaoError, setKakaoError] = useState(null);
   const [scope, setScope] = useState("seoul");
-  // 내 후보지 card: open by default, folded to one line if the viewer folds it (remembered in this browser)
-  const [candFold, setCandFold] = useState(() => { try { return localStorage.getItem("hb-cand-fold") === "1"; } catch (e) { return false; } });
-  const toggleCand = () => setCandFold((f) => { try { localStorage.setItem("hb-cand-fold", f ? "0" : "1"); } catch (e) { /* private window */ } return !f; });
+  // 내 후보지 card: a one-line summary on a normal visit (the map comes first), opened right after 내 조건 is saved
+  const [candFold, setCandFold] = useState(true);
+  const toggleCand = () => setCandFold((f) => !f);
   // a 청약 row's "지도에서 위치 보기": open the map (서울+경기 for a Gyeonggi site); the map then zooms to it
   useEffect(() => {
     const go = () => { const r = pendingFocus.apply; if (!r) return; if (r.sido !== "11") setScope("metro"); setTab("map"); window.scrollTo({ top: 0, behavior: "smooth" }); };
@@ -110,7 +110,7 @@ export default function App() {
 
       {failed.length > 0 && <p className="text-small text-danger">일부 데이터를 불러오지 못했습니다: {failed.join(", ")}</p>}
       <WatchModal open={watchOpen} onClose={() => setWatchOpen(false)} data={data} />
-      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={saveProfile} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} apts={loaded.apts} insights={loaded.insights} />
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); }} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} apts={loaded.apts} insights={loaded.insights} />
 
       {profile.example && <QuickStart profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); }} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
       {!profile.example && (
