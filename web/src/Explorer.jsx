@@ -555,7 +555,8 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
     <div className="flex flex-col gap-3 rounded-large bg-content1 p-4 shadow-small">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-tiny text-default-500">{apt.gu} {apt.dong} · {apt.build_year || "—"}년 준공</div>
+          <div className="text-tiny text-default-500">{apt.gu} {apt.dong} · {apt.build_year ? (() => { const age = new Date().getFullYear() - apt.build_year;
+            return `${apt.build_year}년 준공 · 지은 지 ${age < 1 ? "1년 미만" : `${age}년`} (${age <= 5 ? "신축" : age <= 10 ? "준신축" : age < 30 ? "구축" : "재건축 연한 30년+"})`; })() : "준공 연도 모름"}</div>
           <h3 className="text-large font-bold leading-snug">{apt.apt}</h3>
         </div>
         <div className="flex shrink-0 gap-1">
