@@ -79,7 +79,8 @@ export default function QuickStart({ profile, onSave, onMore, rate }) {
 
 // Right after the quick start is saved: answer "where can I buy?" in one card instead of leaving it to the map.
 // Same rule as the 급지 순위 card: 동 whose 6-month 84㎡ (else 59㎡) median fits the budget, best 급지 first, busiest first.
-export function FirstResult({ data, onMap, onRank, onClose }) {
+// Shown on every visit once 내 조건 is the viewer's own; folding it leaves a one-line summary (remembered in this browser).
+export function FirstResult({ data, onMap, onRank, folded, onToggle }) {
   const yrs = Number(data.budget?.[1]?.years) || 0, b = data.budget?.[yrs ? 1 : 0];
   const t = buildTiers(data.insights, data.dong_summary, data.gu_summary);
   if (!b || !t) return null;
@@ -87,13 +88,19 @@ export function FirstResult({ data, onMap, onRank, onClose }) {
   const fit = (k) => t.dong.rows.filter((r) => r[k] && r[k] <= B && r.n6 >= 10).map((r) => ({ ...r, tier: t.dong.tier.get(r.key) })).sort((x, y) => x.tier - y.tier || y.n6 - x.n6);
   const d84 = fit("m84"), d59 = fit("m59"), list = d84.length ? d84 : d59, area = d84.length ? "84㎡" : "59㎡";
   const nApt = (data.apts || []).filter((a) => a.trades_6m && a.median_price_10k != null && a.median_price_10k <= B).length;
-  const top = list.slice(0, 3);
+  const top = list.slice(0, 5);
+  if (folded) return (
+    <button type="button" onClick={onToggle} className="flex w-full flex-wrap items-center justify-between gap-2 rounded-large border-2 border-primary-200 bg-content1 px-4 py-2.5 text-left shadow-small hover:bg-default-50">
+      <span className="text-small"><b>내 후보지</b> <span className="text-default-500">· 예산 {won(B)}{yrs ? ` (${b.short})` : ""} · {list.length ? `${area} 기준 동 ${list.length}곳 · 1순위 ${top[0].gu} ${top[0].name}` : `예산 안 단지 ${nApt.toLocaleString("ko-KR")}곳`}</span></span>
+      <span className="text-tiny text-primary">펼치기 ▾</span>
+    </button>
+  );
   return (
     <Card shadow="sm" className="border-2 border-primary-200">
       <CardBody className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
-            <h2 className="text-large font-bold">내 예산 {won(B)}{yrs ? ` (${b.short})` : ""}으로 살 수 있는 곳</h2>
+            <h2 className="text-large font-bold">내 후보지 · 예산 {won(B)}{yrs ? ` (${b.short})` : ""}으로 살 수 있는 곳</h2>
             {list.length ? (
               <p className="text-small text-default-600">
                 {area} 기준 <b>동 {list.length}곳</b>, 최근 6개월 거래가 있는 <b>단지 {nApt.toLocaleString("ko-KR")}곳</b>이 예산 안에 들어요.
@@ -106,7 +113,7 @@ export function FirstResult({ data, onMap, onRank, onClose }) {
               </p>
             )}
           </div>
-          <button type="button" className="shrink-0 text-tiny text-default-400 underline" onClick={onClose}>닫기</button>
+          <button type="button" className="shrink-0 text-tiny text-default-400 underline" onClick={onToggle}>접기 ▴</button>
         </div>
         {top.length > 0 && (
           <div className="flex flex-wrap gap-2">

@@ -76,7 +76,9 @@ export default function App() {
   const failed = Object.keys(errors);
   const [kakaoError, setKakaoError] = useState(null);
   const [scope, setScope] = useState("seoul");
-  const [first, setFirst] = useState(false);  // the quick start was just saved: show where that budget reaches
+  // 내 후보지 card: open by default, folded to one line if the viewer folds it (remembered in this browser)
+  const [candFold, setCandFold] = useState(() => { try { return localStorage.getItem("hb-cand-fold") === "1"; } catch (e) { return false; } });
+  const toggleCand = () => setCandFold((f) => { try { localStorage.setItem("hb-cand-fold", f ? "0" : "1"); } catch (e) { /* private window */ } return !f; });
   // a 청약 row's "지도에서 위치 보기": open the map (서울+경기 for a Gyeonggi site); the map then zooms to it
   useEffect(() => {
     const go = () => { const r = pendingFocus.apply; if (!r) return; if (r.sido !== "11") setScope("metro"); setTab("map"); window.scrollTo({ top: 0, behavior: "smooth" }); };
@@ -110,9 +112,9 @@ export default function App() {
       <WatchModal open={watchOpen} onClose={() => setWatchOpen(false)} data={data} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={saveProfile} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} apts={loaded.apts} insights={loaded.insights} />
 
-      {profile.example && <QuickStart profile={profile} onSave={(p) => { saveProfile(p); setFirst(true); }} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
-      {first && !profile.example && (
-        <FirstResult data={data} onClose={() => setFirst(false)}
+      {profile.example && <QuickStart profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); }} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
+      {!profile.example && (
+        <FirstResult data={data} folded={candFold} onToggle={toggleCand}
           onMap={(key) => { setScope("seoul"); setTab("map"); setTimeout(() => { focusRegion("bdong", key); document.getElementById("atlas-map")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80); }}
           onRank={() => { setTab("money"); setTimeout(() => document.getElementById("tier-rank")?.scrollIntoView({ behavior: "smooth", block: "start" }), 300); }} />
       )}
