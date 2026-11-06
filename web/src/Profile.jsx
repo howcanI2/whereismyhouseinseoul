@@ -44,6 +44,7 @@ function SaleSummary({ draft, yrs }) {
       {rows.map(([l, s]) => (
         <div key={l} className="rounded-medium bg-default-100 px-3 py-2 text-tiny num">
           <div className="font-semibold text-default-600">{l} (보유 {s.hold}년{s.lived ? ` · 거주 ${s.lived}년` : ""})</div>
+          {s.taxKnown && s.hold < 2 && l === "지금 팔면" && <div className="text-[10px] font-semibold text-warning-700">산 해가 {draft.ownYear}년이라 2년 미만 단기 세율이 붙어요. 실제 산 해인지 확인하세요.</div>}
           {[["파는 가격", won(s.value)], ["− 남은 대출", won(s.loan)], ...(s.deposit ? [["− 세입자 보증금", won(s.deposit)]] : []), ["− 양도세 (지방세 포함)", !s.taxKnown ? "계산 전" : s.tax ? won(s.tax) : "0원"], ["− 중개보수", won(s.fee)]].map(([k, v]) => (
             <div key={k} className="flex justify-between"><span className="text-default-500">{k}</span><span>{v}</span></div>
           ))}
@@ -257,7 +258,9 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
                   </Q>
                   <Q title="② 언제, 얼마에 샀어요?">
                     <div className="grid grid-cols-2 gap-2">
-                      <Num label="산 해" value={draft.ownYear} ph={EX.ownYear} onChange={num("ownYear")} unit="년" />
+                      <Num label="산 해" value={draft.ownYear} ph={EX.ownYear} onChange={num("ownYear")} unit="년"
+                        hint={(() => { const y = Number(draft.ownYear), now = new Date().getFullYear(); if (!(y > 1900)) return "양도세 계산용"; const h = now - y;
+                          return h < 0 ? "올해보다 뒤예요" : h < 1 ? "보유 1년 미만 · 세율 70%" : h < 2 ? `보유 ${h}년 · 세율 60%` : `보유 ${h}년`; })()} />
                       <Money label="산 가격" value={draft.ownBought} ph={EX.ownBought} onChange={num("ownBought")} hint="양도세 계산용" />
                     </div>
                     <span className="text-tiny text-default-500">지금 이 집에</span>

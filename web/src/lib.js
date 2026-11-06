@@ -277,7 +277,7 @@ export function saleNet(p, t = 0) {
   if (!p.own) return null;
   const year = new Date().getFullYear(), value = ownPriceAt(p, t), loan = ownLoanAt(p, t).after;
   const hold = Math.max(0, year + t - (Number(p.ownYear) || year));
-  const stay = p.ownStay || "live", lived = stay === "live" ? hold : stay === "mixed" ? Number(p.ownLived) || 0 : 0;
+  const stay = p.ownStay || "live", lived = stay === "live" ? hold : stay === "mixed" ? Math.min(hold, Number(p.ownLived) || 0) : 0;  // cannot have lived there longer than it was owned
   const deposit = stay === "live" ? 0 : Number(p.ownDeposit) || 0;
   const fee = brokerFee(value).total;
   // 양도세 needs what it cost and when: without 산 가격 or 산 해 it is left out (not computed on a zero cost basis)
