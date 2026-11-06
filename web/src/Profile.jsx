@@ -30,9 +30,9 @@ function useVisibleHeight(on) {
 const keepVisible = (e) => { const el = e.target; setTimeout(() => el.scrollIntoView?.({ block: "center", behavior: "smooth" }), 300); };
 
 // a plain number field (연도, 년, %)
-function Num({ label, value, onChange, unit, hint }) {
+function Num({ label, value, onChange, unit, hint, ph }) {
   return (
-    <Input size="sm" type="number" inputMode="decimal" label={label} value={value == null ? "" : String(value)} onFocus={keepVisible}
+    <Input size="sm" type="number" inputMode="decimal" label={label} placeholder={ph != null ? `예: ${ph}` : undefined} value={value == null ? "" : String(value)} onFocus={keepVisible}
       onValueChange={(v) => onChange(v === "" ? 0 : Number(v))} endContent={<span className="whitespace-nowrap text-tiny text-default-400">{unit}</span>} description={hint} />
   );
 }
@@ -56,9 +56,9 @@ function SaleSummary({ draft, yrs }) {
 }
 
 // one money field in 만원, with the amount spelled out in 억/만 as you type
-export function Money({ label, value, onChange, hint, isDisabled }) {
+export function Money({ label, value, onChange, hint, isDisabled, ph }) {
   return (
-    <Input size="sm" type="number" inputMode="numeric" label={label} isDisabled={isDisabled} value={value == null ? "" : String(value)} onFocus={keepVisible}
+    <Input size="sm" type="number" inputMode="numeric" label={label} isDisabled={isDisabled} placeholder={ph != null ? `예: ${ph}` : undefined} value={value == null ? "" : String(value)} onFocus={keepVisible}
       onValueChange={(v) => onChange(v === "" ? 0 : Number(v))} endContent={<span className="whitespace-nowrap text-tiny text-default-400">만원</span>}
       description={value ? `= ${won(value)}${hint ? ` · ${hint}` : ""}` : hint} />
   );
@@ -164,6 +164,13 @@ function WorkPicker({ work, onPick, stations }) {
   );
 }
 
+const EX = DEFAULT_PROFILE;
+const NUMS = ["income", "cash", "saving", "partnerIncome", "partnerCash", "partnerSaving", "ownValue", "ownBought", "ownYear", "ownLived", "ownDeposit", "ownLoan", "ownLoanOrig", "ownPay", "ownSellPrice"];
+export const BLANK = { ...DEFAULT_PROFILE, work: DEFAULT_WORK, household: "single", marry: 0, firstHome: true, rate: null, own: false, ownApt: null, ownStay: "live", ownSell: "now", ownRate: null, ownTrend: null,
+  ...Object.fromEntries(NUMS.map((k) => [k, null])) };
+// empty fields are saved as 0 (산 해 as this year), so every screen reads plain numbers
+const filled = (d) => ({ ...d, ...Object.fromEntries(NUMS.map((k) => [k, d[k] == null || d[k] === "" ? (k === "ownYear" ? new Date().getFullYear() : 0) : d[k]])) });
+
 // "내 조건" editor. Values stay in this browser (localStorage); nothing is sent anywhere or shared with the link.
 export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate, stations, apts, insights }) {
   const [draft, setDraft] = useState(profile);
@@ -172,7 +179,8 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
   useEffect(() => { if (open) preloadInterstitial(); }, [open]);
   const [, setAdState] = useState("");  // re-render when the ad finishes loading, so the notice below appears
   useEffect(() => { interstitialState.listeners.add(setAdState); return () => interstitialState.listeners.delete(setAdState); }, []);  // 전면 광고 is ready before the viewer saves
-  useEffect(() => { if (open) setDraft(profile); }, [open, profile]);
+  // the example is not the viewer's: open on empty fields (the example shows as grey 예: hints) instead of someone else's numbers
+  useEffect(() => { if (open) setDraft(profile.example ? BLANK : profile); }, [open, profile]);
   const num = (k) => (v) => setDraft((d) => ({ ...d, [k]: v }));
   const hh = householdOf(draft), solo = hh === "single", yrs = Number(draft.marry) || 0;
   const live = budgetsFrom(draft, rate);  // what these numbers buy, updated as you type
@@ -182,15 +190,19 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
       <ModalContent style={phone && visH ? { height: visH.h, maxHeight: visH.h, minHeight: 0, marginTop: visH.top } : undefined}>
         <ModalHeader className="flex flex-col gap-2 pb-2">
           <div className="flex items-baseline justify-between gap-2 pr-6">내 조건<span className="hidden text-tiny font-normal text-default-500 sm:inline">이 브라우저에만 저장 · 링크를 공유해도 안 보입니다</span></div>
-          <div className="grid grid-cols-2 gap-2">
-            {live.map((b) => (
-              <div key={b.scenario} className={`rounded-medium px-3 py-1.5 sm:py-2 ${b.scenario === "later" ? "bg-primary-50" : "bg-default-100"}`}>
-                <div className="text-tiny font-normal text-default-500">{b.label} 최대</div>
-                <div className={`text-lg font-bold num sm:text-xl ${b.scenario === "later" ? "text-primary" : ""}`}>{won(b.max_price_10k)}</div>
-                <div className="hidden text-[10px] font-normal text-default-400 num sm:block">대출 {won(b.loan_10k)} · {b.binding}</div>
-              </div>
-            ))}
-          </div>
+          {!(draft.income > 0 || draft.cash > 0 || draft.partnerIncome > 0 || draft.partnerCash > 0) ? (
+            <div className="rounded-medium bg-default-100 px-3 py-2 text-small font-normal text-default-500">소득이나 모은 돈을 넣으면 살 수 있는 최대 가격이 여기에 바로 나와요.</div>
+          ) : (
+            <div className={`grid gap-2 ${yrs ? "grid-cols-2" : "grid-cols-1"}`}>
+              {(yrs ? live : live.slice(0, 1)).map((b) => (
+                <div key={b.scenario} className={`rounded-medium px-3 py-1.5 sm:py-2 ${b.scenario === "later" ? "bg-primary-50" : "bg-default-100"}`}>
+                  <div className="text-tiny font-normal text-default-500">{b.label} 최대</div>
+                  <div className={`text-lg font-bold num sm:text-xl ${b.scenario === "later" ? "text-primary" : ""}`}>{won(b.max_price_10k)}</div>
+                  <div className="hidden text-[10px] font-normal text-default-400 num sm:block">대출 {won(b.loan_10k)} · {b.binding}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </ModalHeader>
         <ModalBody className="gap-5">
           <Step n="1" title="직장">
@@ -212,16 +224,16 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
             <div className={`grid gap-4 ${solo ? "grid-cols-1" : "sm:grid-cols-2"}`}>
               <div className="flex flex-col gap-2">
                 <span className="text-tiny font-semibold text-default-600">나</span>
-                <Money label="연소득 (세전)" value={draft.income} onChange={num("income")} />
-                <Money label="지금 모은 돈" value={draft.cash} onChange={num("cash")} />
-                <Money label="월 저축액" value={draft.saving} onChange={num("saving")} />
+                <Money label="연소득 (세전)" value={draft.income} ph={EX.income} onChange={num("income")} />
+                <Money label="지금 모은 돈" value={draft.cash} ph={EX.cash} onChange={num("cash")} />
+                <Money label="월 저축액" value={draft.saving} ph={EX.saving} onChange={num("saving")} />
               </div>
               {!solo && (
                 <div className="flex flex-col gap-2">
                   <span className="text-tiny font-semibold text-default-600">{hh === "plan" ? "배우자 (예정)" : "배우자"}</span>
-                  <Money label="연소득 (세전)" value={draft.partnerIncome} onChange={num("partnerIncome")} />
-                  <Money label="지금 모은 돈" value={draft.partnerCash} onChange={num("partnerCash")} />
-                  <Money label="월 저축액" value={draft.partnerSaving} onChange={num("partnerSaving")} />
+                  <Money label="연소득 (세전)" value={draft.partnerIncome} ph={EX.partnerIncome} onChange={num("partnerIncome")} />
+                  <Money label="지금 모은 돈" value={draft.partnerCash} ph={EX.partnerCash} onChange={num("partnerCash")} />
+                  <Money label="월 저축액" value={draft.partnerSaving} ph={EX.partnerSaving} onChange={num("partnerSaving")} />
                 </div>
               )}
             </div>
@@ -241,28 +253,28 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
                 <div className="flex flex-col gap-4">
                   <Q title="① 어느 집이에요?">
                     <OwnAptPicker apts={apts} insights={insights} draft={draft} onPick={set} />
-                    <Money label="지금 시세" value={draft.ownValue} onChange={num("ownValue")} hint={draft.ownApt ? "단지 실거래로 채움" : "모르면 비슷한 매물 가격"} />
+                    <Money label="지금 시세" value={draft.ownValue} ph={EX.ownValue} onChange={num("ownValue")} hint={draft.ownApt ? "단지 실거래로 채움" : "모르면 비슷한 매물 가격"} />
                   </Q>
                   <Q title="② 언제, 얼마에 샀어요?">
                     <div className="grid grid-cols-2 gap-2">
-                      <Num label="산 해" value={draft.ownYear} onChange={num("ownYear")} unit="년" />
-                      <Money label="산 가격" value={draft.ownBought} onChange={num("ownBought")} hint="양도세 계산용" />
+                      <Num label="산 해" value={draft.ownYear} ph={EX.ownYear} onChange={num("ownYear")} unit="년" />
+                      <Money label="산 가격" value={draft.ownBought} ph={EX.ownBought} onChange={num("ownBought")} hint="양도세 계산용" />
                     </div>
                     <span className="text-tiny text-default-500">지금 이 집에</span>
                     <Choice value={stay} onChange={(v) => set({ ownStay: v })} options={[["live", "직접 살고 있어요"], ["rent", "세를 줬어요"], ["mixed", "살다가 세를 줬어요"]]} />
                     {stay !== "live" && (
                       <div className="grid grid-cols-2 gap-2">
-                        <Money label="세입자 보증금" value={draft.ownDeposit} onChange={num("ownDeposit")} hint="팔 때 돌려줄 돈" />
-                        {stay === "mixed" && <Num label="직접 산 기간" value={draft.ownLived} onChange={num("ownLived")} unit="년" hint="양도세 비과세는 2년부터" />}
+                        <Money label="세입자 보증금" value={draft.ownDeposit} ph={EX.ownDeposit} onChange={num("ownDeposit")} hint="팔 때 돌려줄 돈" />
+                        {stay === "mixed" && <Num label="직접 산 기간" value={draft.ownLived} ph={EX.ownLived} onChange={num("ownLived")} unit="년" hint="양도세 비과세는 2년부터" />}
                       </div>
                     )}
                   </Q>
                   <Q title="③ 대출이 남아 있어요? (은행 앱에 나와요)">
                     <div className="grid grid-cols-2 gap-2">
-                      <Money label="남은 대출" value={draft.ownLoan} onChange={num("ownLoan")} hint={!draft.ownLoan && ln.estimated ? `추정 ${won(ln.now)}` : "없으면 0"} />
-                      <Money label="매달 내는 돈" value={draft.ownPay} onChange={num("ownPay")} hint={!draft.ownPay && ln.pay ? `추정 ${won(ln.pay)}` : "원금+이자"} />
-                      <Num label="대출 금리" value={draft.ownRate} onChange={(v) => set({ ownRate: v || null })} unit="%" hint="비우면 아래 대출 금리" />
-                      {!draft.ownLoan && <Money label="처음 빌린 금액" value={draft.ownLoanOrig} onChange={num("ownLoanOrig")} hint="남은 대출을 모를 때만" />}
+                      <Money label="남은 대출" value={draft.ownLoan} ph={EX.ownLoan} onChange={num("ownLoan")} hint={!draft.ownLoan && ln.estimated ? `추정 ${won(ln.now)}` : "없으면 0"} />
+                      <Money label="매달 내는 돈" value={draft.ownPay} ph={EX.ownPay} onChange={num("ownPay")} hint={!draft.ownPay && ln.pay ? `추정 ${won(ln.pay)}` : "원금+이자"} />
+                      <Num label="대출 금리" value={draft.ownRate} ph={EX.ownRate} onChange={(v) => set({ ownRate: v || null })} unit="%" hint="비우면 아래 대출 금리" />
+                      {!draft.ownLoan && <Money label="처음 빌린 금액" value={draft.ownLoanOrig} ph={EX.ownLoanOrig} onChange={num("ownLoanOrig")} hint="남은 대출을 모를 때만" />}
                     </div>
                     {ln.now > 0 && <p className="text-tiny text-default-500">매달 {won(ln.pay)} 중 이자 약 {won(ln.interest)}, 원금 약 {won(ln.principal)}을 갚고 있어요.{ln.estimated ? " (산 해부터 30년 원리금균등으로 갚았다고 보고 계산)" : ""}</p>}
                   </Q>
@@ -270,8 +282,8 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
                     <Q title={`${yrs}년 뒤 팔 때 가격은?`}>
                       <Choice value={draft.ownSell || "now"} onChange={(v) => set({ ownSell: v })}
                         options={[["now", "지금 시세 그대로"], ["trend", draft.ownTrend != null ? `최근 1년 오름세 (연 ${draft.ownTrend > 0 ? "+" : ""}${draft.ownTrend}%)` : "최근 1년 오름세"], ["custom", "직접 입력"]]} />
-                      {draft.ownSell === "trend" && !draft.ownApt && <Num label="연 상승률" value={draft.ownTrend} onChange={(v) => set({ ownTrend: v })} unit="%" hint="단지를 고르면 그 동네 값으로 채워져요" />}
-                      {draft.ownSell === "custom" && <Money label={`${yrs}년 뒤 팔 가격`} value={draft.ownSellPrice} onChange={num("ownSellPrice")} />}
+                      {draft.ownSell === "trend" && !draft.ownApt && <Num label="연 상승률" value={draft.ownTrend} ph={EX.ownTrend} onChange={(v) => set({ ownTrend: v })} unit="%" hint="단지를 고르면 그 동네 값으로 채워져요" />}
+                      {draft.ownSell === "custom" && <Money label={`${yrs}년 뒤 팔 가격`} value={draft.ownSellPrice} ph={EX.ownSellPrice} onChange={num("ownSellPrice")} />}
                     </Q>
                   )}
                   <SaleSummary draft={draft} yrs={yrs} />
@@ -294,8 +306,8 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
         </ModalBody>
         <ModalFooter className="flex-wrap items-center">
           {interstitialPending() && <span className="w-full text-right text-[10px] text-default-400 sm:mr-auto sm:w-auto">저장하면 광고가 한 번 나온 뒤 결과로 돌아갑니다</span>}
-          <Button variant="light" onPress={() => { onReset(); onClose(); }}>예시값으로 되돌리기</Button>
-          <Button color="primary" onPress={() => { onSave(draft); onClose(); setTimeout(showInterstitialOnce, 400); }}>저장</Button>
+          {!profile.example && <button type="button" className="mr-auto text-tiny text-default-500 underline" onClick={() => setDraft({ ...BLANK, work: DEFAULT_WORK })}>처음부터 다시 입력</button>}
+          <Button color="primary" onPress={() => { onSave(filled(draft)); onClose(); setTimeout(showInterstitialOnce, 400); }}>저장</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
