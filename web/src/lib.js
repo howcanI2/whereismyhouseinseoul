@@ -171,10 +171,19 @@ export const LTV = 0.7, DSR = 0.4, STRESS = 3, YEARS = 30;
 // Example values a first-time visitor sees; nothing about the person who built the app.
 // own*: a home the viewer already has and would sell to move (갈아타기); off by default
 export const DEFAULT_PROFILE = { work: DEFAULT_WORK, household: "plan", income: 5000, cash: 10000, saving: 200, marry: 3, partnerIncome: 5000, partnerCash: 8000, partnerSaving: 150, firstHome: true, rate: null,
-  own: false, ownValue: 80000, ownBought: 60000, ownYear: 2019, ownLived: 3, ownLoan: 30000, ownRepay: 80, ownGrowth: 2, example: true };
+  own: false, ownApt: null, ownValue: 80000, ownBought: 60000, ownYear: 2019, ownStay: "live", ownLived: 3, ownDeposit: 0,
+  ownLoan: 30000, ownLoanOrig: 0, ownPay: 150, ownRate: null, ownSell: "now", ownSellPrice: 0, ownTrend: null, example: true };
 const PKEY = "hb-profile-v1";
+// profiles saved before the 지금 가진 집 questions changed (남은 대출 + 매달 원금 + 상승률 %): carry them over so the
+// result does not jump. 매달 원금 becomes 매달 내는 돈 (원금 + 이자 at 4%), a 거주 기간 becomes 살고 있음 / 세 줌 / 살다가 세 줌.
+function migrateOwn(s) {
+  if (s.ownRepay === undefined || s.ownPay !== undefined) return s;
+  const { ownRepay, ownGrowth, ...rest } = s, hold = Math.max(0, new Date().getFullYear() - (Number(s.ownYear) || 0)), lived = Number(s.ownLived) || 0;
+  return { ...rest, ownPay: Math.round((Number(ownRepay) || 0) + ((Number(s.ownLoan) || 0) * 4) / 1200),
+    ownStay: lived <= 0 ? "rent" : lived >= hold ? "live" : "mixed", ...(Number(ownGrowth) ? { ownSell: "trend", ownTrend: Number(ownGrowth) } : { ownSell: "now" }) };
+}
 export function useProfile() {
-  const [p, setP] = useState(() => { try { return { ...DEFAULT_PROFILE, ...JSON.parse(localStorage.getItem(PKEY) || "{}") }; } catch (e) { return DEFAULT_PROFILE; } });
+  const [p, setP] = useState(() => { try { return { ...DEFAULT_PROFILE, ...migrateOwn(JSON.parse(localStorage.getItem(PKEY) || "{}")) }; } catch (e) { return DEFAULT_PROFILE; } });
   const save = (next) => { const v = { ...p, ...next, example: false }; setP(v); try { localStorage.setItem(PKEY, JSON.stringify(v)); } catch (e) { /* private window: keep in memory */ } };
   const reset = () => { setP(DEFAULT_PROFILE); try { localStorage.removeItem(PKEY); } catch (e) { /* ignore */ } };
   return [p, save, reset];
@@ -242,14 +251,34 @@ export function gainTax(sale, cost, hold, lived) {
   const base = Math.max(0, taxable * (1 - ded) - 250), [, r, acc] = PROG.find(([hi]) => base <= hi);
   return { total: Math.round(Math.max(0, base * r - acc) * 1.1), gain: Math.round(gain), note: `${exempt ? "12억 초과분만 과세" : "1주택 비과세 요건(2년 보유·거주) 미충족"}${ded ? ` · 장기보유공제 ${Math.round(ded * 100)}%` : ""}` };
 }
-// selling the home the viewer has, t years from now: what is left after the loan, 양도세 and 중개보수
+// the loan on the home the viewer has: what is owed now (from the bank app, or worked out from the original amount on
+// a 30-year 원리금균등 loan from the year bought), the monthly payment, and the balance after t more years of paying it
+export function ownLoanAt(p, t = 0) {
+  const year = new Date().getFullYear(), r = (Number(p.ownRate) || Number(p.rate) || 4) / 1200, n = YEARS * 12;
+  const k = Math.min(n, Math.max(0, (year - (Number(p.ownYear) || year)) * 12));
+  const orig = Number(p.ownLoanOrig) || 0, given = Number(p.ownLoan) || 0;
+  const now = given > 0 ? given : orig > 0 ? Math.max(0, (orig * (Math.pow(1 + r, n) - Math.pow(1 + r, k))) / (Math.pow(1 + r, n) - 1)) : 0;
+  const left = Math.max(1, n - k), pay = Number(p.ownPay) > 0 ? Number(p.ownPay) : now > 0 ? (now * r) / (1 - Math.pow(1 + r, -left)) : 0;
+  const m = 12 * t, after = r ? now * Math.pow(1 + r, m) - (pay * (Math.pow(1 + r, m) - 1)) / r : now - pay * m;
+  return { now: Math.round(now), pay: Math.round(pay), interest: Math.round(now * r), principal: Math.round(Math.max(0, pay - now * r)), estimated: !(given > 0) && orig > 0, after: Math.max(0, Math.round(after)) };
+}
+// what the home sells for t years from now: today's 시세 now; later, 시세 kept, grown at its own area's recent pace, or typed in
+export function ownPriceAt(p, t = 0) {
+  const v = Number(p.ownValue) || 0;
+  if (!t || p.ownSell === "now") return v;
+  if (p.ownSell === "custom" && Number(p.ownSellPrice) > 0) return Number(p.ownSellPrice);
+  if (p.ownSell === "trend") return Math.round(v * Math.pow(1 + (Number(p.ownTrend) || 0) / 100, t));
+  return v;
+}
+// selling the home the viewer has, t years from now: what is left after the loan, the 세입자 보증금, 양도세 and 중개보수
 export function saleNet(p, t = 0) {
   if (!p.own) return null;
-  const year = new Date().getFullYear(), g = (Number(p.ownGrowth) || 0) / 100;
-  const value = Math.round((p.ownValue || 0) * Math.pow(1 + g, t)), loan = Math.max(0, (p.ownLoan || 0) - (p.ownRepay || 0) * 12 * t);
-  const hold = Math.max(0, year + t - (Number(p.ownYear) || year)), lived = (Number(p.ownLived) || 0) > 0 ? Number(p.ownLived) + t : 0;
+  const year = new Date().getFullYear(), value = ownPriceAt(p, t), loan = ownLoanAt(p, t).after;
+  const hold = Math.max(0, year + t - (Number(p.ownYear) || year));
+  const stay = p.ownStay || "live", lived = stay === "live" ? hold : stay === "mixed" ? Number(p.ownLived) || 0 : 0;
+  const deposit = stay === "live" ? 0 : Number(p.ownDeposit) || 0;
   const tax = gainTax(value, p.ownBought || 0, hold, lived), fee = brokerFee(value).total;
-  return { value, loan, tax: tax.total, taxNote: tax.note, gain: tax.gain, fee, hold, lived, net: Math.max(0, value - loan - tax.total - fee) };
+  return { value, loan, deposit, tax: tax.total, taxNote: tax.note, gain: tax.gain, fee, hold, lived, net: Math.max(0, value - loan - deposit - tax.total - fee) };
 }
 // everything up front for one purchase, the loan it needs, and the monthly / yearly costs after
 export function buyPlan(P, { cash = 0, income = 0, rate = 4.5, first = false, area = 84 } = {}) {

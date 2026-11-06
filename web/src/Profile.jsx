@@ -1,22 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Button, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Slider, Switch, Textarea } from "@heroui/react";
+import { Button, Chip, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Slider, Switch } from "@heroui/react";
 import { interstitialPending, interstitialState, preloadInterstitial, showInterstitialOnce } from "./TossInterstitial.js";
-import { budgetsFrom, DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, saleNet, useBackToClose, useWatch, WORKPLACES, won } from "./lib.js";
-
-// 다른 기기로 옮길 때 쓰는 코드: 내 조건 + 관심 단지를 한 줄로. 서버나 링크에는 남지 않고 복사한 사람만 가집니다.
-const encode = (obj) => "HB1:" + btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
-function decode(code) {
-  const t = (code || "").trim();
-  if (!t.startsWith("HB1:")) throw new Error("형식이 맞지 않습니다");
-  const o = JSON.parse(decodeURIComponent(escape(atob(t.slice(4)))));
-  if (!o || typeof o.p !== "object") throw new Error("내용이 비어 있습니다");
-  const p = Object.fromEntries(Object.keys(DEFAULT_PROFILE).filter((k) => k !== "example" && k !== "work" && k in o.p).map((k) => [k, k === "firstHome" || k === "own" ? !!o.p[k] : k === "household" ? (HOUSEHOLDS.some(([h]) => h === o.p[k]) ? o.p[k] : "plan") : o.p[k] == null ? null : Number(o.p[k])]));
-  const w = o.w && typeof o.w === "object" ? o.w : {};
-  const wk = o.p.work;
-  if (wk && Number.isFinite(Number(wk.lon)) && Number.isFinite(Number(wk.lat))) p.work = { name: String(wk.name || "직장").slice(0, 40), lon: Number(wk.lon), lat: Number(wk.lat) };
-  return { p, w };
-}
+import { budgetsFrom, DEFAULT_PROFILE, DEFAULT_WORK, HOUSEHOLDS, householdOf, ownLoanAt, saleNet, useBackToClose, WORKPLACES, won } from "./lib.js";
 
 // phones get a full-screen sheet: a centered dialog shrinks to a sliver once the keyboard opens
 function useIsPhone() {
@@ -58,7 +44,7 @@ function SaleSummary({ draft, yrs }) {
       {rows.map(([l, s]) => (
         <div key={l} className="rounded-medium bg-default-100 px-3 py-2 text-tiny num">
           <div className="font-semibold text-default-600">{l} (보유 {s.hold}년{s.lived ? ` · 거주 ${s.lived}년` : ""})</div>
-          {[["시세", won(s.value)], ["− 남은 대출", won(s.loan)], ["− 양도세 (지방세 포함)", s.tax ? won(s.tax) : "0원"], ["− 중개보수", won(s.fee)]].map(([k, v]) => (
+          {[["파는 가격", won(s.value)], ["− 남은 대출", won(s.loan)], ...(s.deposit ? [["− 세입자 보증금", won(s.deposit)]] : []), ["− 양도세 (지방세 포함)", s.tax ? won(s.tax) : "0원"], ["− 중개보수", won(s.fee)]].map(([k, v]) => (
             <div key={k} className="flex justify-between"><span className="text-default-500">{k}</span><span>{v}</span></div>
           ))}
           <div className="mt-0.5 flex justify-between border-t border-default-200 pt-0.5 text-small"><span className="font-semibold">손에 남는 돈</span><b className="text-primary">{won(s.net)}</b></div>
@@ -70,13 +56,54 @@ function SaleSummary({ draft, yrs }) {
 }
 
 // one money field in 만원, with the amount spelled out in 억/만 as you type
-function Money({ label, value, onChange, hint, isDisabled }) {
+export function Money({ label, value, onChange, hint, isDisabled }) {
   return (
     <Input size="sm" type="number" inputMode="numeric" label={label} isDisabled={isDisabled} value={value == null ? "" : String(value)} onFocus={keepVisible}
       onValueChange={(v) => onChange(v === "" ? 0 : Number(v))} endContent={<span className="whitespace-nowrap text-tiny text-default-400">만원</span>}
       description={value ? `= ${won(value)}${hint ? ` · ${hint}` : ""}` : hint} />
   );
 }
+// 지금 가진 집 찾기: the site's own complexes, so 시세 fills in from recent 실거래 (6개월 중위가) and the 오름세 from its 동
+function OwnAptPicker({ apts, insights, draft, onPick }) {
+  const [q, setQ] = useState("");
+  const key = q.replace(/\s/g, "");
+  const found = key.length < 2 || !apts ? [] : apts.filter((a) => (a.apt + a.dong).replace(/\s/g, "").includes(key) && a.median_price_10k)
+    .sort((a, b) => (b.trades_6m || 0) - (a.trades_6m || 0)).slice(0, 6);
+  const pick = (a) => {
+    const r = insights?.hdong?.[a.hcode] || insights?.bdong?.[`${a.gu} ${a.dong}`], up = insights?.gu?.[a.gu];
+    onPick({ ownApt: a.id, ownValue: a.median_price_10k, ownTrend: r?.p12?.chg ?? up?.p12?.chg ?? null }); setQ("");
+  };
+  const cur = draft.ownApt && apts?.find((a) => a.id === draft.ownApt);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Input size="sm" aria-label="우리 집 단지 검색" placeholder="단지 이름 (예: 래미안, 목동신시가지)" value={q} onValueChange={setQ} onFocus={keepVisible} />
+      {found.length > 0 && (
+        <ul className="flex flex-col rounded-medium border border-default-200">
+          {found.map((a) => (
+            <li key={a.id}><button type="button" className="w-full px-2 py-1.5 text-left text-tiny hover:bg-default-100" onClick={() => pick(a)}>
+              <b>{a.apt}</b> <span className="text-default-400">{a.gu} {a.dong} · 최근 중위 {won(a.median_price_10k)} ({a.median_area_sqm}㎡)</span>
+            </button></li>
+          ))}
+        </ul>
+      )}
+      {key.length >= 2 && !found.length && <p className="text-tiny text-default-500">찾는 단지가 없으면 아래 시세를 직접 적어 주세요.</p>}
+      {cur && <p className="text-tiny text-default-500">선택: <b>{cur.apt}</b> ({cur.gu} {cur.dong}) · 시세는 최근 6개월 중위가({cur.median_area_sqm}㎡ 기준)로 채웠어요. 평형이 다르면 고쳐 주세요.</p>}
+    </div>
+  );
+}
+// a row of 2~3 choices as big buttons
+export function Choice({ value, onChange, options }) {
+  return (
+    <div className={`grid gap-1.5 ${options.length > 2 ? "grid-cols-3" : "grid-cols-2"}`}>
+      {options.map(([k, l]) => (
+        <button key={k} type="button" onClick={() => onChange(k)}
+          className={`rounded-medium border-2 px-2 py-1.5 text-tiny font-medium transition-colors ${value === k ? "border-primary bg-primary-50 text-primary" : "border-default-200 hover:bg-default-100"}`}>{l}</button>
+      ))}
+    </div>
+  );
+}
+const Q = ({ title, children }) => <div className="flex flex-col gap-1.5"><span className="text-tiny font-semibold text-default-600">{title}</span>{children}</div>;
+
 const Step = ({ n, title, sub, children, right }) => (
   <section className="flex flex-col gap-2">
     <div className="flex items-baseline justify-between gap-2">
@@ -138,31 +165,17 @@ function WorkPicker({ work, onPick, stations }) {
 }
 
 // "내 조건" editor. Values stay in this browser (localStorage); nothing is sent anywhere or shared with the link.
-export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate, stations }) {
+export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate, stations, apts, insights }) {
   const [draft, setDraft] = useState(profile);
   const phone = useIsPhone(), visH = useVisibleHeight(phone && open);
   useBackToClose(open, onClose);
   useEffect(() => { if (open) preloadInterstitial(); }, [open]);
   const [, setAdState] = useState("");  // re-render when the ad finishes loading, so the notice below appears
   useEffect(() => { interstitialState.listeners.add(setAdState); return () => interstitialState.listeners.delete(setAdState); }, []);  // 전면 광고 is ready before the viewer saves
-  const [watch, , setWatch] = useWatch();
-  const [move, setMove] = useState(null); // null | "out" | "in"
-  const [code, setCode] = useState(""), [msg, setMsg] = useState("");
-  useEffect(() => { if (open) { setMove(null); setCode(""); setMsg(""); } }, [open]);
-  const exportCode = () => {
-    const { example, ...p } = profile;
-    const c = encode({ p, w: watch }); setCode(c); setMove("out");
-    navigator.clipboard?.writeText(c).then(() => setMsg("복사했습니다. 다른 기기의 '가져오기'에 붙여 넣으세요."), () => setMsg("아래 코드를 직접 복사하세요."));
-  };
-  const importCode = () => {
-    try { const { p, w } = decode(code); onSave(p); setWatch({ ...watch, ...w }); setMsg(`가져왔습니다: 내 조건, 관심 단지 ${Object.keys(w).length}곳`); setDraft((d) => ({ ...d, ...p })); }
-    catch (e) { setMsg("코드를 읽지 못했습니다. 처음부터 끝까지 그대로 붙여 넣었는지 확인하세요."); }
-  };
   useEffect(() => { if (open) setDraft(profile); }, [open, profile]);
   const num = (k) => (v) => setDraft((d) => ({ ...d, [k]: v }));
   const hh = householdOf(draft), solo = hh === "single", yrs = Number(draft.marry) || 0;
   const live = budgetsFrom(draft, rate);  // what these numbers buy, updated as you type
-  const [moveOpen, setMoveOpen] = useState(false);
   const HH_TEXT = { single: "내 소득·저축만으로", plan: "지금은 혼자, 결혼하면 둘이 합쳐서", married: "지금부터 부부 합산으로" };
   return (
     <Modal isOpen={open} onOpenChange={(o) => !o && onClose()} size={phone ? "full" : "2xl"} scrollBehavior="inside">
@@ -222,21 +235,50 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
 
           <Step n="5" title="지금 가진 집" sub={draft.own ? "이 집을 팔고 새 집으로 옮긴다고 보고, 판 돈을 모은 돈에 더합니다." : "집이 있다면 켜 주세요. 팔 때 남는 돈과 세금을 계산해 예산에 더합니다."}
             right={<Switch size="sm" isSelected={!!draft.own} onValueChange={(v) => setDraft((d) => ({ ...d, own: v }))} aria-label="지금 가진 집 있음" />}>
-            {draft.own && (
-              <>
-                <div className="grid grid-cols-2 gap-2">
-                  <Money label="지금 시세" value={draft.ownValue} onChange={num("ownValue")} />
-                  <Money label="산 가격" value={draft.ownBought} onChange={num("ownBought")} hint="양도세 계산용" />
-                  <Num label="산 해" value={draft.ownYear} onChange={num("ownYear")} unit="년" />
-                  <Num label="직접 거주한 기간" value={draft.ownLived} onChange={num("ownLived")} unit="년" hint="세입자를 줬다면 0" />
-                  <Money label="남은 대출" value={draft.ownLoan} onChange={num("ownLoan")} />
-                  <Money label="매달 갚는 원금" value={draft.ownRepay} onChange={num("ownRepay")} hint="이자 빼고" />
-                  <Num label="집값 상승 예상 (연)" value={draft.ownGrowth} onChange={num("ownGrowth")} unit="%" hint="팔 때 시세 = 지금 × (1+상승률)^년" />
+            {draft.own && (() => {
+              const set = (o) => setDraft((d) => ({ ...d, ...o })), ln = ownLoanAt(draft, 0), stay = draft.ownStay || "live";
+              return (
+                <div className="flex flex-col gap-4">
+                  <Q title="① 어느 집이에요?">
+                    <OwnAptPicker apts={apts} insights={insights} draft={draft} onPick={set} />
+                    <Money label="지금 시세" value={draft.ownValue} onChange={num("ownValue")} hint={draft.ownApt ? "단지 실거래로 채움" : "모르면 비슷한 매물 가격"} />
+                  </Q>
+                  <Q title="② 언제, 얼마에 샀어요?">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Num label="산 해" value={draft.ownYear} onChange={num("ownYear")} unit="년" />
+                      <Money label="산 가격" value={draft.ownBought} onChange={num("ownBought")} hint="양도세 계산용" />
+                    </div>
+                    <span className="text-tiny text-default-500">지금 이 집에</span>
+                    <Choice value={stay} onChange={(v) => set({ ownStay: v })} options={[["live", "직접 살고 있어요"], ["rent", "세를 줬어요"], ["mixed", "살다가 세를 줬어요"]]} />
+                    {stay !== "live" && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Money label="세입자 보증금" value={draft.ownDeposit} onChange={num("ownDeposit")} hint="팔 때 돌려줄 돈" />
+                        {stay === "mixed" && <Num label="직접 산 기간" value={draft.ownLived} onChange={num("ownLived")} unit="년" hint="양도세 비과세는 2년부터" />}
+                      </div>
+                    )}
+                  </Q>
+                  <Q title="③ 대출이 남아 있어요? (은행 앱에 나와요)">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Money label="남은 대출" value={draft.ownLoan} onChange={num("ownLoan")} hint={!draft.ownLoan && ln.estimated ? `추정 ${won(ln.now)}` : "없으면 0"} />
+                      <Money label="매달 내는 돈" value={draft.ownPay} onChange={num("ownPay")} hint={!draft.ownPay && ln.pay ? `추정 ${won(ln.pay)}` : "원금+이자"} />
+                      <Num label="대출 금리" value={draft.ownRate} onChange={(v) => set({ ownRate: v || null })} unit="%" hint="비우면 아래 대출 금리" />
+                      {!draft.ownLoan && <Money label="처음 빌린 금액" value={draft.ownLoanOrig} onChange={num("ownLoanOrig")} hint="남은 대출을 모를 때만" />}
+                    </div>
+                    {ln.now > 0 && <p className="text-tiny text-default-500">매달 {won(ln.pay)} 중 이자 약 {won(ln.interest)}, 원금 약 {won(ln.principal)}을 갚고 있어요.{ln.estimated ? " (산 해부터 30년 원리금균등으로 갚았다고 보고 계산)" : ""}</p>}
+                  </Q>
+                  {yrs > 0 && (
+                    <Q title={`${yrs}년 뒤 팔 때 가격은?`}>
+                      <Choice value={draft.ownSell || "now"} onChange={(v) => set({ ownSell: v })}
+                        options={[["now", "지금 시세 그대로"], ["trend", draft.ownTrend != null ? `최근 1년 오름세 (연 ${draft.ownTrend > 0 ? "+" : ""}${draft.ownTrend}%)` : "최근 1년 오름세"], ["custom", "직접 입력"]]} />
+                      {draft.ownSell === "trend" && !draft.ownApt && <Num label="연 상승률" value={draft.ownTrend} onChange={(v) => set({ ownTrend: v })} unit="%" hint="단지를 고르면 그 동네 값으로 채워져요" />}
+                      {draft.ownSell === "custom" && <Money label={`${yrs}년 뒤 팔 가격`} value={draft.ownSellPrice} onChange={num("ownSellPrice")} />}
+                    </Q>
+                  )}
+                  <SaleSummary draft={draft} yrs={yrs} />
+                  <p className="text-[10px] text-default-400">양도세는 1세대 1주택 기준 추정입니다 (2년 보유·거주면 12억까지 비과세, 넘는 부분은 장기보유특별공제 후 누진세율). 집이 2채 이상이거나 일시적 2주택 기한을 넘기면 달라집니다. 매달 내는 대출금이 위의 월 저축액과 따로라면 저축액에서 빼고 입력하세요.</p>
                 </div>
-                <SaleSummary draft={draft} yrs={yrs} />
-                <p className="text-[10px] text-default-400">양도세는 1세대 1주택 기준 추정입니다 (2년 보유·거주면 12억까지 비과세, 넘는 부분은 장기보유특별공제 후 누진세율). 집이 2채 이상이거나 일시적 2주택 기한을 넘기면 달라집니다. 매달 갚는 원금이 월 저축액과 따로라면 저축액에서 빼고 입력하세요.</p>
-              </>
-            )}
+              );
+            })()}
           </Step>
 
           <Step n="6" title="대출 조건">
@@ -248,23 +290,6 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
               endContent={<span className="whitespace-nowrap text-tiny text-default-400">%</span>} description="스트레스 금리 3%p를 더해 DSR 40% 한도를 계산합니다." />
           </Step>
 
-          <div className="rounded-medium border border-default-200 px-3 py-2">
-            <button type="button" className="flex w-full items-center justify-between text-small font-medium" onClick={() => setMoveOpen((v) => !v)} aria-expanded={moveOpen}>
-              다른 기기로 옮기기 <span className="text-tiny text-default-400">{moveOpen ? "접기 ▴" : "열기 ▾"}</span>
-            </button>
-            {moveOpen && (
-              <>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <Button size="sm" variant="flat" isDisabled={profile.example} onPress={exportCode}>내보내기 (코드 복사)</Button>
-                  <Button size="sm" variant="flat" onPress={() => { setMove("in"); setCode(""); setMsg(""); }}>가져오기</Button>
-                </div>
-                <p className="mt-1 text-[10px] text-default-400">내 조건과 관심 단지를 코드 한 줄로 옮깁니다. 코드는 어디에도 저장·전송되지 않으니, 남에게 보내지만 않으면 아무도 볼 수 없습니다.{profile.example ? " 먼저 내 조건을 저장해야 내보낼 수 있습니다." : ""}</p>
-                {move && <Textarea className="mt-2" size="sm" minRows={2} maxRows={4} aria-label="옮기기 코드" placeholder="HB1:로 시작하는 코드를 붙여 넣으세요" value={code} onValueChange={setCode} isReadOnly={move === "out"} />}
-                {move === "in" && <Button className="mt-2" size="sm" color="primary" isDisabled={!code.trim()} onPress={importCode}>이 코드로 불러오기</Button>}
-                {msg && <p className="mt-1 text-tiny text-default-600">{msg}</p>}
-              </>
-            )}
-          </div>
           <p className="text-[10px] text-default-400 sm:hidden">이 브라우저에만 저장 · 링크를 공유해도 안 보입니다</p>
         </ModalBody>
         <ModalFooter className="flex-wrap items-center">

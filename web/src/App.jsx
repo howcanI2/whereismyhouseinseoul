@@ -13,6 +13,7 @@ import TossBanner from "./TossBanner.jsx";
 import { installExternalLinks } from "./TossLinks.js";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
 import TierRank from "./TierRank.jsx";
+import QuickStart from "./QuickStart.jsx";
 import { budgetsFrom, DEFAULT_WORK, derive, fmt, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
 
 // every outside source the screens draw on, with the credit its licence asks for
@@ -95,7 +96,8 @@ export default function App() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight md:text-3xl">서울 내집마련 전략판</h1>
         </div>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 rounded-large bg-content1 px-4 py-3 shadow-small sm:grid-cols-4">
+        <div className="relative grid grid-cols-2 gap-x-6 gap-y-2 rounded-large bg-content1 px-4 py-3 shadow-small sm:grid-cols-4">
+          {profile.example && <span className="absolute -top-2 left-3 rounded-full bg-warning-100 px-2 py-0.5 text-[10px] font-semibold text-warning-700">예시 조건</span>}
           <Stat label={b("now")?.label} value={won(b("now")?.max_price_10k)} sub={dv.pay ? `월 ${won(dv.pay.now.monthly)} 상환` : ""} />
           <Stat label={b("later")?.label} value={won(b("later")?.max_price_10k)} tone="text-primary" sub={dv.pay ? `월 ${won(dv.pay.later.monthly)} 상환` : ""} />
           <Stat label={`주담대 금리 ${dv.rateNow?.month?.slice(5) ?? ""}월`} value={dv.rateNow && fmt.rate(dv.rateNow.pct)} sub={dv.rateNow ? `전월 ${fmt.pp(dv.rateNow.change)}` : ""} tone={dv.rateNow?.change > 0 ? "text-danger" : ""} />
@@ -105,7 +107,9 @@ export default function App() {
 
       {failed.length > 0 && <p className="text-small text-danger">일부 데이터를 불러오지 못했습니다: {failed.join(", ")}</p>}
       <WatchModal open={watchOpen} onClose={() => setWatchOpen(false)} data={data} />
-      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={saveProfile} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} />
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={saveProfile} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} apts={loaded.apts} insights={loaded.insights} />
+
+      {profile.example && <QuickStart profile={profile} onSave={saveProfile} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
 
       <Tabs aria-label="화면" color="primary" variant="solid" radius="full" size="lg" selectedKey={tab} onSelectionChange={(k) => setTab(String(k))}
         classNames={{ base: "w-full", tabList: "bg-content1 shadow-small", tab: "px-5 h-11", panel: "px-0 pt-1" }}>
