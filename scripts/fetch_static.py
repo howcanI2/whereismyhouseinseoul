@@ -18,7 +18,7 @@ results are cached in data/raw/vworld_geo.json by address.
 A source that fails (site down, layout change, suspiciously few rows) is skipped with a
 warning and its previous output is left untouched; the script still exits 0.
 """
-import argparse, collections, csv, datetime as dt, http.cookiejar, io, json, os, re, sys, time
+import argparse, math, collections, csv, datetime as dt, http.cookiejar, io, json, os, re, sys, time
 import urllib.parse, urllib.request, zipfile
 import xml.etree.ElementTree as ET
 
@@ -308,8 +308,14 @@ STAGE = {'대상지선정':'후보지·선정','기획완료':'후보지·선정
  '조합설립인가 추진중(연번부여)':'추진위·조합설립','주민합의체 구성':'추진위·조합설립',
  '사업시행인가':'사업시행인가','사업시행계획인가':'사업시행인가','관리처분계획인가':'관리처분인가',
  '착공':'이주·철거·착공','준공':'준공','준공(일부)':'준공'}
-TYPE = {'재개발(주택정비형)':'재개발','재건축(단독)':'재건축','신속통합기획':'신속통합기획','재개발(도시정비형)':'기타','주거환경개선(정비형)':'기타',
-        '모아타운':'모아타운','소규모재개발사업':'기타'}
+TYPE = {'재개발(주택정비형)':'재개발','재건축(단독)':'재건축','재건축(공동)':'재건축','소규모재건축사업':'재건축','신속통합기획':'신속통합기획',
+        '재개발(도시정비형)':'기타','주거환경개선(정비형)':'기타','모아타운':'모아타운','소규모재개발사업':'기타'}
+# the finer step a 단지 card shows (order matters): 후보지 → 구역지정 → 추진위 → 조합설립 → 건축심의 → 사업시행 → 관리처분 → 착공 → 준공
+STEPS = ['후보지', '구역지정', '추진위', '조합설립', '건축심의', '사업시행', '관리처분', '착공', '준공']
+STEP = {'대상지선정':'후보지','기획완료':'후보지','정비계획수립':'후보지','열람공고':'후보지','수립범위 자문':'후보지','사전자문':'후보지','위원회심의':'후보지',
+        '구역지정':'구역지정','관리지역고시':'구역지정','추진위구성':'추진위','조합설립추진중':'추진위','조합설립인가 추진중(연번부여)':'추진위','주민합의체 구성':'추진위',
+        '조합설립인가':'조합설립','건축심의':'건축심의','사업시행인가':'사업시행','사업시행계획인가':'사업시행','관리처분계획인가':'관리처분',
+        '착공':'착공','준공':'준공','준공(일부)':'준공'}
 APT = re.compile(r'아파트|APT|맨션|시영|주공|우성|현대|삼익|한양|미성|대림|신동아|한신|삼호|목동|신시가지|럭키|극동|쌍용|삼성|코오롱|선경|롯데|두산|벽산|동아|대우|진로|한진|빌라트')
 
 def seoul_sheet_csv(op, inf):
@@ -351,7 +357,7 @@ def build_redev(sheets, today):
             addr = re.sub(r'^([가-힣]+동)(?=\d+(?:-\d+)?(?:\s|$))', r'\1 ', addr); addr = re.sub(r'^([가-힣]+?)\d+(?:·\d+)*동(?=\s)', r'\1동', addr)
             name = (r.get('사업명칭') or '').strip(); hh = _pos(r.get('공급세대'))
             o = {"id": "%s-%s" % (inf, (r.get('기본정보_pk') or '').split('.')[0]), "gu": gu, "dong": dong_of(addr), "name": name, "type": TYPE[sub],
-                 "subtype": sub, "stage": stage, "stage_raw": st,
+                 "subtype": sub, "stage": stage, "stage_raw": st, "step": STEP.get(st),
                  "address": ("서울특별시 %s %s" % (gu, re.sub(r'\s*일대\s*$', '', addr))).strip() if addr else None,
                  "households": int(hh) if hh else None, "builder": None,
                  "area_m2": _pos(r.get('사업면적')), "updated": date or None, "source": url,
@@ -395,6 +401,50 @@ def geocode_redev(rows):
     missing = sum(1 for r in rows if r.get("lon") is None)
     return looked, missing
 
+NAME_DROP = re.compile(r'\(가칭\)|아파트|재건축|정비|사업|소규모|주택|구역|추진|조합|일대|일원|통합|특별계획|지구|단지|\s|[()·,.\-]')
+def _norm(n): return NAME_DROP.sub('', re.sub(r'\([^)]*\)', '', n or ''))
+def _within(short, long):
+    """short appears in long and is not cut off before a digit ("주공1" is not in "주공12")"""
+    i = long.find(short)
+    while i >= 0:
+        j = i + len(short)
+        if j >= len(long) or not (long[j].isdigit() and short[-1:].isdigit()): return True
+        i = long.find(short, i + 1)
+    return False
+def link_redev(rows):
+    """{단지 id: zone} for apartment 재건축 (and apartment-looking 신속통합기획) rows.
+    Name match: the 단지 name (or the zone name with its 동 stem taken off, "상계주공5" → "주공5") appears in the other, and the
+    단지 is in the same 동 or within 400 m. Otherwise the nearest complex 20+ years old within 150 m of the zone's lot ("near")."""
+    apts = load(os.path.join(OUT, "apts.json"), []) or []
+    year, out = dt.date.today().year, {}
+    by_gu = collections.defaultdict(list)
+    for a in apts:
+        if a.get("lon") is not None: by_gu[a["gu"]].append(a)
+    def km(a, z): return 6371 * math.hypot(math.radians(a["lon"] - z["lon"]) * math.cos(math.radians(z["lat"])), math.radians(a["lat"] - z["lat"]))
+    for z in rows:
+        apt_zone = z["subtype"] in ("재건축(공동)", "소규모재건축사업") or (z["type"] == "신속통합기획" and z.get("apt_guess"))
+        if not apt_zone or z.get("lon") is None or z.get("stage") == "준공": continue
+        zn, cand = _norm(z["name"]), by_gu.get(z["gu"], [])
+        def named(a):
+            an, d = _norm(a["apt"]), km(a, z)
+            if len(an) < 2 or not (a.get("dong") == z.get("dong") or d <= 0.4) or d > 1.5: return False
+            stem = (a.get("dong") or "").rstrip("동0123456789가")
+            zs = zn[len(stem):] if stem and zn.startswith(stem) else zn
+            m = re.fullmatch(r'(\D{2,})(\d+)', zn)  # "목동1" ~ "목동신시가지1": same start, same 단지 number at the end
+            if m and an.startswith(m.group(1)) and re.search(r'(?<!\d)' + m.group(2) + r'$', an): return True
+            return _within(an, zn) or (len(zn) >= 3 and _within(zn, an)) or (len(zs) >= 2 and (zs == an or (len(zs) >= 3 and _within(zs, an))))
+        hits = [a for a in cand if named(a)]
+        conf = "name"
+        if not hits:
+            near = sorted(((km(a, z), a) for a in cand if (a.get("build_year") or year) <= year - 20), key=lambda x: x[0])
+            hits, conf = ([near[0][1]] if near and near[0][0] <= 0.15 else []), "near"
+        for a in hits:
+            cur = out.get(a["id"])
+            if cur and (cur["c"] == "name" or conf == "near"): continue  # keep a name match over a nearby guess
+            out[a["id"]] = {"z": z["id"], "n": z["name"], "t": z["subtype"], "s": z.get("step"), "d": z.get("updated"), "c": conf, "u": z.get("source")}
+    save(os.path.join(OUT, "redev_apt.json"), out)
+    return len(out), sum(1 for v in out.values() if v["c"] == "name")
+
 def run_redev(keep):
     op = opener(); sheets = []
     for inf, url in SEOUL_SHEET:
@@ -407,9 +457,10 @@ def run_redev(keep):
     guard("redev", len(rows), len(old))
     looked, missing = geocode_redev(rows)
     save(p, rows)
+    nl, nn = link_redev(rows)
     as_of = max((r["updated"] for r in rows if r.get("updated")), default="?")
     return (f"redev: {len(rows)} rows in {len(set(r['gu'] for r in rows))} 구, {len(rows)-missing} with coordinates "
-            f"({looked} looked up now), latest update {as_of}")
+            f"({looked} looked up now), latest update {as_of}; {nl} 단지 linked ({nn} by name)")
 
 
 SOURCES = {"kapt": run_kapt, "cost": run_cost, "pop": run_pop, "age": run_age, "redev": run_redev}

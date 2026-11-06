@@ -64,6 +64,8 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
   const [showLines, setShowLines] = useState(false);
   const [showRedev, setShowRedev] = useState(false);
   const [showApply, setShowApply] = useState(false);
+  const [showRebuild, setShowRebuild] = useState(false);  // 🏗 on the price tags of 단지 in a 재건축 step
+  const rebuild = useLazyFile("redev_apt", showRebuild && !metro);
   const [showSchools, setShowSchools] = useState(true);
   const [schoolKinds, setSchoolKinds] = useState({ e: true, m: true });  // 초등학교 / 중학교 each on or off
   const [focusApplyId, setFocusApplyId] = useState(null);
@@ -223,7 +225,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
       let labels = 0;
       vis.forEach(({ a, ll }) => {
         const quiet = !a.trades_6m, none = a.median_price_10k == null, hit = hitOf(a);
-        const f = fitOf(a.median_price_10k), txt = none ? "" : (hit ? "✓" : "") + (SIG[a.sig]?.[0] || "") + won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), pt = proj.containerPointFromCoords(ll), w = txt.length * 7 + 16;
+        const f = fitOf(a.median_price_10k), rb = showRebuild && rebuild?.[a.id], txt = none ? "" : (rb ? "🏗" : "") + (hit ? "✓" : "") + (SIG[a.sig]?.[0] || "") + won(a.median_price_10k) + (a.stale && a.last_trade ? ` · ${a.last_trade.slice(2, 7).replace("-", ".")}` : ""), pt = proj.containerPointFromCoords(ll), w = txt.length * 7 + 16;
         const bx = { x0: pt.x - w / 2, x1: pt.x + w / 2, y0: pt.y - 30, y1: pt.y };
         const label = !none && labels < 150 && fits(bx), on = a.id === sel;
         if (label) { placed.push(bx); labels++; }
@@ -240,7 +242,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
         L.pins.push(new k.maps.CustomOverlay({ map, position: ll, content: node, yAnchor: label ? 1 : 0.5, xAnchor: 0.5, zIndex: on ? 10 : label ? 5 : 4 }));
       });
     }
-  }, [ready, ins, view.tick, eff, regionLevel, period, metricId, scen, scale, showPins, budget, area, age, sel, selRegion, maxMin, apts, showQuiet, judge, onlyHit, mine, okCount]);
+  }, [ready, ins, view.tick, eff, regionLevel, period, metricId, scen, scale, showPins, budget, area, age, sel, selRegion, maxMin, apts, showQuiet, judge, onlyHit, mine, okCount, showRebuild, rebuild]);
 
   // ---- redevelopment zones as circles at true size ----
   useEffect(() => {
@@ -398,6 +400,7 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                   <Switch size="sm" isSelected={showQuiet} onValueChange={setShowQuiet}>거래 없는 단지도 보기</Switch>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선 강조</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
+                  {!metro && <Switch size="sm" isSelected={showRebuild} onValueChange={setShowRebuild}>🏗 재건축 진행 단지</Switch>}
                   <Switch size="sm" isSelected={showSchools} onValueChange={setShowSchools}>학교 (단지 단위로 확대하면)</Switch>
                   {showSchools && <SchoolKindPick kinds={schoolKinds} setKinds={setSchoolKinds} />}
                   <Switch size="sm" isSelected={showApply} onValueChange={setShowApply}>청약 접수 예정 단지</Switch>

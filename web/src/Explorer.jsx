@@ -523,6 +523,33 @@ function LandUse({ land, apt, bldg, hh }) {
   );
 }
 
+// 재건축 진행 단계 of a 단지 (서울시 정비사업 현황, matched by name or, marked 추정, by the nearest old complex)
+const REDEV_STEPS = ["후보지", "구역지정", "추진위", "조합설립", "건축심의", "사업시행", "관리처분", "착공"];
+function RedevLine({ r }) {
+  const [open, setOpen] = useState(false);
+  const kind = r.t === "소규모재건축사업" ? "소규모 재건축" : r.t === "신속통합기획" ? "신속통합기획" : "재건축";
+  const at = REDEV_STEPS.indexOf(r.s), when = r.d ? r.d.slice(0, 7).replace("-", ".") : "";
+  return (
+    <div className="flex flex-col gap-1.5">
+      <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-fit flex-wrap items-center gap-x-1.5 rounded-full bg-warning-50 px-2.5 py-0.5 text-tiny text-warning-800 hover:bg-warning-100">
+        <span className="whitespace-nowrap">🏗 {kind} · <b>{r.s || "진행 중"}</b>{when ? ` (${when})` : ""}</span>
+        {r.c === "near" && <span className="whitespace-nowrap text-warning-600">추정</span>}
+        <span className="text-warning-600">{open ? "▴" : "▾"}</span>
+      </button>
+      {open && (
+        <div className="flex flex-col gap-1 rounded-medium bg-default-50 px-2.5 py-2 text-tiny">
+          <div className="flex flex-wrap gap-x-1 gap-y-1">
+            {REDEV_STEPS.map((st, i) => (
+              <span key={st} className={`whitespace-nowrap rounded-full px-1.5 py-0.5 ${i === at ? "bg-warning text-white font-semibold" : i < at ? "bg-warning-100 text-warning-700" : "bg-default-100 text-default-400"}`}>{st}</span>
+            ))}
+          </div>
+          <span className="text-default-500">{r.n}{r.c === "near" ? " · 이 단지 근처 정비구역이라 추정이에요" : ""} · <a href={r.u} target="_blank" rel="noopener noreferrer" className="underline">서울시 자료</a></span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, fitText, fitColor }) {
   const rows = trades?.[apt.id];
   const b = data.budget?.find((x) => x.scenario === scen), rate = b?.rate ?? data.rates?.at(-1)?.mortgage_pct ?? 4.66;
@@ -545,6 +572,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   // complexes K-apt does not list: 세대수 etc. from the 건축물대장 of the parcel under the map point
   const smallF = useLazyFile("apt_small", !!basics && !info), small = !info ? smallF?.items?.[apt.id] : null, hi = info || small;
   const landuse = useLazyFile("landuse"), land = info?.kaptCode ? landuse?.items?.[info.kaptCode] : null;
+  const redevApt = useLazyFile("redev_apt", apt.sido !== "41"), redev = redevApt?.[apt.id];
   const school = useLazyFile("school"), sstats = useLazyFile("school_stats");
   const cost = info?.kaptCode ? data.apt_cost?.items?.[info.kaptCode] : null;
   const bldg = info?.kaptCode ? data.bldg?.items?.[info.kaptCode] : null;  // 건축물대장 [용적률, 건폐율, 연면적, 대지, 주차, 승강기, 최고층]  // [월평균, 공용, 최고 달, 개월, 마지막 달] 만원/세대
@@ -557,6 +585,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
         <div className="min-w-0">
           <div className="flex flex-wrap gap-x-1 text-tiny text-default-500"><span className="whitespace-nowrap">{apt.gu} {apt.dong} ·</span><span className="whitespace-nowrap">{apt.build_year ? `${apt.build_year}년 준공 (${Math.max(1, new Date().getFullYear() - apt.build_year)}년 차)` : "준공 연도 모름"}</span></div>
           <h3 className="text-large font-bold leading-snug">{apt.apt}</h3>
+          {redev && <div className="mt-1"><RedevLine r={redev} /></div>}
         </div>
         <div className="flex shrink-0 gap-1">
           <Button size="sm" variant={saved ? "solid" : "flat"} color={saved ? "warning" : "default"} isDisabled={!saved && !details}
