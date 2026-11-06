@@ -107,7 +107,7 @@ const Q = ({ title, children }) => <div className="flex flex-col gap-1.5"><span 
 const Step = ({ n, title, sub, children, right }) => (
   <section className="flex flex-col gap-2">
     <div className="flex items-baseline justify-between gap-2">
-      <h4 className="flex items-baseline gap-2 text-small font-semibold"><span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] text-white">{n}</span>{title}</h4>{right}
+      <h4 className="flex min-w-0 items-baseline gap-2 text-small font-semibold"><span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] text-white">{n}</span>{title}</h4>{right && <div className="shrink-0 whitespace-nowrap">{right}</div>}
     </div>
     {sub && <p className="-mt-1 text-tiny text-default-500">{sub}</p>}
     {children}
@@ -241,8 +241,8 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
 
           <Step n="4" title={hh === "plan" ? "결혼·합가하고 살 시점" : "언제 살 계획인가요"} right={<span className="text-small font-bold text-primary num">{yrs ? `${yrs}년 뒤` : "지금"}</span>}
             sub={yrs ? `그때까지 월 저축 ${won((draft.saving || 0) + (solo ? 0 : draft.partnerSaving || 0))}을 모은다고 보고 "${live[1].label}" 예산을 계산합니다.` : "지금 산다고 보고 계산합니다."}>
-            <Slider aria-label="매수 시점" size="sm" step={1} minValue={0} maxValue={10} value={yrs} onChange={(v) => setDraft((d) => ({ ...d, marry: Number(v) }))}
-              marks={[0, 2, 4, 6, 8, 10].map((v) => ({ value: v, label: v ? `${v}년` : "지금" }))} />
+            <div className="px-3"><Slider aria-label="매수 시점" size="sm" step={1} minValue={0} maxValue={10} value={yrs} onChange={(v) => setDraft((d) => ({ ...d, marry: Number(v) }))}
+              marks={[0, 2, 4, 6, 8, 10].map((v) => ({ value: v, label: v ? `${v}년` : "지금" }))} classNames={{ mark: "whitespace-nowrap" }} /></div>
           </Step>
 
           <Step n="5" title="지금 가진 집" sub={draft.own ? "이 집을 팔고 새 집으로 옮긴다고 보고, 판 돈을 모은 돈에 더합니다." : "집이 있다면 켜 주세요. 팔 때 남는 돈과 세금을 계산해 예산에 더합니다."}
