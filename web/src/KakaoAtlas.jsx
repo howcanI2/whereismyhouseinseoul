@@ -380,10 +380,18 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                 <span>{m.l} · {PERIODS.find((p) => p[0] === period)[1]}</span><span className="text-default-400">{legendOpen ? "접기 ▴" : "범례 ▾"}</span>
               </button>
               {mine && (
-                <p className="mt-1 flex items-start gap-1.5 text-default-600">
-                  <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: fitColor.ok }} />
-                  <span>초록 = 내 예산 <b>{won(budget)}</b>으로 살 수 있는 단지{showPins ? "" : ". 확대하면 단지마다 초록 핀으로 보여요"}</span>
-                </p>
+                <div className="mt-1 flex flex-col gap-1 text-default-600">
+                  <p className="flex items-start gap-1.5">
+                    <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: fitColor.ok }} />
+                    <span>초록 = 내 예산 <b>{won(budget)}</b>으로 살 수 있는 단지{showPins ? "" : ". 확대하면 단지마다 초록 핀으로 보여요"}</span>
+                  </p>
+                  <p className="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[10.5px] text-default-500">
+                    <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full" style={{ background: fitColor.near }} />15% 이내 초과</span>
+                    <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full border border-default-400 bg-white" />예산 초과</span>
+                    <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full border border-default-300" style={{ background: "#E3E8E6" }} />6개월 거래 없음</span>
+                    <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full border border-default-400 bg-white" />2년 거래 없음</span>
+                  </p>
+                </div>
               )}
               {legendOpen && (
                 <div className="mt-1.5 flex flex-col gap-1.5">
@@ -392,8 +400,8 @@ export default function KakaoAtlas({ data: base, appKey, onFail, scope = "seoul"
                   <MetricNote m={m} />
                   {judge && <HitLegend m={m} onlyHit={onlyHit} setOnlyHit={setOnlyHit} pins={showPins} />}
                   {showPins && <span className="text-default-500">가격 앞 ▲ 최근 3개월 신고가 · ▼ 급매</span>}
-                  {showPins && ["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border border-default-300" style={{ background: fitColor[f] }} />{f === "ok" ? `내 예산(${won(budget)}) 안` : fitText[f]}</span>)}
-                  {showPins && showQuiet && <><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: "#c3cbc8" }} />최근 6개월 거래 없음 (마지막 거래가)</span><span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full border-[1.5px] border-default-400 bg-white" />최근 2년 거래 없음</span></>}
+                  {showPins && !mine && ["ok", "near", "over"].map((f) => <span key={f} className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border border-default-300" style={{ background: fitColor[f] }} />{f === "ok" ? `내 예산(${won(budget)}) 안` : fitText[f]}</span>)}
+                  {showPins && showQuiet && !mine && <><span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: "#c3cbc8" }} />최근 6개월 거래 없음 (마지막 거래가)</span><span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full border-[1.5px] border-default-400 bg-white" />최근 2년 거래 없음</span></>}
                   <Switch size="sm" isSelected={showQuiet} onValueChange={setShowQuiet}>거래 없는 단지도 보기</Switch>
                   <Switch size="sm" isSelected={showLines} onValueChange={setShowLines}>지하철 노선 강조</Switch>
                   <Switch size="sm" isSelected={showRedev} onValueChange={setShowRedev}>재개발·정비구역</Switch>
