@@ -279,8 +279,12 @@ export function saleNet(p, t = 0) {
   const hold = Math.max(0, year + t - (Number(p.ownYear) || year));
   const stay = p.ownStay || "live", lived = stay === "live" ? hold : stay === "mixed" ? Number(p.ownLived) || 0 : 0;
   const deposit = stay === "live" ? 0 : Number(p.ownDeposit) || 0;
-  const tax = gainTax(value, p.ownBought || 0, hold, lived), fee = brokerFee(value).total;
-  return { value, loan, deposit, tax: tax.total, taxNote: tax.note, gain: tax.gain, fee, hold, lived, net: Math.max(0, value - loan - deposit - tax.total - fee) };
+  const fee = brokerFee(value).total;
+  // 양도세 needs what it cost and when: without 산 가격 or 산 해 it is left out (not computed on a zero cost basis)
+  const known = Number(p.ownBought) > 0 && Number(p.ownYear) > 1900 && Number(p.ownYear) <= year;
+  const tax = known ? gainTax(value, Number(p.ownBought), hold, lived) : { total: 0, gain: null, note: "산 가격과 산 해를 넣으면 양도세를 계산해요" };
+  // can be below zero: the sale does not cover the loan and the 보증금, and the gap comes out of the cash
+  return { value, loan, deposit, tax: tax.total, taxKnown: known, taxNote: tax.note, gain: tax.gain, fee, hold, lived, net: value - loan - deposit - tax.total - fee };
 }
 // everything up front for one purchase, the loan it needs, and the monthly / yearly costs after
 export function buyPlan(P, { cash = 0, income = 0, rate = 4.5, first = false, area = 84 } = {}) {
@@ -314,12 +318,12 @@ export function budgetsFrom(p, rate) {
   const yrs = Math.max(0, Number(p.marry) || 0), twoNow = hh === "married", twoLater = hh !== "single";
   // a home they already have is sold first (갈아타기): what is left joins the cash, and 생애최초 no longer applies
   const first = p.firstHome && !p.own, saleN = saleNet(p, 0), saleL = saleNet(p, yrs);
-  const cashN = p.cash + (twoNow ? p.partnerCash : 0) + (saleN?.net || 0), incomeN = p.income + (twoNow ? p.partnerIncome : 0);
+  const cashN = Math.max(0, p.cash + (twoNow ? p.partnerCash : 0) + (saleN?.net || 0)), incomeN = p.income + (twoNow ? p.partnerIncome : 0);
   const now = maxPrice(cashN, incomeN, r, first);
-  const cashL = p.cash + p.saving * 12 * yrs + (twoLater ? p.partnerCash + p.partnerSaving * 12 * yrs : 0) + (saleL?.net || 0);
+  const cashL = Math.max(0, p.cash + p.saving * 12 * yrs + (twoLater ? p.partnerCash + p.partnerSaving * 12 * yrs : 0) + (saleL?.net || 0));
   const incomeL = p.income + (twoLater ? p.partnerIncome : 0);
   const later = maxPrice(cashL, incomeL, r, first);
-  const note = (cash, n, sale) => `현금 ${won(cash)}${sale ? ` (지금 집 판 돈 ${won(sale.net)} 포함)` : ""}에서 취득세·중개보수를 빼고, 금리 ${r}% + 스트레스 3%p, 30년 상환으로 계산${n ? ` (저축 ${n}년 반영)` : ""}`;
+  const note = (cash, n, sale) => `현금 ${won(cash)}${sale ? (sale.net >= 0 ? ` (지금 집 판 돈 ${won(sale.net)} 포함)` : ` (집을 팔아도 ${won(-sale.net)} 모자라 그만큼 뺌)`) : ""}에서 취득세·중개보수를 빼고, 금리 ${r}% + 스트레스 3%p, 30년 상환으로 계산${n ? ` (저축 ${n}년 반영)` : ""}`;
   const who = (two) => (two ? " 둘이" : "");
   return [
     { scenario: "now", label: `지금${who(twoNow)} 사면`, short: `지금${who(twoNow)}`, income_10k: incomeN, cash_10k: cashN, loan_10k: now.loan, max_price_10k: now.P, binding: now.binding, loan_dsr_10k: now.dsrLoan, note: note(cashN, 0, saleN), first, rate: r, sale: saleN },

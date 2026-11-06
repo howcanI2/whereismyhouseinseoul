@@ -44,11 +44,11 @@ function SaleSummary({ draft, yrs }) {
       {rows.map(([l, s]) => (
         <div key={l} className="rounded-medium bg-default-100 px-3 py-2 text-tiny num">
           <div className="font-semibold text-default-600">{l} (보유 {s.hold}년{s.lived ? ` · 거주 ${s.lived}년` : ""})</div>
-          {[["파는 가격", won(s.value)], ["− 남은 대출", won(s.loan)], ...(s.deposit ? [["− 세입자 보증금", won(s.deposit)]] : []), ["− 양도세 (지방세 포함)", s.tax ? won(s.tax) : "0원"], ["− 중개보수", won(s.fee)]].map(([k, v]) => (
+          {[["파는 가격", won(s.value)], ["− 남은 대출", won(s.loan)], ...(s.deposit ? [["− 세입자 보증금", won(s.deposit)]] : []), ["− 양도세 (지방세 포함)", !s.taxKnown ? "계산 전" : s.tax ? won(s.tax) : "0원"], ["− 중개보수", won(s.fee)]].map(([k, v]) => (
             <div key={k} className="flex justify-between"><span className="text-default-500">{k}</span><span>{v}</span></div>
           ))}
-          <div className="mt-0.5 flex justify-between border-t border-default-200 pt-0.5 text-small"><span className="font-semibold">손에 남는 돈</span><b className="text-primary">{won(s.net)}</b></div>
-          <div className="text-[10px] text-default-400">{s.taxNote}{s.gain > 0 ? ` · 차익 ${won(s.gain)}` : ""}</div>
+          <div className="mt-0.5 flex justify-between border-t border-default-200 pt-0.5 text-small"><span className="font-semibold">{s.net < 0 ? "모자라는 돈" : "손에 남는 돈"}</span><b className={s.net < 0 ? "text-danger" : "text-primary"}>{s.net < 0 ? `−${won(-s.net)}` : won(s.net)}</b></div>
+          <div className="text-[10px] text-default-400">{s.taxNote}{s.gain > 0 ? ` · 차익 ${won(s.gain)}` : ""}{s.net < 0 ? " · 대출·보증금을 갚고 모자라는 돈은 모은 돈에서 빠져요" : ""}</div>
         </div>
       ))}
     </div>
@@ -169,7 +169,7 @@ const NUMS = ["income", "cash", "saving", "partnerIncome", "partnerCash", "partn
 export const BLANK = { ...DEFAULT_PROFILE, work: DEFAULT_WORK, household: "single", marry: 0, firstHome: true, rate: null, own: false, ownApt: null, ownStay: "live", ownSell: "now", ownRate: null, ownTrend: null,
   ...Object.fromEntries(NUMS.map((k) => [k, null])) };
 // empty fields are saved as 0 (산 해 as this year), so every screen reads plain numbers
-const filled = (d) => ({ ...d, ...Object.fromEntries(NUMS.map((k) => [k, d[k] == null || d[k] === "" ? (k === "ownYear" ? new Date().getFullYear() : 0) : d[k]])) });
+const filled = (d) => ({ ...d, ...Object.fromEntries(NUMS.map((k) => [k, d[k] == null || d[k] === "" ? 0 : d[k]])) });
 
 // "내 조건" editor. Values stay in this browser (localStorage); nothing is sent anywhere or shared with the link.
 export default function ProfileModal({ open, onClose, profile, onSave, onReset, rate, stations, apts, insights }) {
