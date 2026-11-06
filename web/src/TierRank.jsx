@@ -23,15 +23,17 @@ export default function TierRank({ data }) {
   const base = useMemo(() => buildTiers(ins, ds, gs), [ins, ds, gs]);
 
   const work = data.work || {};
-  const list = useMemo(() => {
+  // every 동/구 that passes the trade and commute filters, before the budget cut; "near" = the cheapest few just above it
+  const pool = useMemo(() => {
     if (!base || !budget || view === "tiers") return null;
     const B = budget.max_price_10k, lv = base[view], guTier = base.gu.tier;
     return lv.rows
       .map((r) => ({ ...r, tier: lv.tier.get(r.key), guTier: guTier.get(r.gu), price: area === "84" ? r.m84 : r.m59,
         share: shareBelow(r.q, B), min: r.center ? estCommute(kmTo({ lon: r.center[0], lat: r.center[1] }, work)) : null }))
-      .filter((r) => r.price && r.price <= B && r.n6 >= MIN_6M && (commute === "all" || (r.min != null && r.min <= Number(commute))))
-      .sort((a, b) => a.tier - b.tier || b.n6 - a.n6);
+      .filter((r) => r.price && r.n6 >= MIN_6M && (commute === "all" || (r.min != null && r.min <= Number(commute))));
   }, [base, budget, view, area, commute, work.lon, work.lat]);
+  const list = useMemo(() => pool && pool.filter((r) => r.price <= budget.max_price_10k).sort((a, b) => a.tier - b.tier || b.n6 - a.n6), [pool, budget]);
+  const near = useMemo(() => (pool && list && !list.length ? pool.filter((r) => r.price > budget.max_price_10k).sort((a, b) => a.price - b.price).slice(0, 3) : []), [pool, list, budget]);
 
   // 급지 기준: each grade's 평당가 range today, its typical 59/84㎡ price, how many 동, the busiest 동, and which 구 sit there
   const table = useMemo(() => {
@@ -96,7 +98,28 @@ export default function TierRank({ data }) {
             })}
           </ul>
         )) : !rows ? <Skeleton className="h-48 w-full rounded-large" /> : rows.length === 0 ? (
-          <p className="text-small text-default-500">이 조건에 맞는 {iga} 없습니다. 면적을 59㎡로 바꾸거나, 통근 조건을 풀거나, '내 조건'에서 예산·매수 시점을 바꿔 보세요.</p>
+          <div className="flex flex-col gap-3 rounded-large border-2 border-warning-200 bg-warning-50 px-4 py-3">
+            <p className="text-medium font-semibold text-warning-800">{budget ? `${budget.label} 예산 ${won(budget.max_price_10k)}` : "이 예산"}으로는 {area}㎡ 중위가가 드는 {iga} 아직 없어요.</p>
+            {near.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <span className="text-small text-default-700">조금만 더 있으면 닿는 곳</span>
+                <ul className="flex flex-col gap-1">
+                  {near.map((r) => (
+                    <li key={r.key} className="flex items-baseline justify-between gap-2 text-small num">
+                      <span><b>{r.name}</b> <span className="text-tiny text-default-500">{view === "dong" ? `${r.gu} · ` : ""}{r.tier}급지</span></span>
+                      <span className="whitespace-nowrap">{won(r.price)} <span className="text-tiny font-semibold text-warning-700">({won(r.price - budget.max_price_10k)} 부족)</span></span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              {area === "84" && <Button size="sm" color="warning" variant="solid" onPress={() => setArea("59")}>59㎡로 보기</Button>}
+              {commute !== "all" && <Button size="sm" variant="flat" onPress={() => setCommute("all")}>통근 조건 풀기</Button>}
+              {scen === "now" && data.budget?.[1]?.years > 0 && <Button size="sm" variant="flat" onPress={() => setScen("later")}>{data.budget[1].short} 예산으로 보기</Button>}
+            </div>
+            <p className="text-tiny text-default-500">위쪽 &lsquo;내 조건&rsquo;에서 저축액이나 매수 시점을 바꾸면 예산이 달라져요.</p>
+          </div>
         ) : (
           <ol className="flex flex-col">
             {rows.map((r, i) => (
