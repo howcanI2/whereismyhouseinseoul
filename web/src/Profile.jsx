@@ -166,7 +166,7 @@ function WorkPicker({ work, onPick, stations }) {
 }
 
 const EX = DEFAULT_PROFILE;
-const NUMS = ["income", "cash", "saving", "partnerIncome", "partnerCash", "partnerSaving", "ownValue", "ownBought", "ownYear", "ownLived", "ownDeposit", "ownLoan", "ownLoanOrig", "ownPay", "ownSellPrice"];
+const NUMS = ["income", "cash", "saving", "partnerIncome", "partnerCash", "partnerSaving", "ownValue", "ownBought", "ownYear", "ownMonth", "ownLived", "ownDeposit", "ownLoan", "ownLoanOrig", "ownPay", "ownSellPrice"];
 export const BLANK = { ...DEFAULT_PROFILE, work: DEFAULT_WORK, household: "single", marry: 0, firstHome: true, rate: null, own: false, ownApt: null, ownStay: "live", ownSell: "now", ownRate: null, ownTrend: null,
   ...Object.fromEntries(NUMS.map((k) => [k, null])) };
 // empty fields are saved as 0 (산 해 as this year), so every screen reads plain numbers
@@ -259,10 +259,13 @@ export default function ProfileModal({ open, onClose, profile, onSave, onReset, 
                   <Q title="② 언제, 얼마에 샀어요?">
                     <div className="grid grid-cols-2 gap-2">
                       <Num label="산 해" value={draft.ownYear} ph={EX.ownYear} onChange={num("ownYear")} unit="년"
-                        hint={(() => { const y = Number(draft.ownYear), now = new Date().getFullYear(); if (!(y > 1900)) return "양도세 계산용"; const h = now - y;
-                          return h < 0 ? "올해보다 뒤예요" : h < 1 ? "보유 1년 미만 · 세율 70%" : h < 2 ? `보유 ${h}년 · 세율 60%` : `보유 ${h}년`; })()} />
-                      <Money label="산 가격" value={draft.ownBought} ph={EX.ownBought} onChange={num("ownBought")} hint="양도세 계산용" />
+                        hint={(() => { const y = Number(draft.ownYear), d = new Date(); if (!(y > 1900)) return "양도세 계산용";
+                          const m = Number(draft.ownMonth) >= 1 && Number(draft.ownMonth) <= 12 ? Number(draft.ownMonth) : d.getMonth() + 1;
+                          const mo = (d.getFullYear() - y) * 12 + d.getMonth() + 1 - m, h = Math.floor(mo / 12);
+                          return mo < 0 ? "올해보다 뒤예요" : h < 1 ? "보유 1년 미만 · 세율 70%" : h < 2 ? `보유 ${h}년 · 세율 60%` : `보유 ${h}년`; })()} />
+                      <Num label="산 월 (선택)" value={draft.ownMonth} onChange={(v) => set({ ownMonth: v >= 1 && v <= 12 ? v : null })} unit="월" hint="2년 경계를 정확히" />
                     </div>
+                    <Money label="산 가격" value={draft.ownBought} ph={EX.ownBought} onChange={num("ownBought")} hint="양도세 계산용 · 취득세·중개보수는 자동으로 빼요" />
                     <span className="text-tiny text-default-500">지금 이 집에</span>
                     <Choice value={stay} onChange={(v) => set({ ownStay: v })} options={[["live", "직접 살고 있어요"], ["rent", "세를 줬어요"], ["mixed", "살다가 세를 줬어요"]]} />
                     {stay !== "live" && (

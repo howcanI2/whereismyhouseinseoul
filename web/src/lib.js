@@ -171,7 +171,7 @@ export const LTV = 0.7, DSR = 0.4, STRESS = 3, YEARS = 30;
 // Example values a first-time visitor sees; nothing about the person who built the app.
 // own*: a home the viewer already has and would sell to move (갈아타기); off by default
 export const DEFAULT_PROFILE = { work: DEFAULT_WORK, household: "plan", income: 5000, cash: 10000, saving: 200, marry: 3, partnerIncome: 5000, partnerCash: 8000, partnerSaving: 150, firstHome: true, rate: null,
-  own: false, ownApt: null, ownValue: 80000, ownBought: 60000, ownYear: 2019, ownStay: "live", ownLived: 3, ownDeposit: 0,
+  own: false, ownApt: null, ownValue: 80000, ownBought: 60000, ownYear: 2019, ownMonth: null, ownStay: "live", ownLived: 3, ownDeposit: 0,
   ownLoan: 30000, ownLoanOrig: 0, ownPay: 150, ownRate: null, ownSell: "now", ownSellPrice: 0, ownTrend: null, example: true };
 const PKEY = "hb-profile-v1";
 // profiles saved before the 지금 가진 집 questions changed (남은 대출 + 매달 원금 + 상승률 %): carry them over so the
@@ -242,16 +242,31 @@ export function propTax(P) {
 }
 // 양도소득세 (+ 지방소득세 10%) on selling one home. 1세대1주택 비과세 = 2년 보유 + 2년 거주 (서울 조정지역 취득 기준), 12억 초과분만 과세.
 const PROG = [[1400, 0.06, 0], [5000, 0.15, 126], [8800, 0.24, 576], [15000, 0.35, 1544], [30000, 0.38, 1994], [50000, 0.4, 2594], [100000, 0.42, 3594], [Infinity, 0.45, 6594]];
-export function gainTax(sale, cost, hold, lived) {
-  const fee = brokerFee(sale).total, gain = sale - cost - fee;
+// 2년 거주 요건 applies only to a home bought while its area was a 조정대상지역 (서울: all 구 2017.8 ~ 2022.12 and from
+// 2025.10; 2023.1 ~ 2025.9 only 강남·서초·송파·용산; none before 2017.8). Month precision; unknown 구 → assume it applies.
+const STRICT_GU = ["강남구", "서초구", "송파구", "용산구"];
+export function needsResidence(gu, y, m) {
+  const ym = y * 100 + (m || 6);
+  if (ym < 201708) return false;
+  if (ym >= 201708 && ym < 202301) return true;
+  if (ym >= 202510) return true;
+  return gu ? STRICT_GU.includes(gu) : true;
+}
+// sale: 판 가격, cost: 산 가격, hold / lived: full years, needRes: 2년 거주 요건 applies
+export function gainTax(sale, cost, hold, lived, needRes = true) {
+  // 필요경비: 산 쪽 취득세·중개보수와 판 쪽 중개보수
+  const exp = acqTax(cost).total + brokerFee(cost).total + brokerFee(sale).total, gain = sale - cost - exp;
   if (gain <= 0) return { total: 0, gain: Math.round(gain), note: "차익 없음" };
-  const exempt = hold >= 2 && lived >= 2;
-  if (exempt && sale <= 120000) return { total: 0, gain: Math.round(gain), note: "1주택 비과세 (2년 보유·거주, 12억 이하)" };
+  const exempt = hold >= 2 && (!needRes || lived >= 2);
+  const why = needRes ? "2년 보유·거주" : "2년 보유, 살 때 비조정지역이라 거주 요건 없음";
+  if (exempt && sale <= 120000) return { total: 0, gain: Math.round(gain), note: `1주택 비과세 (${why}, 12억 이하)` };
   const taxable = exempt ? (gain * (sale - 120000)) / sale : gain;
   if (hold < 2) { const r = hold < 1 ? 0.7 : 0.6; return { total: Math.round(Math.max(0, taxable - 250) * r * 1.1), gain: Math.round(gain), note: `보유 ${hold < 1 ? "1년 미만 70%" : "2년 미만 60%"} 단일세율` }; }
-  const ded = hold < 3 ? 0 : exempt ? Math.min(0.8, Math.min(hold, 10) * 0.04 + Math.min(lived, 10) * 0.04) : Math.min(0.3, hold * 0.02);
+  // 장기보유특별공제: 비과세 대상 1주택 + 2년 이상 거주면 보유 4%·거주 4% (최대 80%), 아니면 보유 2% (최대 30%); 3년 미만은 없음
+  const ded = hold < 3 ? 0 : exempt && lived >= 2 ? Math.min(0.8, Math.min(hold, 10) * 0.04 + Math.min(lived, 10) * 0.04) : Math.min(0.3, hold * 0.02);
   const base = Math.max(0, taxable * (1 - ded) - 250), [, r, acc] = PROG.find(([hi]) => base <= hi);
-  return { total: Math.round(Math.max(0, base * r - acc) * 1.1), gain: Math.round(gain), note: `${exempt ? "12억 초과분만 과세" : "1주택 비과세 요건(2년 보유·거주) 미충족"}${ded ? ` · 장기보유공제 ${Math.round(ded * 100)}%` : ""}` };
+  return { total: Math.round(Math.max(0, base * r - acc) * 1.1), gain: Math.round(gain),
+    note: `${exempt ? "12억 초과분만 과세" : `1주택 비과세 요건(${needRes ? "2년 보유·거주" : "2년 보유"}) 미충족`}${ded ? ` · 장기보유공제 ${Math.round(ded * 100)}%` : ""}` };
 }
 // the loan on the home the viewer has: what is owed now (from the bank app, or worked out from the original amount on
 // a 30-year 원리금균등 loan from the year bought), the monthly payment, and the balance after t more years of paying it
@@ -275,16 +290,20 @@ export function ownPriceAt(p, t = 0) {
 // selling the home the viewer has, t years from now: what is left after the loan, the 세입자 보증금, 양도세 and 중개보수
 export function saleNet(p, t = 0) {
   if (!p.own) return null;
-  const year = new Date().getFullYear(), value = ownPriceAt(p, t), loan = ownLoanAt(p, t).after;
-  const hold = Math.max(0, year + t - (Number(p.ownYear) || year));
-  const stay = p.ownStay || "live", lived = stay === "live" ? hold : stay === "mixed" ? Math.min(hold - t, Number(p.ownLived) || 0) : 0;  // rented out now: the years lived stop growing, and never exceed the years owned so far
+  const d = new Date(), year = d.getFullYear(), month = d.getMonth() + 1, value = ownPriceAt(p, t), loan = ownLoanAt(p, t).after;
+  const by = Number(p.ownYear) || year, bm = Number(p.ownMonth) >= 1 && Number(p.ownMonth) <= 12 ? Number(p.ownMonth) : null;
+  // full years held at the sale, by month when 산 월 is known (else by year)
+  const months = (year + t) * 12 + month - (by * 12 + (bm || month));
+  const hold = Math.max(0, Math.floor(months / 12)), heldNow = Math.max(0, hold - t);
+  const stay = p.ownStay || "live", lived = stay === "live" ? hold : stay === "mixed" ? Math.min(heldNow, Number(p.ownLived) || 0) : 0;  // rented out now: the years lived stop growing
   const deposit = stay === "live" ? 0 : Number(p.ownDeposit) || 0;
   const fee = brokerFee(value).total;
   // 양도세 needs what it cost and when: without 산 가격 or 산 해 it is left out (not computed on a zero cost basis)
   const known = Number(p.ownBought) > 0 && Number(p.ownYear) > 1900 && Number(p.ownYear) <= year;
-  const tax = known ? gainTax(value, Number(p.ownBought), hold, lived) : { total: 0, gain: null, note: "산 가격과 산 해를 넣으면 양도세를 계산해요" };
+  const gu = p.ownGu || (p.ownApt ? String(p.ownApt).split(" ")[0] : null), needRes = needsResidence(gu, by, bm);
+  const tax = known ? gainTax(value, Number(p.ownBought), hold, lived, needRes) : { total: 0, gain: null, note: "산 가격과 산 해를 넣으면 양도세를 계산해요" };
   // can be below zero: the sale does not cover the loan and the 보증금, and the gap comes out of the cash
-  return { value, loan, deposit, tax: tax.total, taxKnown: known, taxNote: tax.note, gain: tax.gain, fee, hold, lived, net: value - loan - deposit - tax.total - fee };
+  return { value, loan, deposit, tax: tax.total, taxKnown: known, taxNote: tax.note, gain: tax.gain, fee, hold, lived, needRes, net: value - loan - deposit - tax.total - fee };
 }
 // everything up front for one purchase, the loan it needs, and the monthly / yearly costs after
 export function buyPlan(P, { cash = 0, income = 0, rate = 4.5, first = false, area = 84 } = {}) {
