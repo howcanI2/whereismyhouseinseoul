@@ -105,8 +105,14 @@ export function useData() {
   const [data, setData] = useState({});
   const [errors, setErrors] = useState({});
   useEffect(() => {
+    // a file can fail for a moment (a deploy swapping files after the morning refresh, a dropped connection): try twice more
+    const retry = (f, n) => getData(f).catch((e) => {
+      if (!n) throw e;
+      return new Promise((ok) => setTimeout(ok, 1200 * (3 - n))).then(() => fetch(`data/${f}.json?r=${Date.now()}`, { cache: "no-store" })
+        .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json(); })).catch(() => retry(f, n - 1));
+    });
     FILES.forEach((f) => {
-      getData(f)
+      retry(f, 2)
         .then((j) => setData((d) => ({ ...d, [f]: j })))
         .catch((e) => setErrors((x) => ({ ...x, [f]: String(e) })));
     });
