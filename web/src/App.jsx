@@ -14,7 +14,7 @@ import { installExternalLinks } from "./TossLinks.js";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
 import TierRank from "./TierRank.jsx";
 import QuickStart, { FirstResult } from "./QuickStart.jsx";
-import { budgetsFrom, DEFAULT_WORK, derive, fmt, focusRegion, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
+import { budgetsFrom, DEFAULT_WORK, derive, fmt, focusRegion, track, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
 
 // every outside source the screens draw on, with the credit its licence asks for
 const SOURCES = [
@@ -110,16 +110,16 @@ export default function App() {
 
       {failed.length > 0 && <p className="text-small text-danger">일부 데이터를 불러오지 못했습니다: {failed.join(", ")}</p>}
       <WatchModal open={watchOpen} onClose={() => setWatchOpen(false)} data={data} />
-      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); }} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} apts={loaded.apts} insights={loaded.insights} />
+      <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); track("profile_save", { household: p.household, own_home: !!p.own }); }} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} apts={loaded.apts} insights={loaded.insights} />
 
-      {profile.example && <QuickStart profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); }} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
+      {profile.example && <QuickStart profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); track("quick_start_save", { household: p.household }); }} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
       {!profile.example && (
         <FirstResult data={data} folded={candFold} onToggle={toggleCand}
-          onMap={(key) => { setScope("seoul"); setTab("map"); setTimeout(() => { focusRegion("bdong", key); document.getElementById("atlas-map")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80); }}
-          onRank={() => { setTab("money"); setTimeout(() => document.getElementById("tier-rank")?.scrollIntoView({ behavior: "smooth", block: "start" }), 300); }} />
+          onMap={(key) => { track("candidate_map"); setScope("seoul"); setTab("map"); setTimeout(() => { focusRegion("bdong", key); document.getElementById("atlas-map")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80); }}
+          onRank={() => { track("candidate_rank"); setTab("money"); setTimeout(() => document.getElementById("tier-rank")?.scrollIntoView({ behavior: "smooth", block: "start" }), 300); }} />
       )}
 
-      <Tabs aria-label="화면" color="primary" variant="solid" radius="full" size="lg" selectedKey={tab} onSelectionChange={(k) => setTab(String(k))}
+      <Tabs aria-label="화면" color="primary" variant="solid" radius="full" size="lg" selectedKey={tab} onSelectionChange={(k) => { setTab(String(k)); track("tab_view", { tab: String(k) }); }}
         classNames={{ base: "w-full", tabList: "bg-content1 shadow-small", tab: "px-5 h-11", panel: "px-0 pt-1" }}>
         {TABS.map(([k, l, q]) => (
           <Tab key={k} title={<span className="flex items-baseline gap-2"><span className="font-semibold">{l}</span><span className="hidden text-tiny opacity-70 sm:inline">{q}</span></span>}>

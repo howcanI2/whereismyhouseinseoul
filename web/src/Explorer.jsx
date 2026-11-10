@@ -5,7 +5,7 @@ import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
 import "d3-transition";
 import { Button, ButtonGroup, Chip, Divider, ScrollShadow, Skeleton, Slider, Switch } from "@heroui/react";
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
-import { DSR, LTV, STRESS, annuity, buyPlan, estCommute, fmt, kmTo, loanCap, palette, useIsDark, useLazyFile, useWatch, won } from "./lib.js";
+import { DSR, LTV, STRESS, annuity, buyPlan, estCommute, fmt, kmTo, loanCap, palette, track, useIsDark, useLazyFile, useWatch, won } from "./lib.js";
 
 // the map's ◆ marker: the viewer's workplace
 export const refOf = (w) => [{ n: w?.name || "직장", lon: w?.lon, lat: w?.lat }].filter((r) => r.lon != null);
@@ -573,6 +573,7 @@ export function AptDetail({ apt, trades, budget, scen, data, onClose, P, fitOf, 
   const smallF = useLazyFile("apt_small", !!basics && !info), small = !info ? smallF?.items?.[apt.id] : null, hi = info || small;
   const landuse = useLazyFile("landuse"), land = info?.kaptCode ? landuse?.items?.[info.kaptCode] : null;
   const redevApt = useLazyFile("redev_apt", apt.sido !== "41"), redev = redevApt?.[apt.id];
+  useEffect(() => { track("apt_view", { gu: apt.gu }); }, [apt.id]);
   const school = useLazyFile("school"), sstats = useLazyFile("school_stats");
   const cost = info?.kaptCode ? data.apt_cost?.items?.[info.kaptCode] : null;
   const bldg = info?.kaptCode ? data.bldg?.items?.[info.kaptCode] : null;  // 건축물대장 [용적률, 건폐율, 연면적, 대지, 주차, 승강기, 최고층]  // [월평균, 공용, 최고 달, 개월, 마지막 달] 만원/세대

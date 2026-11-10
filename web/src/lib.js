@@ -197,6 +197,8 @@ export function useProfile() {
 
 // "지도에서 위치 보기": the 청약 card asks the map to open on a notice; the map may mount after the request, so it is kept here
 export const pendingFocus = { apply: null };
+// Google Analytics event (website only; a no-op without the tag). Only which screen or button was used, never the numbers in 내 조건.
+export function track(name, params = {}) { try { window.gtag?.("event", name, params); } catch (e) { /* analytics never breaks the app */ } }
 export function focusApply(r) { pendingFocus.apply = r; window.dispatchEvent(new CustomEvent("hb:focus-apply", { detail: r })); }
 // "지도에서 보기" from the first-result card: open a region (and its pins) on whichever map is mounted
 export function focusRegion(lv, key) { pendingFocus.region = { lv, key }; window.dispatchEvent(new CustomEvent("hb:focus-region")); }
