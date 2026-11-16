@@ -15,7 +15,7 @@ function Intro() {
         <li>출퇴근 거리, 학교, 재건축 연한으로 단지 골라보기</li>
       </ul>
       <p className="text-small text-default-600"><a href="/tiers/" className="text-primary underline">서울 아파트 급지 순위</a> · <a href="/gu/" className="text-primary underline">서울 구별 아파트 시세 보기</a></p>
-      <p className="text-small text-default-500">자료: 국토교통부 실거래가 공개시스템, 공동주택관리정보시스템(K-apt), 건축HUB 등 공공데이터 · <a href="/privacy/" className="underline">개인정보처리방침</a></p>
+      <p className="text-small text-default-500">자료: 국토교통부 실거래가 공개시스템, 공동주택관리정보시스템(K-apt), 건축HUB 등 공공데이터 · <a href="/about/" className="underline">사이트 소개</a> · <a href="/privacy/" className="underline">개인정보처리방침</a></p>
       <p className="text-tiny text-default-400">불러오는 중…</p>
     </main>
   );

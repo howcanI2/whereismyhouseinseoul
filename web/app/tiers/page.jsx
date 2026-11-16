@@ -104,7 +104,7 @@ export default function TiersPage() {
       <footer className="text-tiny leading-relaxed text-default-400">
         급지는 이 사이트가 실거래가로 매긴 자체 분류이며, 부동산 커뮤니티 등에서 흔히 말하는 급지와 다를 수 있습니다. 평당가는 면적·연식이 섞인 거래 전체 기준이라
         재건축을 앞둔 오래된 단지가 많은 동은 높게 나올 수 있고, 학군·교통·신축 여부는 반영하지 않습니다. 신고 기한(계약 후 30일) 때문에 최근 달은 거래가 덜 잡힙니다.
-        자료: 국토교통부 실거래가 공개시스템(공공데이터포털), 공동주택관리정보시스템(K-apt). 참고용 정보이며 투자 조언이 아닙니다. · <a href="/privacy/" className="underline">개인정보처리방침</a>
+        자료: 국토교통부 실거래가 공개시스템(공공데이터포털), 공동주택관리정보시스템(K-apt). 참고용 정보이며 투자 조언이 아닙니다. · <a href="/about/" className="underline">사이트 소개</a> · <a href="/privacy/" className="underline">개인정보처리방침</a>
       </footer>
     </main>
   );

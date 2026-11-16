@@ -10,6 +10,7 @@ export default function sitemap() {
     u("/tiers/", "daily", 0.9),
     u("/gu/", "daily", 0.8),
     ...GU.map(([, s]) => u(`/gu/${s}/`, "daily", 0.7)),
+    u("/about/", "monthly", 0.5),
     u("/privacy/", "yearly", 0.2),
   ];
 }

@@ -135,7 +135,7 @@ export default function GuPage({ params }) {
 
       <footer className="text-tiny text-default-400">
         자료: 국토교통부 실거래가 공개시스템(공공데이터포털), 공동주택관리정보시스템(K-apt). 신고 기한(계약 후 30일) 때문에 최근 달은 거래가 덜 잡힙니다.
-        참고용 정보이며 투자 조언이 아닙니다. · <a href="/privacy/" className="underline">개인정보처리방침</a>
+        참고용 정보이며 투자 조언이 아닙니다. · <a href="/about/" className="underline">사이트 소개</a> · <a href="/privacy/" className="underline">개인정보처리방침</a>
       </footer>
     </main>
   );

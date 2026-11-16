@@ -13,27 +13,10 @@ import TossBanner from "./TossBanner.jsx";
 import { installExternalLinks } from "./TossLinks.js";
 import { LoanTab, PlanTab, PolicyTab } from "./Tabs.jsx";
 import TierRank from "./TierRank.jsx";
+import { SOURCES } from "./sources.js";
 import QuickStart, { FirstResult } from "./QuickStart.jsx";
 import { budgetsFrom, DEFAULT_WORK, derive, fmt, focusRegion, track, HOUSEHOLDS, householdOf, pendingFocus, workState, useData, useProfile, useWatch, won } from "./lib.js";
 
-// every outside source the screens draw on, with the credit its licence asks for
-const SOURCES = [
-  ["아파트 매매·전월세 실거래가", "국토교통부 실거래가 공개시스템 (공공데이터포털)"],
-  ["단지 기본정보·관리비", "국토교통부 공동주택관리정보시스템(K-apt)"],
-  ["건축물대장 (세대수·용적률·주차)", "국토교통부 건축HUB (공공데이터포털)"],
-  ["단지·구역 위치, 용도지역·토지이용계획", "국토교통부 공간정보 오픈플랫폼(브이월드)"],
-  ["청약 분양정보", "한국부동산원 청약홈 (공공데이터포털)"],
-  ["재개발·재건축 정비사업", "서울 열린데이터광장"],
-  ["배정 초등학교·중학교군", "한국지방교육행정연구재단 학구도 (공공데이터포털)"],
-  ["학원·교습소", "교육부 나이스 교육정보 개방 포털"],
-  ["학교 공시 지표", "교육부 학교알리미"],
-  ["인구·세대", "행정안전부 주민등록 인구통계"],
-  ["주택담보대출 금리", "한국은행 경제통계시스템(ECOS)"],
-  ["대출 상품·정책 소식", "금융위원회·주택도시기금·한국주택금융공사와 언론 보도를 요약 (항목마다 원문 링크)"],
-  ["행정동 경계", "통계청 SGIS, vuski/admdongkor (CC BY 4.0)"],
-  ["지하철 노선·역", "© OpenStreetMap contributors (ODbL)"],
-  ["배경 지도", "카카오맵"],
-];
 
 // Next.js inlines this at build time; the claude.ai build has no Kakao key and uses the drawn map.
 const KAKAO_KEY = typeof process !== "undefined" ? process.env.NEXT_PUBLIC_KAKAO_JS_KEY : undefined;
@@ -161,7 +144,7 @@ export default function App() {
 
       <footer className="flex flex-col gap-1.5 text-tiny leading-relaxed text-default-400">
         <p>예산은 내 조건(이 브라우저에만 저장)과 최신 주담대 금리, 스트레스 금리 3%p, 30년 상환으로 계산한 추정이며 투자 조언이 아닙니다. 통근 시간은 직선거리로 낸 대략값입니다.</p>
-        {process.env.NEXT_PUBLIC_TOSS !== "1" && <p><a href="tiers/" className="underline">급지 순위</a> · <a href="gu/" className="underline">구별 시세</a> · <a href="privacy/" className="underline">개인정보처리방침</a>{FEEDBACK_URL && <> · <Feedback compact /></>} · 광고는 Google AdSense가 쿠키를 사용해 게재합니다.</p>}
+        {process.env.NEXT_PUBLIC_TOSS !== "1" && <p><a href="tiers/" className="underline">급지 순위</a> · <a href="gu/" className="underline">구별 시세</a> · <a href="about/" className="underline">사이트 소개</a> · <a href="privacy/" className="underline">개인정보처리방침</a>{FEEDBACK_URL && <> · <Feedback compact /></>} · 광고는 Google AdSense가 쿠키를 사용해 게재합니다.</p>}
         <details>
           <summary className="cursor-pointer text-default-500">데이터 출처</summary>
           <ul className="mt-1 list-disc pl-4">
