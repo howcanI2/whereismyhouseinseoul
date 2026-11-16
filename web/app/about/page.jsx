@@ -54,7 +54,6 @@ export default function About() {
         <p>틀린 숫자, 불편한 점, 있었으면 하는 기능을 알려 주시면 확인해서 반영하겠습니다.</p>
         <ul className="list-disc pl-5">
           {FEEDBACK_URL && <li><a href={FEEDBACK_URL} target="_blank" rel="noopener noreferrer" className="text-primary underline">의견 보내기 (구글 폼)</a>: 로그인 없이 보낼 수 있어요.</li>}
-          <li><a href="https://github.com/howcanI2/whereismyhouseinseoul/issues" target="_blank" rel="noopener noreferrer" className="text-primary underline">GitHub 이슈</a>: 오류 제보나 개선 제안을 공개적으로 남길 수 있어요.</li>
         </ul>
       </Section>
 

@@ -1,5 +1,6 @@
 // 개인정보처리방침: what the site keeps (nothing on a server), and what the ads and the map load from Google and Kakao.
 export const metadata = { title: "개인정보처리방침 · 서울 내집마련 전략판", description: "서울 내집마련 전략판의 개인정보처리방침: 수집하는 정보, 광고 쿠키, 지도와 외부 서비스", alternates: { canonical: "/privacy/" } };
+const FEEDBACK_URL = process.env.NEXT_PUBLIC_FEEDBACK_URL || "";
 
 const Section = ({ title, children }) => (
   <section className="flex flex-col gap-1.5">
@@ -42,7 +43,7 @@ export default function Privacy() {
         <p>실거래가·대출·세금 등은 공공데이터를 가공한 참고 정보이며 실제와 다를 수 있습니다. 투자·대출 결정에 대한 조언이 아닙니다.</p>
       </Section>
       <Section title="7. 문의">
-        <p>개인정보 관련 문의는 사이트 운영자에게 <a className="text-primary underline" href="https://github.com/howcanI2/whereismyhouseinseoul/issues" target="_blank" rel="noopener noreferrer">GitHub 이슈</a>로 남겨 주세요.</p>
+        <p>개인정보 관련 문의는 {FEEDBACK_URL ? <a className="text-primary underline" href={FEEDBACK_URL} target="_blank" rel="noopener noreferrer">의견 보내기</a> : "사이트 아래쪽 '의견 보내기'"}로 남겨 주세요. 답변이 필요하면 연락처를 함께 적어 주세요.</p>
       </Section>
     </main>
   );
