@@ -82,11 +82,11 @@ export default function App() {
             </button>
 
           </div>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 lg:justify-start lg:gap-3">
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">서울 내집마련 전략판</h1>
             {process.env.NEXT_PUBLIC_TOSS !== "1" && (
               <button type="button" onClick={() => { setMenuOpen(true); track("menu_open"); }} aria-label="둘러보기 메뉴"
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-default-200 bg-content1 px-3 py-1.5 text-small font-medium text-default-700 hover:bg-default-100 lg:ml-4">
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-default-200 bg-content1 px-3 py-1.5 text-small font-medium text-default-700 hover:bg-default-100">
                 <span aria-hidden="true">☰</span>메뉴
               </button>
             )}
