@@ -8,6 +8,7 @@ import { PERIOD_NOTE } from "./Atlas.jsx";
 
 import ProfileModal from "./Profile.jsx";
 import WatchModal from "./Watch.jsx";
+import SiteMenu from "./SiteMenu.jsx";
 import NewBuildTab from "./NewBuild.jsx";
 import TossBanner from "./TossBanner.jsx";
 import { installExternalLinks } from "./TossLinks.js";
@@ -43,7 +44,7 @@ export default function App() {
   const { data: loaded, errors } = useData();
   const [profile, saveProfile, resetProfile] = useProfile();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [watchOpen, setWatchOpen] = useState(false);
+  const [watchOpen, setWatchOpen] = useState(false), [menuOpen, setMenuOpen] = useState(false);
   const [watch] = useWatch(), nWatch = Object.keys(watch).length;
   // budgets come from the viewer's own 내 조건, never from a shared file
   const work = profile.work?.lon != null ? profile.work : DEFAULT_WORK;
@@ -79,8 +80,17 @@ export default function App() {
             <button type="button" onClick={() => setWatchOpen(true)} className="flex w-fit items-center gap-1 rounded-full bg-warning-50 px-3 py-1 text-tiny font-medium text-warning-700 hover:bg-warning-100">
               {nWatch ? `★ 관심 단지 ${nWatch}` : "☆ 관심 단지"}
             </button>
+
           </div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">서울 내집마련 전략판</h1>
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">서울 내집마련 전략판</h1>
+            {process.env.NEXT_PUBLIC_TOSS !== "1" && (
+              <button type="button" onClick={() => { setMenuOpen(true); track("menu_open"); }} aria-label="둘러보기 메뉴"
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-default-200 bg-content1 px-3 py-1.5 text-small font-medium text-default-700 hover:bg-default-100 lg:ml-4">
+                <span aria-hidden="true">☰</span>메뉴
+              </button>
+            )}
+          </div>
         </div>
         <div className="relative grid grid-cols-2 gap-x-6 gap-y-2 rounded-large bg-content1 px-4 py-3 shadow-small sm:grid-cols-4">
           {profile.example && <span className="absolute -top-2 left-3 rounded-full bg-warning-100 px-2 py-0.5 text-[10px] font-semibold text-warning-700">예시 조건</span>}
@@ -93,6 +103,7 @@ export default function App() {
 
       {failed.length > 0 && <p className="text-small text-danger">일부 데이터를 불러오지 못했습니다: {failed.join(", ")}</p>}
       <WatchModal open={watchOpen} onClose={() => setWatchOpen(false)} data={data} />
+      <SiteMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
       <ProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); track("profile_save", { household: p.household, own_home: !!p.own }); }} onReset={resetProfile} rate={loaded.rates?.at(-1)?.mortgage_pct} stations={loaded.subway} apts={loaded.apts} insights={loaded.insights} />
 
       {profile.example && <QuickStart profile={profile} onSave={(p) => { saveProfile(p); setCandFold(false); track("quick_start_save", { household: p.household }); }} onMore={() => setProfileOpen(true)} rate={loaded.rates?.at(-1)?.mortgage_pct} />}
