@@ -2,6 +2,9 @@
 // so Naver/Google can index "마포구 아파트 실거래가" style searches; the app link takes visitors to the budget tools.
 import { GU, guData, nameOf, readJson, slugOf, won, pct } from "../data";
 import { buildTiers } from "../../../src/tiers.js";
+import { needFor } from "../../../src/money.js";
+import { rateNow } from "../../_data.js";
+import { SiteFooter } from "../../_ui.jsx";
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -52,6 +55,12 @@ export default function GuPage({ params }) {
   const guTier = tiers.gu.tier.get(name), dongTier = (d) => tiers.dong.tier.get(`${name} ${d}`);
   const [p3, p12] = [g.p3, g.p12];
   const idx = GU.findIndex(([n]) => n === name);
+  // where this 구 sits among the 25 (rank 1 = highest)
+  const all = GU.map(([n]) => guData(n));
+  const rank = (f) => { const v = f({ g, sum }); if (v == null) return null; return all.map(f).filter((x) => x != null && x > v).length + 1; };
+  const p84 = (r) => r.sum.median_84_10k ?? r.g.p6?.p84, chgs = all.map((r) => r.g.p12?.chg).filter((v) => v != null).sort((a, b) => a - b);
+  const midChg = chgs[Math.floor(chgs.length / 2)], r84 = rank(p84), rJeonse = rank((r) => r.sum.jeonse_ratio_pct), rVol = rank((r) => r.g.p12?.n);
+  const rate = rateNow(), need = p84({ g, sum }) ? needFor(p84({ g, sum }), rate.pct, true) : null;
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8">
       <nav className="text-small text-default-500"><a href="/" className="text-primary">서울 내집마련 전략판</a> › <a href="/gu/" className="text-primary">구별 시세</a> › {name}</nav>
@@ -73,6 +82,12 @@ export default function GuPage({ params }) {
         실거래 평당가로 본 {name} 평균은 <a href="/tiers/" className="font-semibold text-primary">{guTier}급지</a>
         {(() => { const ts = dongs.map((d) => dongTier(d.dong)).filter(Boolean), lo = Math.min(...ts), hi = Math.max(...ts);
           return !ts.length ? " 수준입니다." : lo === hi ? ` 수준이고, 동별로도 모두 ${lo}급지입니다.` : ` 수준이고, 동별로는 ${lo}~${hi}급지로 나뉩니다.`; })()}
+      </p>
+
+      <p className="leading-relaxed text-default-700">
+        서울 25개 구와 비교하면 {name}의 84㎡ 중위가는 {r84}번째로 높고, 1년 거래량은 {rVol}번째로 많습니다.
+        {p12.chg != null && midChg != null ? ` 1년 가격 변화(${pct(p12.chg)})는 25개 구의 중간값(${pct(midChg)})보다 ${p12.chg > midChg ? "높아 서울 평균보다 빠르게 오른 편" : p12.chg < midChg ? "낮아 서울 평균보다 덜 오른 편" : "같은 수준"}입니다.` : ""}
+        {sum.jeonse_ratio_pct != null ? ` 전세가율은 ${sum.jeonse_ratio_pct}%로 25개 구 중 ${rJeonse}번째로 높습니다. 전세가율이 높을수록 매매가와 전세가의 차이가 작습니다.` : ""}
       </p>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -117,6 +132,18 @@ export default function GuPage({ params }) {
         </Card>
       )}
 
+      {need && (
+        <Card title={`${name} 84㎡ 중위가를 사려면 (추정)`}>
+          <p className="text-small leading-relaxed text-default-600">
+            {won(need.P)}짜리 집을 생애최초로 산다면 취득세 {won(need.acq)}와 중개보수 {won(need.fee)}가 더 들고,
+            대출은 LTV {Math.round(need.ltv * 100)}%와 주담대 한도 중 작은 {won(need.loan)}까지 가능합니다.
+            그래서 <b>현금 약 {won(need.cash)}</b>이 필요하고, 이 대출을 스트레스 DSR 40% 안에서 받으려면 <b>연소득 약 {won(need.income)}</b> 이상이어야 합니다
+            (금리 {rate.pct}%({rate.month} 주담대 평균) + 스트레스 3%p, 30년 상환 기준. 매달 상환액 약 {won(need.monthly)}).
+          </p>
+          <a href="/guide/first-home/" className="text-small text-primary underline">계산 방법 자세히 보기</a>
+        </Card>
+      )}
+
       <a href="/" className="rounded-large bg-primary px-4 py-3 text-center font-semibold text-primary-foreground">
         내 소득·모은 돈으로 {name}에서 살 수 있는 단지 찾아보기 →
       </a>
@@ -133,10 +160,7 @@ export default function GuPage({ params }) {
         </div>
       </nav>
 
-      <footer className="text-tiny text-default-400">
-        자료: 국토교통부 실거래가 공개시스템(공공데이터포털), 공동주택관리정보시스템(K-apt). 신고 기한(계약 후 30일) 때문에 최근 달은 거래가 덜 잡힙니다.
-        참고용 정보이며 투자 조언이 아닙니다. · <a href="/about/" className="underline">사이트 소개</a> · <a href="/privacy/" className="underline">개인정보처리방침</a>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

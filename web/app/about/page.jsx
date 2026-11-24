@@ -1,5 +1,6 @@
 // /about/: who runs the site, what it is for, how the numbers are made, and how to get in touch.
 import { SOURCES } from "../../src/sources.js";
+import { SiteFooter } from "../_ui.jsx";
 
 export const metadata = {
   title: "사이트 소개 · 서울 내집마련 전략판",
@@ -34,7 +35,8 @@ export default function About() {
           <li>예산 안에 드는 동네와 단지를 지도와 <a href="/tiers/" className="text-primary underline">급지 순위</a>로</li>
           <li>구·동·단지별 실거래가, 신고가·급매 의심 거래, <a href="/gu/" className="text-primary underline">구별 시세</a></li>
           <li>취득세·중개보수·재산세·대출 이자, 갈아탈 때의 양도세 추정</li>
-          <li>청약 일정, 신축 입주 예정, 재건축 진행 단계, 학교·출퇴근 거리</li>
+          <li><a href="/cheongyak/" className="text-primary underline">청약 일정</a>, <a href="/newbuild/" className="text-primary underline">신축 입주 예정</a>, <a href="/redev/" className="text-primary underline">재건축 진행 단계</a>, 학교·출퇴근 거리</li>
+          <li><a href="/budget/" className="text-primary underline">예산별로 닿는 동네</a>, <a href="/market/" className="text-primary underline">이번 달 시장 동향</a>, <a href="/guide/" className="text-primary underline">내집마련 가이드</a></li>
         </ul>
       </Section>
 
@@ -58,6 +60,7 @@ export default function About() {
       </Section>
 
       <a href="/" className="rounded-large bg-primary px-4 py-3 text-center font-semibold text-primary-foreground">내 예산으로 살 수 있는 동네 찾아보기 →</a>
+      <SiteFooter />
     </main>
   );
 }

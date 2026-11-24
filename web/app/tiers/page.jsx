@@ -2,6 +2,9 @@
 // Rebuilt on every deploy, so the cut-offs and lists follow the daily data refresh.
 import { GU, readJson, slugOf, won } from "../gu/data";
 import { buildTiers, man, median, MIN_YEAR, tierRange } from "../../src/tiers.js";
+import { needFor } from "../../src/money.js";
+import { rateNow } from "../_data.js";
+import { SiteFooter } from "../_ui.jsx";
 
 function load() {
   const ins = readJson("insights.json");
@@ -65,6 +68,26 @@ export default function TiersPage() {
         <p className="text-tiny text-default-400">84㎡·59㎡ 대략 가격은 그 급지에 속한 동들의 최근 6개월 중위가를 다시 중간값으로 낸 값입니다.</p>
       </section>
 
+      <section className="flex flex-col gap-2">
+        <h2 className="text-large font-semibold">급지별로 필요한 돈 (추정)</h2>
+        <p className="leading-relaxed text-default-700">
+          각 급지의 84㎡ 대략 가격을 생애최초로 산다고 할 때 필요한 현금과 연소득입니다. 대출은 LTV 70%와 주담대 한도 중 작은 금액,
+          연소득은 그 대출을 스트레스 DSR 40% 안에서 받을 수 있는 최소 소득입니다(금리 {rateNow().pct}% + 스트레스 3%p, 30년 상환).
+          급지를 고를 때는 &ldquo;몇 급지에 살고 싶은가&rdquo;보다 &ldquo;현금과 소득 중 무엇이 먼저 막히는가&rdquo;를 보면 목표가 분명해집니다.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-small">
+            <thead><tr className="text-default-500"><Th>급지</Th><Th>84㎡ 대략</Th><Th>대출 가능</Th><Th>필요 현금</Th><Th>필요 연소득</Th></tr></thead>
+            <tbody>
+              {tiers.filter((c) => c.m84).map((c) => { const n = needFor(c.m84, rateNow().pct, true); return (
+                <tr key={c.k} className="border-t border-default-100"><Td>{c.k}급지</Td><Td>{won(n.P)}</Td><Td>{won(n.loan)}</Td><Td>{won(n.cash)}</Td><Td>{won(n.income)}</Td></tr>
+              ); })}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-tiny text-default-400">필요 현금에는 취득세·중개보수가 들어 있습니다. 생애최초가 아니면 LTV가 40%라 필요 현금이 더 큽니다. <a href="/budget/" className="underline">예산별로 닿는 동네 보기</a></p>
+      </section>
+
       <a href="/#money" className="rounded-large bg-primary px-4 py-3 text-center font-semibold text-primary-foreground">내 소득·모은 돈으로 몇 급지까지 닿는지 계산해 보기 →</a>
 
       {tiers.map((c) => (
@@ -101,11 +124,11 @@ export default function TiersPage() {
         </div>
       </section>
 
-      <footer className="text-tiny leading-relaxed text-default-400">
+      <p className="text-tiny leading-relaxed text-default-400">
         급지는 이 사이트가 실거래가로 매긴 자체 분류이며, 부동산 커뮤니티 등에서 흔히 말하는 급지와 다를 수 있습니다. 평당가는 면적·연식이 섞인 거래 전체 기준이라
-        재건축을 앞둔 오래된 단지가 많은 동은 높게 나올 수 있고, 학군·교통·신축 여부는 반영하지 않습니다. 신고 기한(계약 후 30일) 때문에 최근 달은 거래가 덜 잡힙니다.
-        자료: 국토교통부 실거래가 공개시스템(공공데이터포털), 공동주택관리정보시스템(K-apt). 참고용 정보이며 투자 조언이 아닙니다. · <a href="/about/" className="underline">사이트 소개</a> · <a href="/privacy/" className="underline">개인정보처리방침</a>
-      </footer>
+        재건축을 앞둔 오래된 단지가 많은 동은 높게 나올 수 있고, 학군·교통·신축 여부는 반영하지 않습니다.
+      </p>
+      <SiteFooter />
     </main>
   );
 }
