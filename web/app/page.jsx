@@ -30,7 +30,7 @@ function Intro() {
         <p><b>급지는 누가 정하나요?</b> 최근 1년 실거래 평당가로 서울 법정동을 다섯 등분한 이 사이트의 자체 기준입니다. <a href="/tiers/" className="text-primary underline">급지 순위</a></p>
       </section>
       <nav className="flex flex-wrap gap-x-3 gap-y-1 text-small">
-        {NAV.map(([href, label]) => <a key={href} href={href} className="text-primary underline">{label}</a>)}
+        {NAV.map(([href, icon, label]) => <a key={href} href={href} className="text-primary underline">{icon} {label}</a>)}
       </nav>
       <p className="text-small text-default-500">자료: 국토교통부 실거래가 공개시스템, 공동주택관리정보시스템(K-apt), 건축HUB 등 공공데이터 · <a href="/about/" className="underline">사이트 소개</a> · <a href="/privacy/" className="underline">개인정보처리방침</a></p>
       <p className="text-tiny text-default-400">지도를 불러오는 중…</p>

@@ -1,10 +1,10 @@
 // /tiers/: 서울 아파트 급지 순위, the same grades as the app's 급지 기준 tab, as plain HTML for search crawlers.
 // Rebuilt on every deploy, so the cut-offs and lists follow the daily data refresh.
-import { GU, readJson, slugOf, won } from "../gu/data";
+import { readJson, slugOf, won } from "../gu/data";
 import { buildTiers, man, median, MIN_YEAR, tierRange } from "../../src/tiers.js";
 import { needFor } from "../../src/money.js";
 import { rateNow } from "../_data.js";
-import { SiteFooter } from "../_ui.jsx";
+import { asOf, Cards, Cta, Fold, Note, Page, Section, Table, TierBadge } from "../_ui.jsx";
 
 function load() {
   const ins = readJson("insights.json");
@@ -16,119 +16,70 @@ function load() {
   });
   return { t, tiers, meta: ins.meta };
 }
-const asOf = (m) => m.as_of.replace(/^(\d{4})-(\d{2})-(\d{2})$/, (_, y, mo, d) => `${y}년 ${+mo}월 ${+d}일`);
 
 export function generateMetadata() {
   const { tiers, meta } = load();
   const top = tiers[0].gus.map((g) => g.name).join("·");
   return {
     title: "서울 아파트 급지 순위 (실거래가 기준) · 서울 내집마련 전략판",
-    description: `${asOf(meta)} 기준 서울 법정동을 최근 1년 실거래 평당가로 1~5급지로 나눴습니다. 1급지 평당 ${man(tiers[0].lo)} 이상(${top}), 급지별 84㎡ 가격과 동네 목록.`,
+    description: `${asOf(meta.as_of)} 기준 서울 법정동을 최근 1년 실거래 평당가로 1~5급지로 나눴습니다. 1급지 평당 ${man(tiers[0].lo)} 이상(${top}), 급지별 84㎡ 가격과 동네 목록.`,
     alternates: { canonical: "/tiers/" },
     openGraph: { title: "서울 아파트 급지 순위 (실거래가 기준)", url: "/tiers/", type: "article" },
   };
 }
 
-const Th = ({ children }) => <th className="whitespace-nowrap py-1 pr-3 text-left font-medium">{children}</th>;
-const Td = ({ children, wrap }) => <td className={`py-1 pr-3 ${wrap ? "" : "whitespace-nowrap"}`}>{children}</td>;
+const guLink = (name) => <a href={`/gu/${slugOf(name)}/`} className="text-primary">{name}</a>;
 
 export default function TiersPage() {
-  const { t, tiers, meta } = load();
-  const guLink = (name) => <a href={`/gu/${slugOf(name)}/`} className="text-primary">{name}</a>;
+  const { t, tiers, meta } = load(), rate = rateNow();
+  const gus = [...t.gu.rows].sort((a, b) => b.ppp - a.ppp);
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-8">
-      <nav className="text-small text-default-500"><a href="/" className="text-primary">서울 내집마련 전략판</a> › 급지 순위</nav>
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">서울 아파트 급지 순위 (실거래가 기준)</h1>
-        <p className="text-small text-default-500">{asOf(meta)} 기준 · 국토교통부 실거래가 신고분 ({meta.notes.p12})</p>
-      </header>
+    <Page wide icon="🏆" crumbs={[[null, "급지 순위"]]} title="서울 아파트 급지 순위" sub={`${asOf(meta.as_of)} 기준 · 국토교통부 실거래가 (${meta.notes.p12})`}
+      lead={`흔히 말하는 '급지'를 실제 거래 가격으로 다시 매겼어요. 1년 거래 ${MIN_YEAR}건 이상인 서울 법정동 ${t.dong.rows.length}곳을 평당가 순으로 다섯 등분했고, 구는 같은 기준선에 구 평균을 대어 정했어요.`}
+      stats={tiers.slice(0, 4).map((c) => [`${c.k}급지 84㎡`, won(c.m84), `평당 ${tierRange(c)}`, c.k === 1 ? "accent" : undefined])}>
 
-      <p className="leading-relaxed text-default-700">
-        흔히 말하는 &lsquo;급지&rsquo;를 실제 거래 가격으로 다시 매겨 봤습니다. 최근 1년 아파트 매매가 {MIN_YEAR}건 이상인 서울 법정동 {t.dong.rows.length}곳을
-        3.3㎡당 실거래가(평당가) 순으로 줄 세워 똑같이 다섯 등분했고, 구는 같은 기준선에 구 전체 평균을 대어 급지를 정했습니다.
-        같은 구 안에서도 동마다 급지가 크게 다를 수 있어, 동 단위로 보는 것이 더 정확합니다.
-      </p>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="text-large font-semibold">급지별 기준</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-small">
-            <thead><tr className="text-default-500"><Th>급지</Th><Th>평당가</Th><Th>84㎡ 대략</Th><Th>59㎡ 대략</Th><Th>구 평균이 이 급지인 곳</Th></tr></thead>
-            <tbody>
-              {tiers.map((c) => (
-                <tr key={c.k} className="border-t border-default-100">
-                  <Td><a href={`#tier-${c.k}`} className="font-semibold text-primary">{c.k}급지</a></Td>
-                  <Td>{tierRange(c)}</Td><Td>{won(c.m84)}</Td><Td>{won(c.m59)}</Td>
-                  <Td wrap>{c.gus.length ? c.gus.map((g, i) => <span key={g.key}>{i ? ", " : ""}{guLink(g.name)}</span>) : "–"}</Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <Section icon="🪜" title="급지별 기준과 필요한 돈" desc={`84㎡ 대략 가격을 생애최초로 살 때 (금리 ${rate.pct}% + 스트레스 3%p, 30년)`}>
+        <div className="flex flex-col gap-2">
+          {tiers.filter((c) => c.m84).map((c) => {
+            const n = needFor(c.m84, rate.pct, true);
+            return (
+              <a key={c.k} href={`#tier-${c.k}`} className="flex flex-col gap-1 rounded-medium bg-default-50 px-3 py-2 hover:bg-default-100">
+                <span className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2"><TierBadge k={c.k} /><b>{won(c.m84)}</b><span className="text-tiny text-default-500">84㎡</span></span>
+                  <span className="text-tiny text-default-500">{c.ds.length}개 동</span>
+                </span>
+                <span className="text-tiny text-default-600">현금 <b>{won(n.cash)}</b> · 연소득 <b>{won(n.income)}</b> · 대표 구 {c.gus.slice(0, 3).map((g) => g.name).join(", ") || "–"}</span>
+              </a>
+            );
+          })}
         </div>
-        <p className="text-tiny text-default-400">84㎡·59㎡ 대략 가격은 그 급지에 속한 동들의 최근 6개월 중위가를 다시 중간값으로 낸 값입니다.</p>
-      </section>
+        <p className="text-tiny text-default-400">급지를 고를 때는 &ldquo;몇 급지에 살고 싶은가&rdquo;보다 &ldquo;현금과 소득 중 무엇이 먼저 막히는가&rdquo;를 보면 목표가 분명해져요. <a href="/budget/" className="underline">예산별 동네 보기</a></p>
+      </Section>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-large font-semibold">급지별로 필요한 돈 (추정)</h2>
-        <p className="leading-relaxed text-default-700">
-          각 급지의 84㎡ 대략 가격을 생애최초로 산다고 할 때 필요한 현금과 연소득입니다. 대출은 LTV 70%와 주담대 한도 중 작은 금액,
-          연소득은 그 대출을 스트레스 DSR 40% 안에서 받을 수 있는 최소 소득입니다(금리 {rateNow().pct}% + 스트레스 3%p, 30년 상환).
-          급지를 고를 때는 &ldquo;몇 급지에 살고 싶은가&rdquo;보다 &ldquo;현금과 소득 중 무엇이 먼저 막히는가&rdquo;를 보면 목표가 분명해집니다.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-small">
-            <thead><tr className="text-default-500"><Th>급지</Th><Th>84㎡ 대략</Th><Th>대출 가능</Th><Th>필요 현금</Th><Th>필요 연소득</Th></tr></thead>
-            <tbody>
-              {tiers.filter((c) => c.m84).map((c) => { const n = needFor(c.m84, rateNow().pct, true); return (
-                <tr key={c.k} className="border-t border-default-100"><Td>{c.k}급지</Td><Td>{won(n.P)}</Td><Td>{won(n.loan)}</Td><Td>{won(n.cash)}</Td><Td>{won(n.income)}</Td></tr>
-              ); })}
-            </tbody>
-          </table>
-        </div>
-        <p className="text-tiny text-default-400">필요 현금에는 취득세·중개보수가 들어 있습니다. 생애최초가 아니면 LTV가 40%라 필요 현금이 더 큽니다. <a href="/budget/" className="underline">예산별로 닿는 동네 보기</a></p>
-      </section>
-
-      <a href="/#money" className="rounded-large bg-primary px-4 py-3 text-center font-semibold text-primary-foreground">내 소득·모은 돈으로 몇 급지까지 닿는지 계산해 보기 →</a>
+      <Section icon="🗺" title="구별 평당가" desc="최근 1년 실거래 평당가. 오른쪽 배지는 구 평균의 급지예요.">
+        <ul className="flex flex-col gap-1.5">
+          {gus.map((g) => (
+            <li key={g.key} className="grid grid-cols-[5.5rem_1fr_auto_auto] items-center gap-2 text-small">
+              {guLink(g.name)}
+              <span className="h-3 rounded-full bg-default-100"><span className="block h-3 rounded-full bg-primary-400" style={{ width: `${(g.ppp / gus[0].ppp) * 100}%` }} /></span>
+              <span className="w-16 text-right tabular-nums">{man(g.ppp)}</span>
+              <TierBadge k={t.gu.tier.get(g.key)} />
+            </li>
+          ))}
+        </ul>
+      </Section>
 
       {tiers.map((c) => (
-        <section key={c.k} id={`tier-${c.k}`} className="flex flex-col gap-2 scroll-mt-4">
-          <h2 className="text-large font-semibold">{c.k}급지 동네 <span className="text-small font-normal text-default-500">평당 {tierRange(c)} · {c.ds.length}곳</span></h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-small">
-              <thead><tr className="text-default-500"><Th>동</Th><Th>구</Th><Th>평당가</Th><Th>84㎡ 중위가</Th><Th>59㎡ 중위가</Th><Th>1년 거래</Th></tr></thead>
-              <tbody>
-                {c.ds.map((r) => (
-                  <tr key={r.key} className="border-t border-default-100">
-                    <Td>{r.name}</Td><Td>{guLink(r.gu)}</Td><Td>{man(r.ppp)}</Td><Td>{won(r.m84)}</Td><Td>{won(r.m59)}</Td><Td>{r.n12}건</Td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <Section key={c.k} id={`tier-${c.k}`} icon={<TierBadge k={c.k} />} title={`평당 ${tierRange(c)} · ${c.ds.length}곳`}>
+          <Cards items={c.ds.slice(0, 6).map((r) => ({ title: r.name, sub: r.gu, value: won(r.m84), href: `/gu/${slugOf(r.gu)}/` }))} />
+          <Fold label={`${c.k}급지 ${c.ds.length}곳 전체 보기`}>
+            <Table head={["동", "구", "평당가", "84㎡ 중위가", "59㎡ 중위가", "1년 거래"]} rows={c.ds.map((r) => [r.name, guLink(r.gu), man(r.ppp), won(r.m84), won(r.m59), `${r.n12}건`])} />
+          </Fold>
+        </Section>
       ))}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-large font-semibold">구별 급지</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-small">
-            <thead><tr className="text-default-500"><Th>구</Th><Th>급지</Th><Th>평당가</Th><Th>84㎡ 중위가</Th><Th>1년 거래</Th></tr></thead>
-            <tbody>
-              {[...t.gu.rows].sort((a, b) => b.ppp - a.ppp).map((g) => (
-                <tr key={g.key} className="border-t border-default-100">
-                  <Td>{guLink(g.name)}</Td><Td>{t.gu.tier.get(g.key)}급지</Td><Td>{man(g.ppp)}</Td><Td>{won(g.m84)}</Td><Td>{g.n12.toLocaleString("ko-KR")}건</Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <p className="text-tiny leading-relaxed text-default-400">
-        급지는 이 사이트가 실거래가로 매긴 자체 분류이며, 부동산 커뮤니티 등에서 흔히 말하는 급지와 다를 수 있습니다. 평당가는 면적·연식이 섞인 거래 전체 기준이라
-        재건축을 앞둔 오래된 단지가 많은 동은 높게 나올 수 있고, 학군·교통·신축 여부는 반영하지 않습니다.
-      </p>
-      <SiteFooter />
-    </main>
+      <Note icon="ℹ️">급지는 이 사이트가 실거래가로 매긴 자체 분류예요. 평당가는 면적·연식이 섞인 거래 전체 기준이라 재건축을 앞둔 오래된 단지가 많은 동은 높게 나올 수 있고, 학군·교통·신축 여부는 반영하지 않아요.</Note>
+      <Cta href="/#money">내 소득·모은 돈으로 몇 급지까지 닿는지 계산하기 →</Cta>
+    </Page>
   );
 }

@@ -8,21 +8,23 @@ export const metadata = {
   alternates: { canonical: "/guide/" },
 };
 
+const ICON = { "first-home": "🔑", "stress-dsr": "📉", "buy-costs": "🧾", "capital-gains": "🔄", "deal-signals": "🚀", "jeonse-ratio": "🏠" };
+
 export default function GuideIndex() {
   return (
-    <Page crumbs={[[null, "내집마련 가이드"]]} title="내집마련 가이드" sub="예시 숫자는 이 사이트의 계산기와 매일 갱신되는 실거래가 데이터로 만듭니다.">
-      <p className="leading-relaxed text-default-700">
-        집을 처음 사려고 할 때 막히는 대출 한도, 세금, 시세 읽는 법을 정리했습니다. 글에 나오는 예시는 앱과 같은 계산식으로 다시 계산되고,
-        시세는 배포할 때마다 최신 실거래가로 바뀝니다.
-      </p>
-      <ul className="flex flex-col gap-3">
+    <Page icon="📖" crumbs={[[null, "내집마련 가이드"]]} title="내집마련 가이드" sub="예시 숫자는 앱 계산기와 매일 갱신되는 실거래가로 만들어요."
+      lead="집을 처음 살 때 막히는 대출 한도, 세금, 시세 읽는 법을 정리했어요.">
+      <div className="grid gap-2 sm:grid-cols-2">
         {GUIDES.map(([slug, title, desc]) => (
-          <li key={slug} className="rounded-large border border-default-200 p-4">
-            <a href={`/guide/${slug}/`} className="font-semibold text-primary">{title}</a>
-            <p className="text-small text-default-500">{desc}</p>
-          </li>
+          <a key={slug} href={`/guide/${slug}/`} className="flex items-start gap-3 rounded-large border border-default-200 bg-content1 p-4 hover:border-primary-300">
+            <span className="text-2xl" aria-hidden="true">{ICON[slug]}</span>
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <b className="break-keep">{title}</b>
+              <span className="break-keep text-small text-default-500">{desc}</span>
+            </span>
+          </a>
         ))}
-      </ul>
+      </div>
       <Cta>내 조건으로 바로 계산해 보기 →</Cta>
     </Page>
   );

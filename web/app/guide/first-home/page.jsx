@@ -20,12 +20,12 @@ export default function FirstHome() {
   const ex = maxPrice(20000, 6000, rate.pct, true), exNo = maxPrice(20000, 6000, rate.pct, false);
   const loans = ["p06", "p07", "p08"].map(pol).filter(Boolean);
   return (
-    <Page crumbs={[["/guide/", "내집마련 가이드"], [null, "생애최초"]]} title="생애최초로 서울 어디까지 살 수 있을까"
+    <Page icon="🔑" stats={[["연소득 6천·모은 돈 2억", won(ex.P), "생애최초 최대", "accent"], ["대출", won(ex.loan), ex.binding], ["생애최초 아니면", won(exNo.P), "LTV 40%"]]} crumbs={[["/guide/", "내집마련 가이드"], [null, "생애최초"]]} title="생애최초로 서울 어디까지 살 수 있을까"
       sub={`금리 ${rate.pct}%(${rate.month} 주담대 평균) 기준 · 동네 수는 최근 실거래가로 매일 다시 계산`}>
       <p className="leading-relaxed text-default-700">
         집값 상한은 &ldquo;모은 돈 + 받을 수 있는 대출 − 취득세·중개보수&rdquo;로 정해집니다. 어려운 부분은 대출인데, 서울에서는 세 가지 한도 중 <b>가장 작은 것</b>이 실제 대출이 됩니다.
       </p>
-      <Section title="대출을 막는 세 가지 한도">
+      <Section icon="🚧" title="대출을 막는 세 가지 한도">
         <Table head={["한도", "내용"]} rows={[
           ["LTV", pol("p02")?.value || "생애최초 70%, 그 외 40%"],
           ["주담대 한도", pol("p03")?.value || "15억 이하 6억"],
@@ -35,7 +35,7 @@ export default function FirstHome() {
           생애최초가 아니면 LTV가 40%로 내려가 최대 {won(exNo.P)}로 줄어듭니다.</p>
       </Section>
 
-      <Section title="연소득·모은 돈별 최대 집값 (생애최초)">
+      <Section icon="📋" title="연소득·모은 돈별 최대 집값 (생애최초)">
         <Table head={["연소득 \\ 모은 돈", ...CASH.map(won)]} rows={INCOMES.map((inc) => [won(inc), ...CASH.map((c) => {
           const m = maxPrice(c, inc, rate.pct, true);
           return <span key={c}>{won(m.P)}<span className="text-tiny text-default-400"> · {reach(m.P)}곳</span></span>;
@@ -44,7 +44,7 @@ export default function FirstHome() {
       </Section>
 
       {loans.length > 0 && (
-        <Section title="정책대출도 확인하세요">
+        <Section icon="🏛" title="정책대출도 확인하세요">
           <Table wrap head={["상품", "조건"]} rows={loans.map((p) => [p.item, `${p.value}${p.status === "확인" ? "" : " (확인 필요)"}`])}
             note="정책대출은 소득·집값 조건이 맞으면 금리가 낮아 같은 소득으로 더 많이 빌릴 수 있습니다. 조건은 자주 바뀌니 신청 전 주택도시기금에서 확인하세요." />
         </Section>

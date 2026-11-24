@@ -20,12 +20,12 @@ const CASES = [
 
 export default function CapitalGains() {
   return (
-    <Page crumbs={[["/guide/", "내집마련 가이드"], [null, "갈아타기 양도세"]]} title="갈아탈 때 양도세: 비과세와 12억 초과" sub="1세대 1주택을 팔고 다른 집으로 옮기는 경우">
+    <Page icon="🔄" crumbs={[["/guide/", "내집마련 가이드"], [null, "갈아타기 양도세"]]} title="갈아탈 때 양도세: 비과세와 12억 초과" sub="1세대 1주택을 팔고 다른 집으로 옮기는 경우">
       <p className="leading-relaxed text-default-700">
         지금 집을 팔아 더 좋은 동네로 갈아탈 계획이라면, 판 돈에서 대출과 세금을 빼고 실제로 손에 남는 돈이 다음 집 예산이 됩니다. 그중 양도세는 보유·거주 기간에 따라
         0원이 되기도 하고 수억 원이 되기도 해서, 파는 시점을 정할 때 가장 먼저 확인해야 합니다.
       </p>
-      <Section title="기본 규칙">
+      <Section icon="📐" title="기본 규칙">
         <ul className="list-disc pl-5">
           <li><b>1세대 1주택 비과세:</b> 2년 이상 보유하면 양도세가 없습니다. 살 때 그 지역이 조정대상지역이었다면 2년 이상 거주도 해야 합니다.</li>
           <li><b>12억 초과분:</b> 비과세 요건을 채워도 판 가격이 12억을 넘으면, 차익 중 12억을 넘는 비율만큼은 과세됩니다.</li>
@@ -35,7 +35,7 @@ export default function CapitalGains() {
         </ul>
         <p className="text-small text-default-600">서울은 2017년 8월~2022년 12월과 2025년 10월 이후 전 지역이 조정대상지역이고, 2023년 1월~2025년 9월에는 강남·서초·송파·용산만 해당됩니다. 산 달에 따라 거주 요건이 갈립니다.</p>
       </Section>
-      <Section title="계산 예시">
+      <Section icon="🧮" title="계산 예시">
         <Table wrap head={["경우", "차익(경비 뺀 뒤)", "양도세(지방세 포함)", "왜"]} rows={CASES.map(([d, cost, sale, hold, lived, need]) => {
           const t = gainTax(sale, cost, hold, lived, need);
           return [d, won(t.gain), <b key="t">{t.total ? won(t.total) : "0원"}</b>, <span key="n" className="whitespace-normal">{t.note}</span>];
