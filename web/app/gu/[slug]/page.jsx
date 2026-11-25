@@ -17,7 +17,7 @@ export function generateMetadata({ params }) {
   const p = g.p12;
   return {
     title: `${name} 아파트 실거래가·시세 · 서울 내집마련 전략판`,
-    description: `${name} 아파트 최근 6개월 실거래 기준 84㎡ 중위가 ${won(sum.median_84_10k ?? g.p6.p84)}, 59㎡ ${won(sum.median_59_10k)}, 최근 1년 거래 ${p.n.toLocaleString("ko-KR")}건. 동별·단지별 거래와 최근 신고가·급매를 국토교통부 실거래가로 정리했습니다.`,
+    description: `${name} 집값, 지금 얼마일까요? ${name} 아파트 최근 6개월 실거래 기준 84㎡ 중위가 ${won(sum.median_84_10k ?? g.p6.p84)}, 59㎡ ${won(sum.median_59_10k)}, 최근 1년 거래 ${p.n.toLocaleString("ko-KR")}건, 1년 가격 변화 ${pct(p.chg)}. 동별·단지별 시세와 최근 신고가·급매 등 ${name} 부동산 흐름을 국토교통부 실거래가로 정리했습니다.`,
     alternates: { canonical: `/gu/${params.slug}/` },
     openGraph: { title: `${name} 아파트 실거래가·시세`, url: `/gu/${params.slug}/`, type: "article" },
   };
@@ -49,7 +49,7 @@ export default function GuPage({ params }) {
   const midChg = chgs[Math.floor(chgs.length / 2)], r84 = rank(p84), rJeonse = rank((r) => r.sum.jeonse_ratio_pct), rVol = rank((r) => r.g.p12?.n);
   const rate = rateNow(), need = p84({ g, sum }) ? needFor(p84({ g, sum }), rate.pct, true) : null;
   const ts = dongs.map((d) => dongTier(d.dong)).filter(Boolean), lo = Math.min(...ts), hi = Math.max(...ts);
-  const lead = `최근 1년 아파트 매매 ${p12.n.toLocaleString("ko-KR")}건. 84㎡ 중위가는 서울 25개 구 중 ${r84}번째로 높고, 1년 가격 변화(${pct(p12.chg)})는 25개 구 중간값(${pct(midChg)})보다 ${p12.chg > midChg ? "높아요" : p12.chg < midChg ? "낮아요" : "같아요"}.`
+  const lead = `${name} 집값(아파트 시세) 요약: 최근 1년 아파트 매매 ${p12.n.toLocaleString("ko-KR")}건. 84㎡ 중위가는 서울 25개 구 중 ${r84}번째로 높고, 1년 가격 변화(${pct(p12.chg)})는 25개 구 중간값(${pct(midChg)})보다 ${p12.chg > midChg ? "높아요" : p12.chg < midChg ? "낮아요" : "같아요"}.`
     + (ts.length ? ` 동별로는 ${lo === hi ? `모두 ${lo}급지` : `${lo}~${hi}급지`}로 나뉘어요.` : "");
   return (
     <Page wide icon="🏙" crumbs={[["/gu/", "구별 시세"], [null, name]]} title={`${name} 아파트 실거래가·시세`} sub={`${asOf(meta.as_of)} 기준 · 국토교통부 실거래가 (${meta.notes.p12})`}
